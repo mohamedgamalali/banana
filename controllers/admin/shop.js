@@ -139,7 +139,7 @@ exports.postEditProduct = async (req, res, next) => {
         product.category = category;
 
         if (imageUrl.length > 0) {
-            deleteFile.deleteFile(path.join(__dirname+'/../../'+product.imageUrl));
+            deleteFile.deleteFile(path.join(__dirname + '/../../' + product.imageUrl));
             product.imageUrl = imageUrl[0].path;
         }
 
@@ -148,16 +148,52 @@ exports.postEditProduct = async (req, res, next) => {
         res.status(200).json({
             state: 1,
             data: {
-                product:editedProduct
+                product: editedProduct
             },
             message: 'product edited'
         });
 
     } catch (err) {
-        console.log(err);
-        if (imageUrl.length > 0 && creaated == false) {
-            deleteFile.deleteFile(imageUrl[0].path);
+        if (!err.statusCode) {
+            err.statusCode = 500;
         }
+        next(err);
+    }
+};
+
+exports.deleteProduct = async (req, res, next) => {
+
+    const productId = req.body.productId;
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+        if(!Array.isArray(productId)){
+            const error = new Error(`productId must be array of IDs`);
+            error.statusCode = 422;
+            throw error;
+        }
+        const product = await Products.find({_id:{$in:productId}});
+        if (product.length!=productId.length) {
+            const error = new Error(`products not found`);
+            error.statusCode = 404;
+            throw error;
+        }
+        product.forEach(p=>{
+            deleteFile.deleteFile(path.join(__dirname + '/../../' + p.imageUrl));
+        });
+
+        await Products.deleteMany({_id:{$in:productId}});
+
+        res.status(200).json({
+            state:1,
+            message:`${productId.length} items deleted`,
+        });
+        
+    } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
         }

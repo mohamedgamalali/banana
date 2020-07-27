@@ -33,4 +33,9 @@ router.post('/product/edit',[
     .not().isEmpty(),
 ],isAuth,shopController.postEditProduct);
 
+router.delete('/product/delete',[
+    body('productId')
+    .not().isEmpty(),
+],isAuth,shopController.deleteProduct);
+
 module.exports = router;
