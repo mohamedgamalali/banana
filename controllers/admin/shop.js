@@ -1,7 +1,7 @@
 const { validationResult } = require("express-validator");
 const path = require("path");
 
-
+const deleteFile = require("../../helpers/file");
 const Admin = require("../../models/admin");
 const Products = require("../../models/products");
 
@@ -66,6 +66,7 @@ exports.putProduct = async (req, res, next) => {
     const productType = req.body.productType;
     const category = req.body.category;
     const errors = validationResult(req);
+    let creaated = false;
 
     try {
         if (!errors.isEmpty()) {
@@ -91,7 +92,7 @@ exports.putProduct = async (req, res, next) => {
             imageUrl:imageUrl[0].path
         });
         const product = await newProduct.save();
-
+        creaated = true ;
         res.status(201).json({
             state:1,
             data:{
@@ -101,6 +102,9 @@ exports.putProduct = async (req, res, next) => {
         })
 
     } catch (err) {
+        if(imageUrl.length>0 && creaated == false){
+            deleteFile.deleteFile(imageUrl[0].path);
+        }
         if (!err.statusCode) {
             err.statusCode = 500;
         }
