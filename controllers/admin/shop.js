@@ -66,7 +66,6 @@ exports.putProduct = async (req, res, next) => {
     const productType = req.body.productType;
     const category = req.body.category;
     const errors = validationResult(req);
-    let creaated = false;
 
     try {
         if (!errors.isEmpty()) {
@@ -74,35 +73,89 @@ exports.putProduct = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
-        if(category!='F-V'&& category!='B'&& category!='F-M' && category!='F'){
+        if (category != 'F-V' && category != 'B' && category != 'F-M' && category != 'F') {
             const error = new Error(`invalid category input`);
             error.statusCode = 422;
             throw error;
         }
-        if(imageUrl.length==0){
+        if (imageUrl.length == 0) {
             const error = new Error(`validation faild for imageUrl you must insert image`);
             error.statusCode = 422;
             throw error;
         }
         const newProduct = new Products({
-            category:category,
-            name_en:name_en,
-            name_ar:name_ar,
-            productType:productType,
-            imageUrl:imageUrl[0].path
+            category: category,
+            name_en: name_en,
+            name_ar: name_ar,
+            productType: productType,
+            imageUrl: imageUrl[0].path
         });
         const product = await newProduct.save();
-        creaated = true ;
         res.status(201).json({
-            state:1,
-            data:{
-                product:product
+            state: 1,
+            data: {
+                product: product
             },
-            message:'product created'
+            message: 'product created'
         })
 
     } catch (err) {
-        if(imageUrl.length>0 && creaated == false){
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+exports.postEditProduct = async (req, res, next) => {
+    const imageUrl = req.files;
+    const name_en = req.body.nameEn;
+    const name_ar = req.body.nameAr;
+    const productType = req.body.productType;
+    const category = req.body.category;
+    const productId = req.body.productId;
+    const errors = validationResult(req);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+        if (category != 'F-V' && category != 'B' && category != 'F-M' && category != 'F') {
+            const error = new Error(`invalid category input`);
+            error.statusCode = 422;
+            throw error;
+        }
+        const product = await Products.findById(productId);
+        if (!product) {
+            const error = new Error(`product not found`);
+            error.statusCode = 404;
+            throw error;
+        }
+        product.name_ar = name_ar;
+        product.name_en = name_en;
+        product.productType = productType;
+        product.category = category;
+
+        if (imageUrl.length > 0) {
+            deleteFile.deleteFile(path.join(__dirname+'/../../'+product.imageUrl));
+            product.imageUrl = imageUrl[0].path;
+        }
+
+        const editedProduct = await product.save();
+
+        res.status(200).json({
+            state: 1,
+            data: {
+                product:editedProduct
+            },
+            message: 'product edited'
+        });
+
+    } catch (err) {
+        console.log(err);
+        if (imageUrl.length > 0 && creaated == false) {
             deleteFile.deleteFile(imageUrl[0].path);
         }
         if (!err.statusCode) {

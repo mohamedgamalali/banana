@@ -18,6 +18,19 @@ router.put('/product',[
     .not().isEmpty(),
     body('category')
     .not().isEmpty(),
-],isAuth,shopController.putProduct);                     
+],isAuth,shopController.putProduct);  
+
+router.post('/product/edit',[
+    body('productId')
+    .not().isEmpty(),
+    body('nameEn')
+    .not().isEmpty(),
+    body('nameAr')
+    .not().isEmpty(),
+    body('productType')
+    .not().isEmpty(),
+    body('category')
+    .not().isEmpty(),
+],isAuth,shopController.postEditProduct);
 
 module.exports = router;

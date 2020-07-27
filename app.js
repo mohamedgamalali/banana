@@ -64,7 +64,6 @@ app.use('/admin', router.admin.auth, router.admin.shop);
 app.use((error, req, res, next) => {
     const status = error.statusCode || 500;
     const message = error.message;
-
     res.status(status).json({ state: 0, message: message });
 });
 
