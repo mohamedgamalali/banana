@@ -15,33 +15,31 @@ const port = process.env.PORT || 8080;
 
 //multer
 const fileStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'images');
+    destination:(req,file,cb)=>{
+      cb(null,'images');
     },
-    filename: (req, file, cb) => {
-        cb(null, new Date().toISOString() + '-' + file.originalname);
+    filename:(req,file,cb)=>{
+      cb(null,new Date().toISOString()+'-' + file.originalname);
     }
-});
-
-
-
-
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype === 'image/png' ||
-        file.mimetype === 'image/jpg' ||
-        file.mimetype === 'image/jpeg') {
-        cb(null, true);
-    } else {
-        cb(null, false);
+  });
+  
+  const fileFilter = (req,file,cb)=>{
+    if(file.mimetype==='image/png'||
+    file.mimetype==='image/jpg' ||
+    file.mimetype==='image/jpeg' ){
+        cb(null,true);
+    }else {
+      cb(null,false);
     }
-}
+  }
+  
 
 //meddleWere
 app.use(bodyParser.json());
 
 //multer meddlewere
-app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).array('image'));
-app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use(multer({storage:fileStorage,fileFilter:fileFilter}).array('image'));
+app.use('/images',express.static(path.join(__dirname,'images')))
 
 //headers meddlewere
 app.use((req, res, next) => {

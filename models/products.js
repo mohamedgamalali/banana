@@ -23,6 +23,10 @@ const productSchema = new schema({
     orders:{
         type:Number,
         default:0
+    },
+    imageUrl:{
+        type:String,
+        required:true
     }
 },{timestamps:true});
 
