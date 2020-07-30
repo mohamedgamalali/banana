@@ -34,6 +34,7 @@ const clientSchema = new schema({
         },
         unit: {
             type: String,
+            enum: ['kg', 'g', 'grain', 'Liter', 'Gallon', 'drzn','bag'],
             required: true
         }
     }],
@@ -44,10 +45,40 @@ const clientSchema = new schema({
     FCMJwt: [{
         type: String
     }],
-    sendNotfication:{
-        type:Boolean,
-        default:true
+    sendNotfication: {
+        type: Boolean,
+        default: true
     },
 });
+
+clientSchema.methods.addToCart = function (prodductId, amount, unit) {
+    const CreatedBerore = this.cart.findIndex(val => {
+        return val.product.toString() === prodductId.toString() && unit === val.unit;
+    });
+
+    let newAmount = 1;
+    const updatedCartItems = [...this.cart];
+
+    if (CreatedBerore >= 0) {
+            newAmount = this.cart[CreatedBerore].amount + amount;
+            updatedCartItems[CreatedBerore].amount = newAmount;
+    } else {
+        updatedCartItems.push({
+            product: prodductId,
+            amount: amount,
+            unit: unit,
+        });
+    }
+    this.cart = updatedCartItems;
+    return this.save();
+}
+
+clientSchema.methods.removeFromCart = function (cartItemId) {
+    const updatedCartItems = this.cart.filter(item => {
+        return item._id.toString() !== cartItemId.toString();
+    });
+    this.cart = updatedCartItems;
+    return this.save();
+};
 
 module.exports = mongoose.model('client', clientSchema);

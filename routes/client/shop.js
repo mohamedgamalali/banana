@@ -8,4 +8,19 @@ const router  = express.Router();
 
 router.get('/products/:catigoryId',isAuth,shopController.getProducts);
 
+router.post('/cart/add',[
+    body('productId')
+    .not().isEmpty(),
+    body('unit')
+    .not().isEmpty(),
+    body('amount')
+    .not().isEmpty()
+    .isNumeric(),
+],isAuth,shopController.postAddToCart);
+
+router.delete('/cart/delete',[
+    body('cartItemId')
+    .not().isEmpty(),
+],isAuth,shopController.deleteCart);
+
 module.exports = router;
