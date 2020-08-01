@@ -13,6 +13,7 @@ exports.getProducts = async (req, res, next) => {
     const sold = req.query.sold || "0";
     let totalProducts;
     let products;
+    let clientProducts;
     let find = {};
 
     try {
@@ -40,11 +41,15 @@ exports.getProducts = async (req, res, next) => {
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
         }
+        if(catigory=='F'){
+            clientProducts = await ClientProduct.find({client:req.userId});
+        }
 
 
         res.status(200).json({
             state: 1,
             data: {
+                clientProducts:clientProducts,
                 products: products
             },
             totalProducts: totalProducts,
