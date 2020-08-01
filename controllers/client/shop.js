@@ -1,9 +1,8 @@
 const { validationResult } = require('express-validator');
 
 const Products = require('../../models/products');
+const ClientProduct = require('../../models/clientProducts');
 const Client = require('../../models/client');
-const { populate } = require('../../models/products');
-const client = require('../../models/client');
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
@@ -64,6 +63,7 @@ exports.postAddToCart = async (req, res, next) => {
     const unit = req.body.unit;
     const amount = req.body.amount;
     const errors = validationResult(req);
+    const ref = 'product' ;
 
     try {
         if (!errors.isEmpty()) {
@@ -83,9 +83,7 @@ exports.postAddToCart = async (req, res, next) => {
             error.statusCode = 404;
             throw error;
         }
-        const updatedUSer = await client.addToCart(productId, Number(amount), unit);
-        product.orders += 1;
-        await product.save();
+        const updatedUSer = await client.addToCart(productId, Number(amount), unit,ref);
 
         res.status(201).json({
             state: 1,
@@ -153,6 +151,7 @@ exports.getCart = async (req, res, next) => {
             error.statusCode = 404;
             throw error;
         }
+        
         res.status(200).json({
             state: 1,
             data: {
@@ -160,6 +159,57 @@ exports.getCart = async (req, res, next) => {
             },
             message: `client's cart`
         });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postAddToCartFood = async (req, res, next) => {
+    const name = req.body.name;
+    const unit = req.body.unit;
+    const amount = req.body.amount;
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+        if (unit != 'kg' && unit != 'g' && unit != 'grain' && unit != 'Liter' && unit != 'Gallon' && unit != 'drzn' && unit != 'bag') {
+            const error = new Error(`validation faild for unit not a key`);
+            error.statusCode = 422;
+            throw error;
+        }
+        const client = await Client.findById(req.userId).select('cart');
+        
+        if(!client){
+            const error = new Error(`client not found`);
+            error.statusCode = 404;
+            throw error;
+        }
+
+        const newProduct = new ClientProduct({
+            category:'F',
+            name:name,
+            client:client._id
+        });
+
+        const product = await newProduct.save();
+
+        const updatedUSer = await client.addToCart(product._id, Number(amount), unit,'clientProducts');
+
+        res.status(201).json({
+            state:1,
+            data:{
+                cart:updatedUSer.cart
+            },
+            message:'client product added to cart'
+        })
+        
 
     } catch (err) {
         if (!err.statusCode) {

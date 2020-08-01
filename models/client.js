@@ -25,8 +25,8 @@ const clientSchema = new schema({
     },
     cart: [{
         product: {
-            type: schema.Types.ObjectId,
-            ref: 'product'
+            type: schema.Types.Mixed,
+            refPath: 'cart.path'
         },
         amount: {
             type: Number,
@@ -36,6 +36,10 @@ const clientSchema = new schema({
             type: String,
             enum: ['kg', 'g', 'grain', 'Liter', 'Gallon', 'drzn','bag'],
             required: true
+        },
+        path:{
+            type:String,
+            default:'product'
         }
     }],
     wallet: {
@@ -51,7 +55,7 @@ const clientSchema = new schema({
     },
 });
 
-clientSchema.methods.addToCart = function (prodductId, amount, unit) {
+clientSchema.methods.addToCart = function (prodductId, amount, unit,ref) {
     const CreatedBerore = this.cart.findIndex(val => {
         return val.product.toString() === prodductId.toString() && unit === val.unit;
     });
@@ -67,6 +71,7 @@ clientSchema.methods.addToCart = function (prodductId, amount, unit) {
             product: prodductId,
             amount: amount,
             unit: unit,
+            path:ref
         });
     }
     this.cart = updatedCartItems;

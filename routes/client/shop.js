@@ -18,6 +18,16 @@ router.post('/cart/add',[
     .isNumeric(),
 ],isAuth,shopController.postAddToCart);
 
+router.post('/cart/add/food',[
+    body('name')
+    .not().isEmpty(),
+    body('unit')
+    .not().isEmpty(),
+    body('amount')
+    .not().isEmpty()
+    .isNumeric(),
+],isAuth,shopController.postAddToCartFood);
+
 router.delete('/cart/delete',[
     body('cartItemId')
     .not().isEmpty(),
