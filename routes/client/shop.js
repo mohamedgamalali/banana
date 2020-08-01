@@ -23,4 +23,6 @@ router.delete('/cart/delete',[
     .not().isEmpty(),
 ],isAuth,shopController.deleteCart);
 
+router.get('/cart',isAuth,shopController.getCart);
+
 module.exports = router;

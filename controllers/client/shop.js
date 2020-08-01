@@ -2,52 +2,54 @@ const { validationResult } = require('express-validator');
 
 const Products = require('../../models/products');
 const Client = require('../../models/client');
+const { populate } = require('../../models/products');
+const client = require('../../models/client');
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
     const page = req.query.page || 1;
     const productPerPage = 10;
     const filter = req.query.filter || "0";
-    const date = req.query.date  || "0";
+    const date = req.query.date || "0";
     const sold = req.query.sold || "0";
     let totalProducts;
     let products;
     let find = {};
 
     try {
-        if(filter=='0'){
-            find = { category: catigory}
-        }else{
-            find = { category: catigory ,productType:{$in:filter} }
+        if (filter == '0') {
+            find = { category: catigory }
+        } else {
+            find = { category: catigory, productType: { $in: filter } }
         }
-        if(date=='1'&&sold=='0'){
-            totalProducts  = await Products.find(find).countDocuments();
+        if (date == '1' && sold == '0') {
+            totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
-            .sort({createdAt:-1})
-            .skip((page - 1) * productPerPage)
-            .limit(productPerPage);
-        }else if(date=='1'&&sold=='1'){
-            totalProducts  = await Products.find(find).countDocuments();
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage);
+        } else if (date == '1' && sold == '1') {
+            totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
-            .sort({createdAt:-1,orders:-1})
-            .skip((page - 1) * productPerPage)
-            .limit(productPerPage);
-        }else if(date=='0'&&sold=='1'){
-            totalProducts  = await Products.find(find).countDocuments();
+                .sort({ createdAt: -1, orders: -1 })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage);
+        } else if (date == '0' && sold == '1') {
+            totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
-            .sort({orders:-1})
-            .skip((page - 1) * productPerPage)
-            .limit(productPerPage);
+                .sort({ orders: -1 })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage);
         }
-        
+
 
         res.status(200).json({
-            state:1,
-            data:{
-                products:products
+            state: 1,
+            data: {
+                products: products
             },
-            totalProducts:totalProducts,
-            message:`products in page ${page}, filter ${filter}, date ${date} and sold ${sold}`
+            totalProducts: totalProducts,
+            message: `products in page ${page}, filter ${filter}, date ${date} and sold ${sold}`
         });
     } catch (err) {
         if (!err.statusCode) {
@@ -58,9 +60,9 @@ exports.getProducts = async (req, res, next) => {
 }
 
 exports.postAddToCart = async (req, res, next) => {
-    const productId = req.body.productId ;
-    const unit = req.body.unit ;
-    const amount = req.body.amount ;
+    const productId = req.body.productId;
+    const unit = req.body.unit;
+    const amount = req.body.amount;
     const errors = validationResult(req);
 
     try {
@@ -69,28 +71,28 @@ exports.postAddToCart = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
-        if(unit!='kg' && unit!='g'&& unit!='grain'&& unit!='Liter'&&unit!= 'Gallon'&& unit!='drzn' && unit!='bag'){
+        if (unit != 'kg' && unit != 'g' && unit != 'grain' && unit != 'Liter' && unit != 'Gallon' && unit != 'drzn' && unit != 'bag') {
             const error = new Error(`validation faild for unit not a key`);
             error.statusCode = 422;
             throw error;
         }
-        const client      = await Client.findById(req.userId).populate('cart');
-        const product     = await Products.findById(productId).select('orders');
-        if(!product){
+        const client = await Client.findById(req.userId).populate('cart');
+        const product = await Products.findById(productId).select('orders');
+        if (!product) {
             const error = new Error(`product not found`);
             error.statusCode = 404;
             throw error;
         }
-        const updatedUSer = await client.addToCart(productId,Number(amount),unit);
-        product.orders +=1 ;
+        const updatedUSer = await client.addToCart(productId, Number(amount), unit);
+        product.orders += 1;
         await product.save();
 
         res.status(201).json({
-            state:1,
-            data:{
-                cart:updatedUSer.cart
+            state: 1,
+            data: {
+                cart: updatedUSer.cart
             },
-            message:'added to cart'
+            message: 'added to cart'
         });
 
     } catch (err) {
@@ -103,7 +105,7 @@ exports.postAddToCart = async (req, res, next) => {
 
 
 exports.deleteCart = async (req, res, next) => {
-    const cartItemId = req.body.cartItemId ;
+    const cartItemId = req.body.cartItemId;
     const errors = validationResult(req);
 
     try {
@@ -113,19 +115,50 @@ exports.deleteCart = async (req, res, next) => {
             throw error;
         }
         const client = await Client.findById(req.userId).select('cart');
-        if(!client){
+        if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
             throw error;
         }
-        const updatedClient  = await client.removeFromCart(cartItemId);
+        const updatedClient = await client.removeFromCart(cartItemId);
 
         res.status(200).json({
-            state:1,
-            data:{
-                cart:updatedClient.cart
+            state: 1,
+            data: {
+                cart: updatedClient.cart
             },
-            message:'deleted form the cart'
+            message: 'deleted form the cart'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.getCart = async (req, res, next) => {
+
+
+    try {
+        const cart = await Client.findById(req.userId)
+            .select('cart')
+            .populate({
+                path: 'cart.product',
+                select: 'category name_en name_ar imageUrl'
+            });
+        if (!cart) {
+            const error = new Error(`client not found`);
+            error.statusCode = 404;
+            throw error;
+        }
+        res.status(200).json({
+            state: 1,
+            data: {
+                cart: cart
+            },
+            message: `client's cart`
         });
 
     } catch (err) {
