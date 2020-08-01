@@ -67,8 +67,10 @@ exports.postAddToCart = async (req, res, next) => {
     const productId = req.body.productId;
     const unit = req.body.unit;
     const amount = req.body.amount;
+    const newProduct = req.body.newProduct || false ;
     const errors = validationResult(req);
-    const ref = 'product' ;
+    let ref = 'product' ;
+    let product ;
 
     try {
         if (!errors.isEmpty()) {
@@ -81,8 +83,13 @@ exports.postAddToCart = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
+        if(newProduct){
+            product = await ClientProduct.findById(productId);
+            ref = 'clientProducts';
+        }else{
+            product = await Products.findById(productId);
+        }
         const client = await Client.findById(req.userId).populate('cart');
-        const product = await Products.findById(productId).select('orders');
         if (!product) {
             const error = new Error(`product not found`);
             error.statusCode = 404;
