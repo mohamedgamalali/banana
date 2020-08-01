@@ -144,7 +144,7 @@ exports.getCart = async (req, res, next) => {
             .select('cart')
             .populate({
                 path: 'cart.product',
-                select: 'category name_en name_ar imageUrl'
+                select: 'category name_en name_ar imageUrl name'
             });
         if (!cart) {
             const error = new Error(`client not found`);
