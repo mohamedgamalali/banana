@@ -33,7 +33,7 @@ exports.postSignup = async (req, res, next) => {
         });
 
         const client = await newClient.initFev();
-        res.status(201).json({ state: 1, message: 'client created', data: { clientId: client } });
+        res.status(201).json({ state: 1, message: 'client created', data: { clientId: client._id } });
 
     } catch (err) {
         if (!err.statusCode) {

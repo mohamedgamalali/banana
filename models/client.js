@@ -156,4 +156,34 @@ clientSchema.methods.addFevList = function (listName) {
     return this.save()
 };
 
+clientSchema.methods.deleteFev = function (productId, listId = 'general') {
+    if (listId == 'general') {
+        const index = this.fevProducts.findIndex(val => {
+            return val.list.neme == null;
+        });
+
+        const updatedFevItems = this.fevProducts[index].list.product.filter(item => {
+            return item.toString() !== productId.toString();
+        });
+        this.fevProducts[index].list.product = updatedFevItems;
+        return this.save();
+    } else {
+        const index = this.fevProducts.findIndex(val => {
+            return val._id.toString() === listId.toString();
+        });
+        if (index == -1) {
+            const error = new Error(`list not found`);
+            error.statusCode = 404;
+            throw error;
+        }
+
+        const updatedFevItems = this.fevProducts[index].list.product.filter(item => {
+            return item.toString() !== productId.toString();
+        });
+        this.fevProducts[index].list.product = updatedFevItems;
+        return this.save();
+    }
+
+};
+
 module.exports = mongoose.model('client', clientSchema);

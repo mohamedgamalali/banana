@@ -306,3 +306,34 @@ exports.postAddFevList = async (req, res, next) => {
         next(err);
     }
 }
+
+
+exports.deleteFev = async (req, res, next) => {
+    const productId = req.body.productId;
+    const listId    = req.body.listId;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+        
+        const client = await Client.findById(req.userId).select('fevProducts');
+        const updatedClient = await client.deleteFev(productId,listId);
+        res.status(200).json({
+            state:1,
+            data:{
+                client:updatedClient.fevProducts
+            },
+            message:"deleted"
+        })
+        
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
