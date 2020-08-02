@@ -29,9 +29,11 @@ exports.postSignup = async (req, res, next) => {
             name: name,
             mobile: mobile,
             password: hashedPass,
+            fevProducts:[],
         });
+        //await newClient.initFev();
         const client = await newClient.save();
-        res.status(201).json({ state: 1, message: 'client created', data: { clientId: client._id } });
+        res.status(201).json({ state: 1, message: 'client created', data: { clientId: client } });
 
     } catch (err) {
         if (!err.statusCode) {

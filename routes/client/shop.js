@@ -35,4 +35,13 @@ router.delete('/cart/delete',[
 
 router.get('/cart',isAuth,shopController.getCart);
 
+router.post('/fev',[
+    body('productId')
+    .not().isEmpty(),
+],isAuth,shopController.postAddFev);
+router.post('/fev/list',[
+    body('ListName')
+    .not().isEmpty(),
+],isAuth,shopController.postAddFevList);
+
 module.exports = router;

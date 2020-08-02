@@ -34,13 +34,24 @@ const clientSchema = new schema({
         },
         unit: {
             type: String,
-            enum: ['kg', 'g', 'grain', 'Liter', 'Gallon', 'drzn','bag'],
+            enum: ['kg', 'g', 'grain', 'Liter', 'Gallon', 'drzn', 'bag'],
             required: true
         },
-        path:{
-            type:String,
-            default:'product'
+        path: {
+            type: String,
+            default: 'product'
         }
+    }],
+    fevProducts: [{
+        list: {
+            name: {
+                type: String
+            },
+            product: [{
+                type: schema.Types.ObjectId,
+                refPath: 'product'
+            }],
+        },
     }],
     wallet: {
         type: Number,
@@ -55,7 +66,7 @@ const clientSchema = new schema({
     },
 });
 
-clientSchema.methods.addToCart = function (prodductId, amount, unit,ref) {
+clientSchema.methods.addToCart = function (prodductId, amount, unit, ref) {
     const CreatedBerore = this.cart.findIndex(val => {
         return val.product.toString() === prodductId.toString() && unit === val.unit;
     });
@@ -64,14 +75,14 @@ clientSchema.methods.addToCart = function (prodductId, amount, unit,ref) {
     const updatedCartItems = [...this.cart];
 
     if (CreatedBerore >= 0) {
-            newAmount = this.cart[CreatedBerore].amount + amount;
-            updatedCartItems[CreatedBerore].amount = newAmount;
+        newAmount = this.cart[CreatedBerore].amount + amount;
+        updatedCartItems[CreatedBerore].amount = newAmount;
     } else {
         updatedCartItems.push({
             product: prodductId,
             amount: amount,
             unit: unit,
-            path:ref
+            path: ref
         });
     }
     this.cart = updatedCartItems;
@@ -84,6 +95,65 @@ clientSchema.methods.removeFromCart = function (cartItemId) {
     });
     this.cart = updatedCartItems;
     return this.save();
+};
+
+clientSchema.methods.initFev = function () {
+    if (this.fevProducts.length == 0) {
+        const newList = {
+            list: {
+                product: []
+            }
+        };
+        this.fevProducts.push(newList);
+        return this.save();
+    }
+};
+
+clientSchema.methods.addToFev = function (productId, listId = 'general') {
+    if (listId == 'general') {
+        this.fevProducts.forEach(item => {
+            if (item.list.name == null) {
+                const CreatedBerore = item.list.product.findIndex(val => {
+                    return val.toString() === productId.toString();
+                });
+                if (CreatedBerore >= 0) {
+                    const error = new Error(`already existed`);
+                    error.statusCode = 409;
+                    throw error;
+                } else {
+                    item.list.product.push(productId);
+                }
+            }
+        });
+    } else {
+        this.fevProducts.forEach(item => {
+            if (item._id == listId) {
+                const CreatedBerore = item.list.product.findIndex(val => {
+                    return val.toString() === productId.toString();
+                });
+                if (CreatedBerore >= 0) {
+                    const error = new Error(`already existed`);
+                    error.statusCode = 409;
+                    throw error;
+                } else {
+                    item.list.product.push(productId);
+                }
+            }
+        });
+    }
+    return this.save();
+};
+
+clientSchema.methods.addFevList = function (listName) {
+    const updatedFev = this.fevProducts;
+    updatedFev.push({
+        list: {
+            name: listName,
+            product: []
+        }
+    });
+    this.fevProducts = updatedFev;
+    return this.save()
 };
 
 module.exports = mongoose.model('client', clientSchema);

@@ -41,15 +41,15 @@ exports.getProducts = async (req, res, next) => {
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
         }
-        if(catigory=='F'){
-            clientProducts = await ClientProduct.find({client:req.userId});
+        if (catigory == 'F') {
+            clientProducts = await ClientProduct.find({ client: req.userId });
         }
 
 
         res.status(200).json({
             state: 1,
             data: {
-                clientProducts:clientProducts,
+                clientProducts: clientProducts,
                 products: products
             },
             totalProducts: totalProducts,
@@ -67,10 +67,10 @@ exports.postAddToCart = async (req, res, next) => {
     const productId = req.body.productId;
     const unit = req.body.unit;
     const amount = req.body.amount;
-    const newProduct = req.body.newProduct || false ;
+    const newProduct = req.body.newProduct || false;
     const errors = validationResult(req);
-    let ref = 'product' ;
-    let product ;
+    let ref = 'product';
+    let product;
 
     try {
         if (!errors.isEmpty()) {
@@ -83,10 +83,10 @@ exports.postAddToCart = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
-        if(newProduct){
+        if (newProduct) {
             product = await ClientProduct.findById(productId);
             ref = 'clientProducts';
-        }else{
+        } else {
             product = await Products.findById(productId);
         }
         const client = await Client.findById(req.userId).populate('cart');
@@ -95,7 +95,7 @@ exports.postAddToCart = async (req, res, next) => {
             error.statusCode = 404;
             throw error;
         }
-        const updatedUSer = await client.addToCart(productId, Number(amount), unit,ref);
+        const updatedUSer = await client.addToCart(productId, Number(amount), unit, ref);
 
         res.status(201).json({
             state: 1,
@@ -163,7 +163,7 @@ exports.getCart = async (req, res, next) => {
             error.statusCode = 404;
             throw error;
         }
-        
+
         res.status(200).json({
             state: 1,
             data: {
@@ -197,32 +197,108 @@ exports.postAddToCartFood = async (req, res, next) => {
             throw error;
         }
         const client = await Client.findById(req.userId).select('cart');
-        
-        if(!client){
+
+        if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
             throw error;
         }
 
         const newProduct = new ClientProduct({
-            category:'F',
-            name:name,
-            client:client._id
+            category: 'F',
+            name: name,
+            client: client._id
         });
 
         const product = await newProduct.save();
 
-        const updatedUSer = await client.addToCart(product._id, Number(amount), unit,'clientProducts');
+        const updatedUSer = await client.addToCart(product._id, Number(amount), unit, 'clientProducts');
+
+        res.status(201).json({
+            state: 1,
+            data: {
+                cart: updatedUSer.cart
+            },
+            message: 'client product added to cart'
+        })
+
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+exports.postAddFev = async (req, res, next) => {
+    const productId = req.body.productId;
+    const listId    = req.body.listId;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+
+        const client = await Client.findById(req.userId);
+        const product = await Products.findById(productId);
+        if (!client) {
+            const error = new Error(`client not found`);
+            error.statusCode = 404;
+            throw error;
+        }
+        if (!product) {
+            const error = new Error(`product not found`);
+            error.statusCode = 404;
+            throw error;
+        }
+
+        const updatedUSer = await client.addToFev(productId,listId);
+
 
         res.status(201).json({
             state:1,
+            message:'added to fevourite'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postAddFevList = async (req, res, next) => {
+    const ListName = req.body.ListName;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+
+        const client = await Client.findById(req.userId);
+        if (!client) {
+            const error = new Error(`client not found`);
+            error.statusCode = 404;
+            throw error;
+        }
+        const updatedUser = await client.addFevList(ListName);
+        res.status(201).json({
+            state:1,
             data:{
-                cart:updatedUSer.cart
+                fevProducts:updatedUser.fevProducts
             },
-            message:'client product added to cart'
+            message:'list Created'
         })
         
-
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
