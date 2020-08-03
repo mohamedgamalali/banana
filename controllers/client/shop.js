@@ -427,6 +427,7 @@ exports.getSearch = async (req, res, next) => {
             ],
           })
         .sort({ createdAt: -1 })
+        .select('category name_en name_ar')
         .skip((page - 1) * productPerPage)
         .limit(productPerPage);
 
