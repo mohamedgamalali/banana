@@ -3,6 +3,7 @@ const { validationResult } = require('express-validator');
 const Products = require('../../models/products');
 const ClientProduct = require('../../models/clientProducts');
 const Client = require('../../models/client');
+const Order = require('../../models/order');
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
@@ -52,7 +53,7 @@ exports.getProducts = async (req, res, next) => {
                 clientProducts: clientProducts,
                 products: products
             },
-            totalProducts: totalProducts,
+            total: totalProducts,
             message: `products in page ${page}, filter ${filter}, date ${date} and sold ${sold}`
         });
     } catch (err) {
@@ -234,7 +235,7 @@ exports.postAddToCartFood = async (req, res, next) => {
 
 exports.postAddFev = async (req, res, next) => {
     const productId = req.body.productId;
-    const listId    = req.body.listId;
+    const listId = req.body.listId;
 
     const errors = validationResult(req);
     try {
@@ -257,12 +258,12 @@ exports.postAddFev = async (req, res, next) => {
             throw error;
         }
 
-        const updatedUSer = await client.addToFev(productId,listId);
+        const updatedUSer = await client.addToFev(productId, listId);
 
 
         res.status(201).json({
-            state:1,
-            message:'added to fevourite'
+            state: 1,
+            message: 'added to fevourite'
         });
 
     } catch (err) {
@@ -292,13 +293,13 @@ exports.postAddFevList = async (req, res, next) => {
         }
         const updatedUser = await client.addFevList(ListName);
         res.status(201).json({
-            state:1,
-            data:{
-                fevProducts:updatedUser.fevProducts
+            state: 1,
+            data: {
+                fevProducts: updatedUser.fevProducts
             },
-            message:'list Created'
+            message: 'list Created'
         })
-        
+
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
@@ -310,7 +311,7 @@ exports.postAddFevList = async (req, res, next) => {
 
 exports.deleteFev = async (req, res, next) => {
     const productId = req.body.productId;
-    const listId    = req.body.listId;
+    const listId = req.body.listId;
 
     const errors = validationResult(req);
     try {
@@ -319,17 +320,17 @@ exports.deleteFev = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
-        
+
         const client = await Client.findById(req.userId).select('fevProducts');
-        const updatedClient = await client.deleteFev(productId,listId);
+        const updatedClient = await client.deleteFev(productId, listId);
         res.status(200).json({
-            state:1,
-            data:{
-                client:updatedClient.fevProducts
+            state: 1,
+            data: {
+                client: updatedClient.fevProducts
             },
-            message:"deleted"
+            message: "deleted"
         })
-        
+
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
@@ -337,3 +338,112 @@ exports.deleteFev = async (req, res, next) => {
         next(err);
     }
 }
+
+exports.postAddOrder = async (req, res, next) => {
+    const long = req.body.long;
+    const lat = req.body.lat;
+    const stringAdress = req.body.stringAdress;
+    const arriveDate = req.body.arriveDate || 0;
+    let category = [];
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+        const client = await Client.findById(req.userId).select('cart').populate('cart.product');
+        if (!client) {
+            const error = new Error(`client not found`);
+            error.statusCode = 404;
+            throw error;
+        }
+        if (client.cart.length == 0) {
+            const error = new Error(`validation faild cart in empty`);
+            error.statusCode = 422;
+            throw error;
+        }
+
+        client.cart.forEach(i => {
+            category.push(i.product.category);
+        });
+
+        var uniqueCategory = category.filter((value, index, self) => {
+            return self.indexOf(value) === index;
+        });
+
+        const newOrder = new Order({
+            client: client._id,
+            category: uniqueCategory,
+            products: client.cart,
+            location: {
+                type: "Point",
+                coordinates: [long, lat]
+            },
+            stringAdress: stringAdress
+        });
+        await newOrder.save();
+
+        //clear client cart
+        client.cart = [];
+        await client.save();
+
+        res.status(201).json({
+            state: 1,
+            data: {
+                order: newOrder
+            },
+            message: "order created"
+        });
+
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.getSearch = async (req, res, next) => {
+
+    const page = req.query.page || 1;
+    const productPerPage = 10;
+    const searchQ = req.query.searchQ;
+
+    try {
+
+        const totalItems = await Products.find({
+            $or: [
+              { name_en:  new RegExp(searchQ.trim(), 'i') },
+              { name_ar:  new RegExp(searchQ.trim() , 'i') },
+            ],
+          }).countDocuments();
+        const products = await Products.find({
+            $or: [
+              { name_en:  new RegExp(searchQ.trim() , 'i') },
+              { name_ar:  new RegExp(searchQ.trim(), 'i') },
+            ],
+          })
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * productPerPage)
+        .limit(productPerPage);
+
+        res.status(200).json({
+            state: 1,
+            data: {
+                products: products
+            },
+            total: totalItems,
+            message: `products with ur search (${searchQ})`
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+

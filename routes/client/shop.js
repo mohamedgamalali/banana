@@ -6,8 +6,13 @@ const isAuth         = require('../../meddlewere/client/isAuth');
 
 const router  = express.Router();
 
+//get products
 router.get('/products/:catigoryId',isAuth,shopController.getProducts);
 
+router.get('/search/products',isAuth,shopController.getSearch);
+
+
+//cart
 router.post('/cart/add',[
     body('productId')
     .not().isEmpty(),
@@ -35,6 +40,7 @@ router.delete('/cart/delete',[
 
 router.get('/cart',isAuth,shopController.getCart);
 
+//fev products
 router.post('/fev',[
     body('productId')
     .not().isEmpty(),
@@ -50,5 +56,14 @@ router.delete('/fev',[
     .not().isEmpty(),
 ],isAuth,shopController.deleteFev);
 
+//order
+router.post('/order',[
+    body('lat')
+    .not().isEmpty(),
+    body('long')
+    .not().isEmpty(),
+    body('stringAdress')
+    .not().isEmpty(),
+],isAuth,shopController.postAddOrder);
 
 module.exports = router;
