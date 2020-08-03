@@ -127,6 +127,11 @@ exports.postEditProduct = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
+        if (Number(productType) > 13 || Number(productType) < 1 ) {
+            const error = new Error(`invalid productType input`);
+            error.statusCode = 422;
+            throw error;
+        }
         const product = await Products.findById(productId);
         if (!product) {
             const error = new Error(`product not found`);
