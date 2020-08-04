@@ -64,6 +64,47 @@ exports.getProducts = async (req, res, next) => {
     }
 }
 
+exports.getSearch = async (req, res, next) => {
+
+    const page = req.query.page || 1;
+    const productPerPage = 10;
+    const searchQ = req.query.searchQ;
+
+    try {
+
+        const totalItems = await Products.find({
+            $or: [
+              { name_en:  new RegExp(searchQ.trim(), 'i') },
+              { name_ar:  new RegExp(searchQ.trim() , 'i') },
+            ],
+          }).countDocuments();
+        const products = await Products.find({
+            $or: [
+              { name_en:  new RegExp(searchQ.trim() , 'i') },
+              { name_ar:  new RegExp(searchQ.trim(), 'i') },
+            ],
+          })
+        .sort({ createdAt: -1 })
+        .select('category name_en name_ar')
+        .skip((page - 1) * productPerPage)
+        .limit(productPerPage);
+
+        res.status(200).json({
+            state: 1,
+            data: {
+                products: products
+            },
+            total: totalItems,
+            message: `products with ur search (${searchQ})`
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
 exports.postAddToCart = async (req, res, next) => {
     const productId = req.body.productId;
     const unit = req.body.unit;
@@ -345,6 +386,7 @@ exports.postAddOrder = async (req, res, next) => {
     const stringAdress = req.body.stringAdress;
     const arriveDate = req.body.arriveDate || 0;
     let category = [];
+    let cart     = []; 
 
     const errors = validationResult(req);
     try {
@@ -367,6 +409,12 @@ exports.postAddOrder = async (req, res, next) => {
 
         client.cart.forEach(i => {
             category.push(i.product.category);
+            cart.push({
+                product: i.product._id,
+                amount: i.amount,
+                unit: i.unit,
+                path: i.path
+            })
         });
 
         var uniqueCategory = category.filter((value, index, self) => {
@@ -376,11 +424,12 @@ exports.postAddOrder = async (req, res, next) => {
         const newOrder = new Order({
             client: client._id,
             category: uniqueCategory,
-            products: client.cart,
+            products: cart,
             location: {
                 type: "Point",
                 coordinates: [long, lat]
             },
+            arriveDate:arriveDate,
             stringAdress: stringAdress
         });
         await newOrder.save();
@@ -406,45 +455,6 @@ exports.postAddOrder = async (req, res, next) => {
     }
 }
 
-exports.getSearch = async (req, res, next) => {
 
-    const page = req.query.page || 1;
-    const productPerPage = 10;
-    const searchQ = req.query.searchQ;
-
-    try {
-
-        const totalItems = await Products.find({
-            $or: [
-              { name_en:  new RegExp(searchQ.trim(), 'i') },
-              { name_ar:  new RegExp(searchQ.trim() , 'i') },
-            ],
-          }).countDocuments();
-        const products = await Products.find({
-            $or: [
-              { name_en:  new RegExp(searchQ.trim() , 'i') },
-              { name_ar:  new RegExp(searchQ.trim(), 'i') },
-            ],
-          })
-        .sort({ createdAt: -1 })
-        .select('category name_en name_ar')
-        .skip((page - 1) * productPerPage)
-        .limit(productPerPage);
-
-        res.status(200).json({
-            state: 1,
-            data: {
-                products: products
-            },
-            total: totalItems,
-            message: `products with ur search (${searchQ})`
-        });
-    } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
-    }
-}
 
 

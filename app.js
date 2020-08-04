@@ -56,7 +56,7 @@ const router = require('./routes/router');
 
 
 
-app.use('/client', router.client.auth, router.client.shop);
+app.use('/client', router.client.auth, router.client.shop,router.client.user);
 app.use('/admin', router.admin.auth, router.admin.shop);
 
 
