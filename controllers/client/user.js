@@ -8,6 +8,8 @@ exports.getOrders = async (req, res, next) => {
     try {
         const total  = await Order.find({client:req.userId,status:filter}).countDocuments();
         const orders = await Order.find({client:req.userId,status:filter})
+        .select('location stringAdress arriveDate products')
+        .populate({path:'products.product',select:'name name_en name_ar imageUrl'})
         .sort({ createdAt: -1 })
         .skip((page - 1) * productPerPage)
         .limit(productPerPage);
