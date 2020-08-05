@@ -47,9 +47,9 @@ exports.postSignup = async (req, res, next) => {
             message: 'client created and logedIn', 
             data:{
                 token: token,
-                userName: client.name,
-                userMobile: client.mobile,
-                userId: client._id
+                clientName: client.name,
+                clientMobile: client.mobile,
+                clientId: client._id
             }
         });
 
@@ -104,9 +104,9 @@ exports.postLogin = async (req, res, next) => {
             message:"logedin",
             data:{
                 token: token,
-                userName: client.name,
-                userMobile: client.mobile,
-                userId: client._id
+                clientName: client.name,
+                clientMobile: client.mobile,
+                clientId: client._id
             }
         });
 
