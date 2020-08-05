@@ -33,7 +33,25 @@ exports.postSignup = async (req, res, next) => {
         });
 
         const client = await newClient.initFev();
-        res.status(201).json({ state: 1, message: 'client created', data: { clientId: client._id } });
+
+        const token = jwt.sign(
+            {
+                mobile: client.mobile,
+                userId: client._id.toString()
+            },
+            process.env.JWT_PRIVATE_KEY_CLIENT
+        );
+
+        res.status(201).json({ 
+            state: 1, 
+            message: 'client created and logedIn', 
+            data:{
+                token: token,
+                userName: client.name,
+                userMobile: client.mobile,
+                userId: client._id
+            }
+        });
 
     } catch (err) {
         if (!err.statusCode) {

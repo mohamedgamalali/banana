@@ -9,4 +9,10 @@ const router  = express.Router();
 
 router.get('/myOrders',isAuth,userController.getOrders);
 
+router.post('/order/cancel',[
+    body('orderId')
+    .not().isEmpty(),
+],isAuth,userController.postCancelOrder);
+
+
 module.exports = router;
