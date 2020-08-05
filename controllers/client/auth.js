@@ -14,6 +14,7 @@ exports.postSignup = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
+            error.state = 5;
             throw error;
         }
 
@@ -22,6 +23,7 @@ exports.postSignup = async (req, res, next) => {
         if (checkClient) {
             const error = new Error(`This user is already registered`);
             error.statusCode = 409;
+            error.state = 6;
             throw error;
         }
         const hashedPass = await bycript.hash(password, 12);
@@ -77,12 +79,14 @@ exports.postLogin = async (req, res, next) => {
         if (!client) {
             const error = new Error(`Client not found`);
             error.statusCode = 404;
+            error.state = 7;
             throw error;
         }
         const isEqual = await bycript.compare(password, client.password);
         if (!isEqual) {
             const error = new Error('wrong password');
             error.statusCode = 401;
+            error.state = 8;
             throw error;
         }
         if (client.blocked == true) {

@@ -1,0 +1,13 @@
+    1=> "success",
+    2=> "not authrized",
+    3=> "user not found",
+    4=> "client have been blocked",
+    5=> "validation faild",
+    //signup
+    6=> "This user is already registered"
+    //login
+    7=> "Client not found"
+    8=> "wrong password"
+    9=> "wrong password"
+
+

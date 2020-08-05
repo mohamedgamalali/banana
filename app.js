@@ -52,7 +52,8 @@ app.use((req, res, next) => {
 });
 
 //routes
-const router = require('./routes/router');
+const router          = require('./routes/router');
+const erorrMeddlewere = require('./helpers/errors');
 
 
 
@@ -61,11 +62,8 @@ app.use('/admin', router.admin.auth, router.admin.shop);
 
 
 //error handle meddlewere
-app.use((error, req, res, next) => {
-    const status = error.statusCode || 500;
-    const message = error.message;
-    res.status(status).json({ state: 0, message: message });
-});
+app.use(erorrMeddlewere);
+
 
 mongoose
     .connect(
