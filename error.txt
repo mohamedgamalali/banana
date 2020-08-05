@@ -1,3 +1,5 @@
+    //client
+
     1=> "success",
     2=> "not authrized",
     3=> "user not found",
@@ -8,6 +10,12 @@
     //login
     7=> "Client not found"
     8=> "wrong password"
-    9=> "wrong password"
+    //shop
+    9=> "not found for order or product ....."
+    10=> "cart is empty when u add as order"
+    //cancel order
+    11=> "you are not the order owner!! (in cancel order)"
+    12=> "the order status != started ()"
+
 
 

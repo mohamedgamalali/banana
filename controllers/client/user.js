@@ -39,16 +39,19 @@ exports.postCancelOrder = async (req, res, next) => {
         if (!order) {
             const error = new Error(`order not found`);
             error.statusCode = 404;
+            error.state      = 9  ;
             throw error;
         }
         if (order.client.toString()!==req.userId.toString()) {
             const error = new Error('you are not the order owner!!');
             error.statusCode = 403;
+            error.state      = 11 ;
             throw error;
         }
         if(order.status!='started'){
             const error = new Error('the order status != started');
-            error.statusCode = 403;
+            error.statusCode = 409;
+            error.state      = 12 ;
             throw error;
         }
         await order.cancelOrder();

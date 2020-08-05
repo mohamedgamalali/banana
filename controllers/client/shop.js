@@ -118,11 +118,13 @@ exports.postAddToCart = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
+            error.state      = 5 ;
             throw error;
         }
         if (unit != 'kg' && unit != 'g' && unit != 'grain' && unit != 'Liter' && unit != 'Gallon' && unit != 'drzn' && unit != 'bag') {
             const error = new Error(`validation faild for unit not a key`);
             error.statusCode = 422;
+            error.state      = 5 ;
             throw error;
         }
         if (newProduct) {
@@ -135,6 +137,7 @@ exports.postAddToCart = async (req, res, next) => {
         if (!product) {
             const error = new Error(`product not found`);
             error.statusCode = 404;
+            error.state      = 9 ;
             throw error;
         }
         const updatedUSer = await client.addToCart(productId, Number(amount), unit, ref);
@@ -164,12 +167,14 @@ exports.deleteCart = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
+            error.state      = 5 ;
             throw error;
         }
         const client = await Client.findById(req.userId).select('cart');
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
+            error.state      = 3 ;
             throw error;
         }
         const updatedClient = await client.removeFromCart(cartItemId);
@@ -203,6 +208,7 @@ exports.getCart = async (req, res, next) => {
         if (!cart) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
+            error.state      = 3 ;
             throw error;
         }
 
@@ -231,11 +237,13 @@ exports.postAddToCartFood = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
+            error.state      = 5 ;
             throw error;
         }
         if (unit != 'kg' && unit != 'g' && unit != 'grain' && unit != 'Liter' && unit != 'Gallon' && unit != 'drzn' && unit != 'bag') {
             const error = new Error(`validation faild for unit not a key`);
             error.statusCode = 422;
+            error.state      = 5 ;
             throw error;
         }
         const client = await Client.findById(req.userId).select('cart');
@@ -243,6 +251,7 @@ exports.postAddToCartFood = async (req, res, next) => {
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
+            error.state      = 3 ;
             throw error;
         }
 
@@ -283,6 +292,7 @@ exports.postAddFev = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
+            error.state      = 5 ;
             throw error;
         }
 
@@ -291,15 +301,17 @@ exports.postAddFev = async (req, res, next) => {
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
+            error.state      = 3 ;
             throw error;
         }
         if (!product) {
             const error = new Error(`product not found`);
             error.statusCode = 404;
+            error.state      = 9 ;
             throw error;
         }
 
-        const updatedUSer = await client.addToFev(productId, listId);
+        await client.addToFev(productId, listId);
 
 
         res.status(201).json({
@@ -323,6 +335,7 @@ exports.postAddFevList = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
+            error.state      = 5 ;
             throw error;
         }
 
@@ -330,6 +343,7 @@ exports.postAddFevList = async (req, res, next) => {
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
+            error.state      = 3 ;
             throw error;
         }
         const updatedUser = await client.addFevList(ListName);
@@ -359,6 +373,7 @@ exports.deleteFev = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
+            error.state      = 5 ;
             throw error;
         }
 
@@ -393,17 +408,20 @@ exports.postAddOrder = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
+            error.state      = 5 ;
             throw error;
         }
         const client = await Client.findById(req.userId).select('cart').populate('cart.product');
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
+            error.state      = 3 ;
             throw error;
         }
         if (client.cart.length == 0) {
             const error = new Error(`validation faild cart in empty`);
             error.statusCode = 422;
+            error.state      = 10 ;
             throw error;
         }
 
