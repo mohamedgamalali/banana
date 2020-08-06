@@ -9,16 +9,15 @@ exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
     const page = req.query.page || 1;
     const productPerPage = 10;
-    const filter = req.query.filter || "0";
+    const filter = req.body.filter || false;
     const date = req.query.date || "0";
     const sold = req.query.sold || "0";
     let totalProducts;
     let products;
-    let clientProducts;
     let find = {};
 
     try {
-        if (filter == '0') {
+        if (!filter) {
             find = { category: catigory }
         } else {
             find = { category: catigory, productType: { $in: filter } }
@@ -42,17 +41,11 @@ exports.getProducts = async (req, res, next) => {
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
         }
-        if (catigory == 'F') {
-            clientProducts = await ClientProduct.find({ client: req.userId });
-        }
 
 
         res.status(200).json({
             state: 1,
-            data: {
-                clientProducts: clientProducts,
-                products: products
-            },
+            data: products,
             total: totalProducts,
             message: `products in page ${page}, filter ${filter}, date ${date} and sold ${sold}`
         });
@@ -91,9 +84,7 @@ exports.getSearch = async (req, res, next) => {
 
         res.status(200).json({
             state: 1,
-            data: {
-                products: products
-            },
+            data: products,
             total: totalItems,
             message: `products with ur search (${searchQ})`
         });
