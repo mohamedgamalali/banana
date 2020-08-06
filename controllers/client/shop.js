@@ -140,9 +140,7 @@ exports.postAddToCart = async (req, res, next) => {
 
         res.status(201).json({
             state: 1,
-            data: {
-                cart: updatedUSer.cart
-            },
+            data: updatedUSer.cart,
             message: 'added to cart'
         });
 
