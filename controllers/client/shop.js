@@ -175,9 +175,7 @@ exports.deleteCart = async (req, res, next) => {
 
         res.status(200).json({
             state: 1,
-            data: {
-                cart: updatedClient.cart
-            },
+            data: updatedClient.cart,
             message: 'deleted form the cart'
         });
 
@@ -208,9 +206,7 @@ exports.getCart = async (req, res, next) => {
 
         res.status(200).json({
             state: 1,
-            data: {
-                cart: cart
-            },
+            data: cart,
             message: `client's cart`
         });
 
