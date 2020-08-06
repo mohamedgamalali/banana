@@ -38,4 +38,6 @@ router.delete('/product/delete',[
     .not().isEmpty(),
 ],isAuth,shopController.deleteProduct);
 
+router.get('/product/single/:id',isAuth,shopController.getSingleProduct);
+
 module.exports = router;
