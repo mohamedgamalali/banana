@@ -257,9 +257,7 @@ exports.postAddToCartFood = async (req, res, next) => {
 
         res.status(201).json({
             state: 1,
-            data: {
-                cart: updatedUSer.cart
-            },
+            data: updatedUSer.cart,
             message: 'client product added to cart'
         })
 
@@ -339,9 +337,7 @@ exports.postAddFevList = async (req, res, next) => {
         const updatedUser = await client.addFevList(ListName);
         res.status(201).json({
             state: 1,
-            data: {
-                fevProducts: updatedUser.fevProducts
-            },
+            data: updatedUser.fevProducts,
             message: 'list Created'
         })
 
@@ -371,9 +367,7 @@ exports.deleteFev = async (req, res, next) => {
         const updatedClient = await client.deleteFev(productId, listId);
         res.status(200).json({
             state: 1,
-            data: {
-                client: updatedClient.fevProducts
-            },
+            data: updatedClient.fevProducts,
             message: "deleted"
         })
 
@@ -448,9 +442,7 @@ exports.postAddOrder = async (req, res, next) => {
 
         res.status(201).json({
             state: 1,
-            data: {
-                order: newOrder
-            },
+            data: newOrder,
             message: "order created"
         });
 

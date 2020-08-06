@@ -17,9 +17,7 @@ exports.getOrders = async (req, res, next) => {
 
         res.status(200).json({
             state:1,
-            data:{
-                orders:orders
-            },
+            data:orders,
             total:total,
             message:`orders in page ${page} sortder by date with filter ${filter}`
         });
@@ -83,9 +81,7 @@ exports.getMyFevList = async (req, res, next) => {
 
         res.status(200).json({
             state:1,
-            data:{
-                lists:list 
-            },
+            data:list,
             message:'client fev lists'
         });
 
@@ -117,9 +113,7 @@ exports.getMyfevProducts = async (req, res, next) => {
         .select('category name_en name_ar productType imageUrl');
         res.status(200).json({
             state:1,
-            data:{
-                products:products
-            },
+            data:products,
             message:`products in list ${listId}`
         });
 
