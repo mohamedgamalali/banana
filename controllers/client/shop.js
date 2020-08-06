@@ -65,16 +65,19 @@ exports.getSearch = async (req, res, next) => {
     const page = req.query.page || 1;
     const productPerPage = 10;
     const searchQ = req.query.searchQ;
+    const category = req.params.catigoryId;
 
     try {
 
         const totalItems = await Products.find({
+            category:category,
             $or: [
               { name_en:  new RegExp(searchQ.trim(), 'i') },
               { name_ar:  new RegExp(searchQ.trim() , 'i') },
             ],
           }).countDocuments();
         const products = await Products.find({
+            category:category,
             $or: [
               { name_en:  new RegExp(searchQ.trim() , 'i') },
               { name_ar:  new RegExp(searchQ.trim(), 'i') },

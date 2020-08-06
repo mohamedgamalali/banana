@@ -9,7 +9,7 @@ const router  = express.Router();
 //get products
 router.get('/products/:catigoryId',isAuth,shopController.getProducts);
 
-router.get('/search/products',isAuth,shopController.getSearch);
+router.get('/search/products/:catigoryId',isAuth,shopController.getSearch);
 
 
 //cart
