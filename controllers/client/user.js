@@ -1,5 +1,6 @@
 const Client = require('../../models/client');
 const Order = require('../../models/order');
+const Products = require('../../models/products');
 
 exports.getOrders = async (req, res, next) => {
     const page = req.query.page || 1;
@@ -59,6 +60,67 @@ exports.postCancelOrder = async (req, res, next) => {
         res.status(200).json({
             state:1,
             message:'order canceled'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.getMyFevList = async (req, res, next) => {
+    let list = [] ;
+    try {
+        const client = await Client.findById(req.userId).select('fevProducts');
+        client.fevProducts.forEach(i => {
+            list.push({
+                _id:i._id,
+                name:i.list.name
+            });
+        });
+
+        res.status(200).json({
+            state:1,
+            data:{
+                lists:list 
+            },
+            message:'client fev lists'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.getMyfevProducts = async (req, res, next) => {
+    const listId = req.params.id;
+
+    try {
+        const client = await Client.findById(req.userId).select('fevProducts');
+
+        
+        const ListProducts = client.fevProducts.filter(f=>{
+            return f._id.toString() === listId.toString();
+        });
+        if(ListProducts.length==0){
+            const error = new Error(`list not found`);
+            error.statusCode = 404;
+            error.state      = 9  ;
+            throw error;
+        }
+        const products = await Products.find({_id:{$in:ListProducts[0].list.product}})
+        .select('category name_en name_ar productType imageUrl');
+        res.status(200).json({
+            state:1,
+            data:{
+                products:products
+            },
+            message:`products in list ${listId}`
         });
 
     } catch (err) {

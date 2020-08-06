@@ -119,6 +119,7 @@ clientSchema.methods.addToFev = function (productId, listId = 'general') {
                 if (CreatedBerore >= 0) {
                     const error = new Error(`already existed`);
                     error.statusCode = 409;
+                    error.state      = 13 ;
                     throw error;
                 } else {
                     item.list.product.push(productId);
@@ -134,6 +135,7 @@ clientSchema.methods.addToFev = function (productId, listId = 'general') {
                 if (CreatedBerore >= 0) {
                     const error = new Error(`already existed`);
                     error.statusCode = 409;
+                    error.state      = 13 ;
                     throw error;
                 } else {
                     item.list.product.push(productId);
@@ -174,6 +176,7 @@ clientSchema.methods.deleteFev = function (productId, listId = 'general') {
         if (index == -1) {
             const error = new Error(`list not found`);
             error.statusCode = 404;
+            error.state      = 9 ;
             throw error;
         }
 
