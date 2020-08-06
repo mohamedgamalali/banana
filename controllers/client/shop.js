@@ -206,7 +206,7 @@ exports.getCart = async (req, res, next) => {
 
         res.status(200).json({
             state: 1,
-            data: cart,
+            data: cart.cart,
             message: `client's cart`
         });
 
