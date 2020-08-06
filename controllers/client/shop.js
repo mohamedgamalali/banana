@@ -27,19 +27,22 @@ exports.getProducts = async (req, res, next) => {
             products = await Products.find(find)
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * productPerPage)
-                .limit(productPerPage);
+                .limit(productPerPage)
+                .select('category name_en name_ar productType imageUrl');
         } else if (date == '1' && sold == '1') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
                 .sort({ createdAt: -1, orders: -1 })
                 .skip((page - 1) * productPerPage)
-                .limit(productPerPage);
+                .limit(productPerPage)
+                .select('category name_en name_ar productType imageUrl');
         } else if (date == '0' && sold == '1') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
                 .sort({ orders: -1 })
                 .skip((page - 1) * productPerPage)
-                .limit(productPerPage);
+                .limit(productPerPage)
+                .select('category name_en name_ar productType imageUrl');
         }
 
 
@@ -77,8 +80,7 @@ exports.getSearch = async (req, res, next) => {
               { name_ar:  new RegExp(searchQ.trim(), 'i') },
             ],
           })
-        .sort({ createdAt: -1 })
-        .select('category name_en name_ar')
+        .select('category name_en name_ar productType imageUrl')
         .skip((page - 1) * productPerPage)
         .limit(productPerPage);
 
