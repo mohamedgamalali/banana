@@ -78,7 +78,7 @@ exports.putProduct = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
-        if (!imageUrl) {
+        if (imageUrl.length == 0) {
             const error = new Error(`validation faild for imageUrl you must insert image`);
             error.statusCode = 422;
             throw error;
@@ -143,7 +143,7 @@ exports.postEditProduct = async (req, res, next) => {
         product.productType = productType;
         product.category = category;
 
-        if (imageUrl.length) {
+        if (imageUrl.length > 0) {
             deleteFile.deleteFile(path.join(__dirname + '/../../' + product.imageUrl));
             product.imageUrl = imageUrl[0].path;
         }
