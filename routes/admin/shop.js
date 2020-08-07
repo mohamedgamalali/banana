@@ -9,7 +9,7 @@ const router  = express.Router();
 
 
 router.get('/products/:catigoryId',isAuth,shopController.getProducts);                            
-router.put('/product',[
+router.post('/product',[
     body('nameEn')
     .not().isEmpty(),
     body('nameAr')
