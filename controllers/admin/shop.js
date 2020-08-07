@@ -78,7 +78,7 @@ exports.putProduct = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
-        if (imageUrl) {
+        if (!imageUrl) {
             const error = new Error(`validation faild for imageUrl you must insert image`);
             error.statusCode = 422;
             throw error;
