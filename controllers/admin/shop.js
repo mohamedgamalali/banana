@@ -18,9 +18,10 @@ exports.getProducts = async (req, res, next) => {
 
     try {
         if (!filter) {
-            find = { category: catigory }
+            find = { category: catigory };
         } else {
-            find = { category: catigory, productType: { $in: filter } }
+            find = { category: catigory, productType: { $in: filter } };
+
         }
         if (date == '1' && sold == '0') {
             totalProducts = await Products.find(find).countDocuments();
@@ -31,13 +32,18 @@ exports.getProducts = async (req, res, next) => {
         } else if (date == '1' && sold == '1') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
-                .sort({ createdAt: -1, orders: -1 })
+                .sort({orders: -1 ,createdAt: -1})
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
         } else if (date == '0' && sold == '1') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
                 .sort({ orders: -1 })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage);
+        }else if (date == '0' && sold == '0') {
+            totalProducts = await Products.find(find).countDocuments();
+            products = await Products.find(find) 
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
         }
