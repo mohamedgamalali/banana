@@ -21,13 +21,16 @@ router.put('/signup',[
     body('name').not().isEmpty().trim(),
     body('mobile')
     .not().isEmpty()
+    .trim().isMobilePhone()
 ],authController.postSignup);
 
 router.post('/login',[
     body('mobile')
-    .not().isEmpty(),
+    .not().isEmpty()
+    .trim(),
     body('password')
-    .not().isEmpty(),
+    .not().isEmpty()
+    .trim(),
 ],authController.postLogin);
 
 module.exports = router;

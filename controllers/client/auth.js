@@ -92,6 +92,7 @@ exports.postLogin = async (req, res, next) => {
         if (client.blocked == true) {
             const error = new Error('client have been blocked');
             error.statusCode = 403;
+            error.state = 4;
             throw error;
         }
 

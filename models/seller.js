@@ -38,10 +38,6 @@ const sellerSchema = new schema({
     sendNotfication: {
         type: Boolean,
         default: true
-    },
-    accountExpiration:{
-        type:Number,
-        required:true
     }
 });
 

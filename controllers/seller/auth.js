@@ -13,17 +13,20 @@ exports.postSignup = async (req, res, next) => {
 
     try {
         if (!errors.isEmpty()) {
-            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            const error = new Error(`validation faild for ${errors.array()[0].param} '${errors.array()[0].msg}'`);
             error.statusCode = 422;
             error.state = 5;
             throw error;
         }
-        if( category!='F-V'&& category!='B'&& category!='F-M'&& category!='F' ){
-            const error = new Error(`validation faild for category not allowed value`);
-            error.statusCode = 422;
-            error.state = 5;
-            throw error;
-        }
+    
+        category.forEach(e => {
+            if( e!='F-V'&& e!='B'&& e!='F-M'&& e!='F' ){
+                const error = new Error(`validation faild for category in body.. not allowed value`);
+                error.statusCode = 422;
+                error.state = 5;
+                throw error;
+            }
+        });
 
         const checkSeller = await Seller.findOne({ mobile: mobile });
 
@@ -33,36 +36,97 @@ exports.postSignup = async (req, res, next) => {
             error.state = 6;
             throw error;
         }
-        //to be contenue
         const hashedPass = await bycript.hash(password, 12);
-        const newClient = new Seller({
+        const newSeller = new Seller({
             name: name,
             mobile: mobile,
             password: hashedPass,
-            fevProducts:[],
+            category:category
         });
 
-        const client = await newClient.initFev();
+        const seller = await newSeller.save();
 
         const token = jwt.sign(
             {
-                mobile: client.mobile,
-                userId: client._id.toString()
+                mobile: seller.mobile,
+                userId: seller._id.toString()
             },
-            process.env.JWT_PRIVATE_KEY_CLIENT
+            process.env.JWT_PRIVATE_KEY_SELLER
         );
 
         res.status(201).json({ 
             state: 1, 
-            message: 'client created and logedIn', 
+            message: 'seller created and logedIn', 
             data:{
                 token: token,
-                clientName: client.name,
-                clientMobile: client.mobile,
-                clientId: client._id
+                sellerName: seller.name,
+                sellerMobile: seller.mobile,
+                sellerId: seller._id
             }
         });
 
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+exports.postLogin = async (req, res, next) => {
+    const errors = validationResult(req);
+    const mobile = req.body.mobile;
+    const password = req.body.password;
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} '${errors.array()[0].msg}'`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+    
+        const seller = await Seller.findOne({ mobile: mobile })
+        if (!seller) {
+            const error = new Error(`seller not found`);
+            error.statusCode = 404;
+            error.state = 7;
+            throw error;
+        }
+        const isEqual = await bycript.compare(password, seller.password);
+        if (!isEqual) {
+            const error = new Error('wrong password');
+            error.statusCode = 401;
+            error.state = 8;
+            throw error;
+        }
+        if (seller.blocked == true) {
+            const error = new Error('seller have been blocked');
+            error.statusCode = 403;
+            error.state = 4;
+            throw error;
+        }
+
+        const token = jwt.sign(
+            {
+                mobile: seller.mobile,
+                userId: seller._id.toString()
+            },
+            process.env.JWT_PRIVATE_KEY_SELLER
+        );
+
+        res.status(200).json({
+            state: 1,
+            message:"logedin",
+            data:{
+                token: token,
+                sellerName: seller.name,
+                sellerMobile: seller.mobile,
+                sellerId: seller._id
+            }
+        });
+        
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
