@@ -9,7 +9,7 @@ exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
     const page = req.query.page || 1;
     const productPerPage = 10;
-    const filter = req.body.filter || false;
+    const filter = req.query.filter || false;
     const date = req.query.date || "0";
     const sold = req.query.sold || "0";
     let totalProducts;
