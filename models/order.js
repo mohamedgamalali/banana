@@ -64,4 +64,5 @@ orderSchema.methods.endOrder = function () {
     return this.save();
 };
 
+
 module.exports = mongoose.model('order', orderSchema);
