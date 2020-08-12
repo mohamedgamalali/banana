@@ -323,7 +323,7 @@ exports.postAddFev = async (req, res, next) => {
 
 exports.postAddFevList = async (req, res, next) => {
     const ListName = req.body.ListName;
-
+    const send = [] ;
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
@@ -341,9 +341,15 @@ exports.postAddFevList = async (req, res, next) => {
             throw error;
         }
         const updatedUser = await client.addFevList(ListName);
+        updatedUser.fevProducts.forEach(i=>{
+            send.push({
+                _id:i._id,
+                name:i.list.name
+            });
+        })
         res.status(201).json({
             state: 1,
-            data: updatedUser.fevProducts,
+            data: send,
             message: 'list Created'
         })
 
@@ -451,7 +457,6 @@ exports.postAddOrder = async (req, res, next) => {
 
         res.status(201).json({
             state: 1,
-            data: newOrder,
             message: "order created"
         });
 
