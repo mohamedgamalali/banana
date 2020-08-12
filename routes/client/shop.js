@@ -51,7 +51,7 @@ router.post('/fev/list',[
     .not().isEmpty(),
 ],isAuth,shopController.postAddFevList);
 
-router.post('/fev',[
+router.post('/fev/delete',[
     body('productId')
     .not().isEmpty(),
 ],isAuth,shopController.deleteFev);
