@@ -392,6 +392,7 @@ exports.postAddOrder = async (req, res, next) => {
     const arriveDate = req.body.arriveDate || 0;
     let category = [];
     let cart     = []; 
+    let amount_count   = 0; 
 
     const errors = validationResult(req);
     try {
@@ -422,7 +423,8 @@ exports.postAddOrder = async (req, res, next) => {
                 amount: i.amount,
                 unit: i.unit,
                 path: i.path
-            })
+            });
+            amount_count+=i.amount;
         });
 
         var uniqueCategory = category.filter((value, index, self) => {
@@ -431,6 +433,7 @@ exports.postAddOrder = async (req, res, next) => {
 
         const newOrder = new Order({
             client: client._id,
+            amount_count:amount_count,
             category: uniqueCategory,
             products: cart,
             location: {

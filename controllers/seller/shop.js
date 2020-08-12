@@ -24,13 +24,16 @@ exports.getHome = async (req, res, next) => {
 exports.getOrders = async (req, res, next) => {
 
     const page = req.query.page || 1;
-    const long = req.query.long;
-    const lat  = req.query.lat;
+    const long = req.query.long || false;
+    const lat  = req.query.lat  || false; 
+    const date = req.query.date || 0;
+    const amount = req.query.amount || 0;
 
     const productPerPage = 10;
     let finalOrders = [];
     let find = {};
     let cord = false ;
+    let orders ;
 
     try {
         if(lat && long){
@@ -41,7 +44,7 @@ exports.getOrders = async (req, res, next) => {
                 category: { $in: req.sellerCat },
                 status: 'started'
             }
-        } else {
+        } else{
             find = {
                 category: { $in: req.sellerCat },
                 status: 'started',
@@ -57,8 +60,27 @@ exports.getOrders = async (req, res, next) => {
             }
         }
 
-        const orders = await Order.find(find)
-        .populate('products.product');
+        if(date==0&&amount==0){
+            orders = await Order.find(find)
+            .select('location category client products')
+            .populate({path:'products.product',select:'category name_en name_ar '})
+        }else if(date==1&&amount==0){
+            orders = await Order.find(find)
+            .select('location category client products')
+            .populate({path:'products.product',select:'category name_en name_ar '})
+            .sort({createdAt:-1});
+        }else if(date==0&&amount==1){
+            orders = await Order.find(find)
+            .select('location category client products')
+            .populate({path:'products.product',select:'category name_en name_ar '})
+            .sort({amount_count:-1});
+        }else if(date==1&&amount==1){
+            orders = await Order.find(find)
+            .select('location category client products')
+            .populate({path:'products.product',select:'category name_en name_ar '})
+            .sort({amount_count:-1});
+        }
+        
 
         orders.forEach(element => {
             if (element.category.every(v => req.sellerCat.includes(v))) {

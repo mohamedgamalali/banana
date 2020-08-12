@@ -31,6 +31,10 @@ const orderSchema = new schema({
             default: 'product'
         }
     }],
+    amount_count:{
+        type:Number,
+        required:true
+    },
     arriveDate: {
         type: Number
     },
