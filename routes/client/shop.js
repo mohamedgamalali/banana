@@ -33,7 +33,7 @@ router.post('/cart/add/food',[
     .isNumeric(),
 ],isAuth,shopController.postAddToCartFood);
 
-router.delete('/cart/delete',[
+router.post('/cart/delete',[
     body('cartItemId')
     .not().isEmpty(),
 ],isAuth,shopController.deleteCart);
@@ -51,7 +51,7 @@ router.post('/fev/list',[
     .not().isEmpty(),
 ],isAuth,shopController.postAddFevList);
 
-router.delete('/fev',[
+router.post('/fev',[
     body('productId')
     .not().isEmpty(),
 ],isAuth,shopController.deleteFev);
