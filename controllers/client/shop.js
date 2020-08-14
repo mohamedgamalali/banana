@@ -465,7 +465,7 @@ exports.postAddOrder = async (req, res, next) => {
             products: cart,
             location: {
                 type: "Point",
-                coordinates: [long, lat]
+                coordinates: [location.Location.coordinates[0], location.Location.coordinates[1]]
             },
             arriveDate:arriveDate,
             locationDetails: {
