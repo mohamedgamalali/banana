@@ -15,7 +15,7 @@ exports.getOrders = async (req, res, next) => {
     try {
         const total = await Order.find({ client: req.userId, status: filter }).countDocuments();
         const orders = await Order.find({ client: req.userId, status: filter })
-            .select('location stringAdress arriveDate products')
+            .select('location stringAdress arriveDate products locationDetails')
             .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
             .sort({ createdAt: -1 })
             .skip((page - 1) * productPerPage)
@@ -359,7 +359,7 @@ exports.getLocations = async (req, res, next) => {
 
 exports.deleteLocation = async (req, res, next) => {
     const locationId = req.body.locationId ;
-    
+
     const errors = validationResult(req);
     try {
         
