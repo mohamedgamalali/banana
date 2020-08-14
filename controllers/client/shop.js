@@ -215,7 +215,7 @@ exports.getCart = async (req, res, next) => {
             throw error;
         }
 
-        const location = await Location.find({client:req.userId});
+        const location = await Location.find({client:req.userId}).select('Location name mobile stringAdress ');
 
 
         res.status(200).json({
@@ -409,8 +409,7 @@ exports.deleteFev = async (req, res, next) => {
 }
 
 exports.postAddOrder = async (req, res, next) => {
-    const long = req.body.long1;
-    const lat = req.body.lat1;
+    const locationId = req.body.locationId ;
     const stringAdress = req.body.stringAdress;
     const arriveDate = req.body.arriveDate || 0;
     let category = [];
@@ -453,7 +452,13 @@ exports.postAddOrder = async (req, res, next) => {
         var uniqueCategory = category.filter((value, index, self) => {
             return self.indexOf(value) === index;
         });
-
+        const location = await Location.findById(locationId);
+        if(!location){
+            const error = new Error(`location not found`);
+            error.statusCode = 404;
+            error.state      = 9 ;
+            throw error;
+        }
         const newOrder = new Order({
             client: client._id,
             amount_count:amount_count,
@@ -464,7 +469,11 @@ exports.postAddOrder = async (req, res, next) => {
                 coordinates: [long, lat]
             },
             arriveDate:arriveDate,
-            stringAdress: stringAdress
+            locationDetails: {
+                name:location.name,
+                stringAdress:location.stringAdress,
+                mobile2:location.mobile
+            }
         });
         await newOrder.save();
 
