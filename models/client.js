@@ -64,6 +64,10 @@ const clientSchema = new schema({
         type: Boolean,
         default: true
     },
+    updated:{
+        type:Date,
+        required:true
+    }
 });
 
 clientSchema.methods.addToCart = function (prodductId, amount, unit, ref) {

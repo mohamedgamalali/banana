@@ -1,4 +1,7 @@
+const bycript = require('bcryptjs');
 const { validationResult } = require('express-validator');
+const jwt = require('jsonwebtoken');
+const io = require("../../socket.io/socket");
 
 const Client = require('../../models/client');
 const Order = require('../../models/order');
@@ -9,19 +12,19 @@ exports.getOrders = async (req, res, next) => {
     const productPerPage = 10;
     const filter = req.query.filter || 'started';
     try {
-        const total  = await Order.find({client:req.userId,status:filter}).countDocuments();
-        const orders = await Order.find({client:req.userId,status:filter})
-        .select('location stringAdress arriveDate products')
-        .populate({path:'products.product',select:'name name_en name_ar imageUrl'})
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * productPerPage)
-        .limit(productPerPage);
+        const total = await Order.find({ client: req.userId, status: filter }).countDocuments();
+        const orders = await Order.find({ client: req.userId, status: filter })
+            .select('location stringAdress arriveDate products')
+            .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * productPerPage)
+            .limit(productPerPage);
 
         res.status(200).json({
-            state:1,
-            data:orders,
-            total:total,
-            message:`orders in page ${page} sortder by date with filter ${filter}`
+            state: 1,
+            data: orders,
+            total: total,
+            message: `orders in page ${page} sortder by date with filter ${filter}`
         });
 
     } catch (err) {
@@ -40,33 +43,33 @@ exports.postCancelOrder = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
-            error.state      = 5 ;
+            error.state = 5;
             throw error;
         }
         const order = await Order.findById(orderId);
         if (!order) {
             const error = new Error(`order not found`);
             error.statusCode = 404;
-            error.state      = 9  ;
+            error.state = 9;
             throw error;
         }
-        if (order.client.toString()!==req.userId.toString()) {
+        if (order.client.toString() !== req.userId.toString()) {
             const error = new Error('you are not the order owner!!');
             error.statusCode = 403;
-            error.state      = 11 ;
+            error.state = 11;
             throw error;
         }
-        if(order.status!='started'){
+        if (order.status != 'started') {
             const error = new Error('the order status != started');
             error.statusCode = 409;
-            error.state      = 12 ;
+            error.state = 12;
             throw error;
         }
         await order.cancelOrder();
 
         res.status(200).json({
-            state:1,
-            message:'order canceled'
+            state: 1,
+            message: 'order canceled'
         });
 
     } catch (err) {
@@ -78,20 +81,20 @@ exports.postCancelOrder = async (req, res, next) => {
 }
 
 exports.getMyFevList = async (req, res, next) => {
-    let list = [] ;
+    let list = [];
     try {
         const client = await Client.findById(req.userId).select('fevProducts');
         client.fevProducts.forEach(i => {
             list.push({
-                _id:i._id,
-                name:i.list.name
+                _id: i._id,
+                name: i.list.name
             });
         });
 
         res.status(200).json({
-            state:1,
-            data:list,
-            message:'client fev lists'
+            state: 1,
+            data: list,
+            message: 'client fev lists'
         });
 
     } catch (err) {
@@ -108,22 +111,22 @@ exports.getMyfevProducts = async (req, res, next) => {
     try {
         const client = await Client.findById(req.userId).select('fevProducts');
 
-        
-        const ListProducts = client.fevProducts.filter(f=>{
+
+        const ListProducts = client.fevProducts.filter(f => {
             return f._id.toString() === listId.toString();
         });
-        if(ListProducts.length==0){
+        if (ListProducts.length == 0) {
             const error = new Error(`list not found`);
             error.statusCode = 404;
-            error.state      = 9  ;
+            error.state = 9;
             throw error;
         }
-        const products = await Products.find({_id:{$in:ListProducts[0].list.product}})
-        .select('category name_en name_ar productType imageUrl');
+        const products = await Products.find({ _id: { $in: ListProducts[0].list.product } })
+            .select('category name_en name_ar productType imageUrl');
         res.status(200).json({
-            state:1,
-            data:products,
-            message:`products in list ${listId}`
+            state: 1,
+            data: products,
+            message: `products in list ${listId}`
         });
 
     } catch (err) {
@@ -142,22 +145,145 @@ exports.postEditName = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
-            error.state      = 5 ;
+            error.state = 5;
             throw error;
         }
 
         const client = await Client.findById(req.userId).select('name');
 
-        client.name  = name ;
+        client.name = name;
 
-        const updatedClient = await client.save() ;
+        const updatedClient = await client.save();
+
         //start socket event
-        //..................
-        res.status(200).json({
-            state:1,
-            data:updatedClient.name,
-            message:'client name changed'
+        io.getIO().emit("name", {
+            action: "edit",
+            userId: updatedClient._id,
+            newName: updatedClient.name
         });
+
+        res.status(200).json({
+            state: 1,
+            data: updatedClient.name,
+            message: 'client name changed'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+exports.postEditPassword = async (req, res, next) => {
+
+    const oldPassword = req.body.oldPassword;
+    const password = req.body.password;
+    const logout = req.body.logout || false;
+    let   token ;
+    let message = 'password changed';
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const client = await Client.findById(req.userId).select('password');
+        const isEqual = await bycript.compare(oldPassword, client.password);
+        if (!isEqual) {
+            const error = new Error('wrong password');
+            error.statusCode = 401;
+            error.state = 8;
+            throw error;
+        }
+
+        const isEqualNew = await bycript.compare(password, client.password);
+        if (isEqualNew) {
+            const error = new Error('new password must be defferent from old password');
+            error.statusCode = 409;
+            error.state = 15;
+            throw error;
+        }
+
+        const hashedPass = await bycript.hash(password, 12);
+
+        client.password = hashedPass;
+        //logout from other devices
+
+        if (logout) {
+            client.updated = Date.now();
+        }
+
+        const updatedClient = await client.save();
+        
+        if(logout){
+            token = jwt.sign(
+                {
+                    mobile: updatedClient.mobile,
+                    userId: updatedClient._id.toString(),
+                    updated:updatedClient.updated.toString()
+                },
+                process.env.JWT_PRIVATE_KEY_CLIENT
+            );
+            message += ' and loged out from other devices' ;
+        }
+
+        
+
+
+        res.status(200).json({
+            state: 1,
+            data:token,
+            message: 'password changed'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+
+exports.postEditMobile = async (req, res, next) => {
+
+    const mobile = req.body.mobile;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const client = await Client.findById(req.userId).select('mobile');
+        if (mobile == client.mobile) {
+            const error = new Error('new mobile must be defferent from old mobile');
+            error.statusCode = 409;
+            error.state = 16;
+            throw error;
+        }
+
+        client.mobile = mobile;
+        client.verfication = false;
+
+        const updatedClient = await client.save();
+
+        res.status(200).json({
+            state: 1,
+            data: updatedClient.mobile,
+            message: 'mobile changed'
+        })
 
     } catch (err) {
         if (!err.statusCode) {

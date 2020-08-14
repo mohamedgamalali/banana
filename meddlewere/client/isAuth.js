@@ -49,6 +49,13 @@ module.exports = async (req, res, next) => {
             throw error;
         }
 
+        if (decodedToken.updated !== client.updated.toString()) {
+            const error = new Error('token expired please login');
+            error.statusCode = 403;
+            error.state = 17;
+            throw error;
+        }
+
         req.userId = decodedToken.userId;
 
         next();

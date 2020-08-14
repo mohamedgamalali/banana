@@ -32,6 +32,7 @@ exports.postSignup = async (req, res, next) => {
             mobile: mobile,
             password: hashedPass,
             fevProducts:[],
+            updated:Date.now()
         });
 
         const client = await newClient.initFev();
@@ -39,7 +40,8 @@ exports.postSignup = async (req, res, next) => {
         const token = jwt.sign(
             {
                 mobile: client.mobile,
-                userId: client._id.toString()
+                userId: client._id.toString(),
+                updated:client.updated.toString()
             },
             process.env.JWT_PRIVATE_KEY_CLIENT
         );
@@ -99,7 +101,8 @@ exports.postLogin = async (req, res, next) => {
         const token = jwt.sign(
             {
                 mobile: client.mobile,
-                userId: client._id.toString()
+                userId: client._id.toString(),
+                updated:client.updated.toString()
             },
             process.env.JWT_PRIVATE_KEY_CLIENT
         );

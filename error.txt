@@ -19,6 +19,12 @@
     //fev
     13=> "the product allready in fev list"
     14=> "wanna put issue for not ended order"
+    //change password
+    15=> "if old password = new password"
+    17=> "token expired becouse the user chosed to logout from other devices... only the other devices will logout"
+    //change mobile
+    16=> "if new mobile = old mobile"
+
 
 
 
