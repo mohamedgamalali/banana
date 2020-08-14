@@ -16,4 +16,14 @@ router.post('/support/issue',[
     .not().isEmpty(),
 ],isAuth,supportController.postIssue);
 
+//contact us
+router.post('/support/contactUs',[
+    body('name')
+    .not().isEmpty(),
+    body('email')
+    .not().isEmpty(),
+    body('message')
+    .not().isEmpty(),
+],isAuth,supportController.postContactUs);
+
 module.exports = router;

@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator');
 
 const Order = require('../../models/order');
 const Issue = require('../../models/issues');
+const SupportMessage = require('../../models/supportMessages');
 
 const deleteFile = require("../../helpers/file");
 
@@ -64,6 +65,48 @@ exports.postIssue = async (req, res, next) => {
             err.statusCode = 500;
         }
 
+        next(err);
+    }
+}
+
+exports.postContactUs = async (req, res, next) => {
+
+    const name = req.body.name;
+    const email = req.body.email;
+    const message = req.body.message;
+
+    const errors = validationResult(req);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const mm = new SupportMessage({
+            name: name,
+            email: email,
+            message: message,
+            user:req.userId,
+            user_type:'client'
+        });
+
+        const m = await mm.save(); 
+
+        res.status(201).json({
+            state:1,
+            message:'support message sent'
+        });
+        
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+
+        console.log(err);
         next(err);
     }
 }
