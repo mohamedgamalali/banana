@@ -337,3 +337,23 @@ exports.postAddLocation = async (req, res, next) => {
     }
 }
 
+exports.getLocations = async (req, res, next) => {
+
+    
+    try {
+        const location = await Location.find({client:req.userId}).select('Location name mobile stringAdress');
+
+        res.status(200).json({
+            state:1,
+            data:location,
+            message:'client locations'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
