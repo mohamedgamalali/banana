@@ -341,7 +341,7 @@ exports.getLocations = async (req, res, next) => {
 
     
     try {
-        const location = await Location.find({client:req.userId}).select('Location name mobile stringAdress');
+        const location = await Locations.find({client:req.userId}).select('Location name mobile stringAdress');
 
         res.status(200).json({
             state:1,
