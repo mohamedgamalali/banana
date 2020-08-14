@@ -58,9 +58,9 @@ router.post('/fev/delete',[
 
 //order
 router.post('/order',[
-    body('lat')
+    body('lat1')
     .not().isEmpty(),
-    body('long')
+    body('long1')
     .not().isEmpty(),
     body('stringAdress')
     .not().isEmpty(),

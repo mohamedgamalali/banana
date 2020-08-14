@@ -392,8 +392,8 @@ exports.deleteFev = async (req, res, next) => {
 }
 
 exports.postAddOrder = async (req, res, next) => {
-    const long = req.body.long;
-    const lat = req.body.lat;
+    const long = req.body.long1;
+    const lat = req.body.lat1;
     const stringAdress = req.body.stringAdress;
     const arriveDate = req.body.arriveDate || 0;
     let category = [];
