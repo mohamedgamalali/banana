@@ -4,6 +4,7 @@ const Products = require('../../models/products');
 const ClientProduct = require('../../models/clientProducts');
 const Client = require('../../models/client');
 const Order = require('../../models/order');
+const Location = require('../../models/location');
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
@@ -214,10 +215,14 @@ exports.getCart = async (req, res, next) => {
             throw error;
         }
 
+        const location = await Location.find({client:req.userId});
+
+
         res.status(200).json({
             state: 1,
             data: cart.cart,
-            message: `client's cart`
+            location:location,
+            message: `client's cart with location`
         });
 
     } catch (err) {

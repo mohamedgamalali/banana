@@ -42,9 +42,19 @@ const orderSchema = new schema({
         type: { type: String },
         coordinates: [Number]
     },
-    stringAdress: {
-        type: String,
-        required: true
+    locationDetails: {
+        name:{
+            type: String,
+            required: true
+        },
+        stringAdress:{
+            type: String,
+            required: true
+        },
+        mobile2:{
+            type: String,
+            required: true
+        }
     },
     status: {
         type: String,

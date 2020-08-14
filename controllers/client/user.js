@@ -6,6 +6,7 @@ const io = require("../../socket.io/socket");
 const Client = require('../../models/client');
 const Order = require('../../models/order');
 const Products = require('../../models/products');
+const Locations = require('../../models/location');
 
 exports.getOrders = async (req, res, next) => {
     const page = req.query.page || 1;
@@ -234,13 +235,10 @@ exports.postEditPassword = async (req, res, next) => {
             message += ' and loged out from other devices' ;
         }
 
-        
-
-
         res.status(200).json({
             state: 1,
             data:token,
-            message: 'password changed'
+            message: message
         });
 
     } catch (err) {
@@ -292,3 +290,50 @@ exports.postEditMobile = async (req, res, next) => {
         next(err);
     }
 }
+
+
+exports.postAddLocation = async (req, res, next) => {
+
+    const mobile = req.body.mobile;
+    const name = req.body.name;
+    const stringAdress = req.body.stringAdress;
+    const long = req.body.long1;
+    const lat = req.body.lat1;
+
+    const errors = validationResult(req);
+    try {
+        
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const newLoc = new Locations({
+            client:req.userId,
+            Location: {
+                type: "Point",
+                coordinates: [long, lat]
+            },
+            name:name,
+            mobile:mobile,
+            stringAdress:stringAdress
+        });
+
+        const loc = await newLoc.save();
+
+        res.status(201).json({
+            state:1,
+            data:loc,
+            message:'location added'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
