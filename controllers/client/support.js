@@ -10,7 +10,7 @@ exports.postIssue = async (req, res, next) => {
     const orderId = req.body.orderId;
     const reason = req.body.reason;
     const demands = req.body.demands;
-    const image = req.files;
+    const image = req.files || [];
     const errors = validationResult(req);
     let imageUrl = [];
     try {
@@ -56,7 +56,6 @@ exports.postIssue = async (req, res, next) => {
 
         res.status(201).json({
             state: 1,
-            issue: i,
             message: 'issue created'
         });
 
@@ -64,13 +63,6 @@ exports.postIssue = async (req, res, next) => {
         if (!err.statusCode) {
             err.statusCode = 500;
         }
-        //image must be deleted
-        if (image.length > 0) {
-            image.forEach(i => {
-                deleteFile.deleteFile(path.join(__dirname + '/../../' + i.path));
-            });
-        }
-        err.state = image[0].path;
 
         next(err);
     }
