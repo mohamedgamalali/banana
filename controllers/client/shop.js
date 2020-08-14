@@ -170,7 +170,11 @@ exports.deleteCart = async (req, res, next) => {
             error.state      = 5 ;
             throw error;
         }
-        const client = await Client.findById(req.userId).select('cart');
+        const client = await Client.findById(req.userId).select('cart')
+        .populate({
+            path: 'cart.product',
+            select: 'category name_en name_ar imageUrl name'
+        });
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
@@ -374,6 +378,7 @@ exports.deleteFev = async (req, res, next) => {
             error.state      = 5 ;
             throw error;
         }
+        console.log(req.userId);
 
         const client = await Client.findById(req.userId).select('fevProducts').populate('fevProducts.list.product');
         const updatedClient = await client.deleteFev(productId, listId);
@@ -388,7 +393,7 @@ exports.deleteFev = async (req, res, next) => {
             state: 1,
             data: products,
             message: "deleted"
-        })
+        });
 
     } catch (err) {
         if (!err.statusCode) {

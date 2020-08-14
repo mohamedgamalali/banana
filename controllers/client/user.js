@@ -1,3 +1,5 @@
+const { validationResult } = require('express-validator');
+
 const Client = require('../../models/client');
 const Order = require('../../models/order');
 const Products = require('../../models/products');
@@ -33,7 +35,14 @@ exports.getOrders = async (req, res, next) => {
 exports.postCancelOrder = async (req, res, next) => {
     const orderId = req.body.orderId;
 
+    const errors = validationResult(req);
     try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state      = 5 ;
+            throw error;
+        }
         const order = await Order.findById(orderId);
         if (!order) {
             const error = new Error(`order not found`);
@@ -115,6 +124,39 @@ exports.getMyfevProducts = async (req, res, next) => {
             state:1,
             data:products,
             message:`products in list ${listId}`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postEditName = async (req, res, next) => {
+    const name = req.body.name;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state      = 5 ;
+            throw error;
+        }
+
+        const client = await Client.findById(req.userId).select('name');
+
+        client.name  = name ;
+
+        const updatedClient = await client.save() ;
+        //start socket event
+        //..................
+        res.status(200).json({
+            state:1,
+            data:updatedClient.name,
+            message:'client name changed'
         });
 
     } catch (err) {

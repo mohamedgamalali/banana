@@ -20,5 +20,11 @@ router.get('/myFev/lists',isAuth,userController.getMyFevList);
 
 router.get('/myFev/products/:id',isAuth,userController.getMyfevProducts);
 
+//profile
+router.post('/profile/edit/name',[
+    body('name')
+    .not().isEmpty()
+    .isString(),
+],isAuth,userController.postEditName);
 
 module.exports = router;
