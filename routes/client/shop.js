@@ -58,11 +58,7 @@ router.post('/fev/delete',[
 
 //order
 router.post('/order',[
-    body('lat1')
-    .not().isEmpty(),
-    body('long1')
-    .not().isEmpty(),
-    body('stringAdress')
+    body('locationId')
     .not().isEmpty(),
 ],isAuth,shopController.postAddOrder);
 

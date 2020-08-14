@@ -410,7 +410,6 @@ exports.deleteFev = async (req, res, next) => {
 
 exports.postAddOrder = async (req, res, next) => {
     const locationId = req.body.locationId ;
-    const stringAdress = req.body.stringAdress;
     const arriveDate = req.body.arriveDate || 0;
     let category = [];
     let cart     = []; 
