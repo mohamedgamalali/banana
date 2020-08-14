@@ -48,12 +48,13 @@ exports.postIssue = async (req, res, next) => {
             demands:demands,
             imageUrl:imageUrl
         });
-        await issue.save();
+       const i =  await issue.save();
         
         //seller id must be added
 
         res.status(201).json({
             state:1,
+            issue:i,
             message:'issue created'
         });
 
