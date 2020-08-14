@@ -51,8 +51,27 @@ router.post('/profile/edit/mobile',[
     .trim().isMobilePhone(),
 ],isAuth,userController.postEditMobile);
 
-//my locations
+//my location
+router.post('/profile/add/location',[
+    body('lat1')
+    .not().isEmpty()
+    .isNumeric(),
+    body('long1')
+    .not().isEmpty()
+    .isNumeric(),
+    body('stringAdress')
+    .not().isEmpty(),
+    body('name')
+    .not().isEmpty(),
+    body('mobile')
+    .not().isEmpty(),
+],isAuth,userController.postAddLocation);
+
 router.get('/profile/location',isAuth,userController.getLocations);
 
+router.post('/profile/delete/location',[
+    body('locationId')
+    .not().isEmpty()
+],isAuth,userController.deleteLocation);
 
 module.exports = router;

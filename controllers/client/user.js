@@ -357,3 +357,41 @@ exports.getLocations = async (req, res, next) => {
     }
 }
 
+exports.deleteLocation = async (req, res, next) => {
+    const locationId = req.body.locationId ;
+    
+    const errors = validationResult(req);
+    try {
+        
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        const location = await Locations.findById(locationId);
+        if(!location){
+            const error = new Error(`location not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+
+        await Locations.deleteOne({_id:location._id});
+
+        const allLocations = await Locations.find({client:req.userId}).select('Location name mobile stringAdress');
+
+        res.status(200).json({
+            state:1,
+            data:allLocations,
+            message:'client locations'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
