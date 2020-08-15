@@ -62,4 +62,7 @@ router.post('/order',[
     .not().isEmpty(),
 ],isAuth,shopController.postAddOrder);
 
+//offers
+router.get('/offers',isAuth,shopController.getOffers);
+
 module.exports = router;

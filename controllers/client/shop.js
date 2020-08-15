@@ -5,6 +5,7 @@ const ClientProduct = require('../../models/clientProducts');
 const Client = require('../../models/client');
 const Order = require('../../models/order');
 const Location = require('../../models/location');
+const Offer = require('../../models/offer');
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
@@ -231,7 +232,7 @@ exports.getCart = async (req, res, next) => {
         }
         next(err);
     }
-}
+} 
 
 exports.postAddToCartFood = async (req, res, next) => {
     const name = req.body.name;
@@ -494,6 +495,32 @@ exports.postAddOrder = async (req, res, next) => {
     }
 }
 
+//offers
+exports.getOffers = async (req, res, next) => {
 
+    const page         = req.query.page || 1 ;
+    const offerPerPage = 10 ;
 
+    try {
+        const offer = await Offer.find({client:req.userId})
+        .populate('order seller')
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * offerPerPage)
+        .limit(offerPerPage);
 
+        const totalOffer = await Offer.find({client:req.userId}).countDocuments();
+
+        res.status(200).json({
+            state:1,
+            data:offer,
+            total:totalOffer,
+            message:`offers in page ${page}`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+} 
