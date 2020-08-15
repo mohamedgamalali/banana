@@ -34,7 +34,7 @@ exports.getProducts = async (req, res, next) => {
         } else if (date == '1' && sold == '1') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
-                .sort({orders: -1 , createdAt: -1})
+                .sort({ orders: -1, createdAt: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
                 .select('category name_en name_ar productType imageUrl');
@@ -45,9 +45,9 @@ exports.getProducts = async (req, res, next) => {
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
                 .select('category name_en name_ar productType imageUrl');
-        }else if (date == '0' && sold == '0') {
+        } else if (date == '0' && sold == '0') {
             totalProducts = await Products.find(find).countDocuments();
-            products = await Products.find(find) 
+            products = await Products.find(find)
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
                 .select('category name_en name_ar productType imageUrl');
@@ -78,22 +78,22 @@ exports.getSearch = async (req, res, next) => {
     try {
 
         const totalItems = await Products.find({
-            category:category,
+            category: category,
             $or: [
-              { name_en:  new RegExp(searchQ.trim(), 'i') },
-              { name_ar:  new RegExp(searchQ.trim() , 'i') },
+                { name_en: new RegExp(searchQ.trim(), 'i') },
+                { name_ar: new RegExp(searchQ.trim(), 'i') },
             ],
-          }).countDocuments();
+        }).countDocuments();
         const products = await Products.find({
-            category:category,
+            category: category,
             $or: [
-              { name_en:  new RegExp(searchQ.trim() , 'i') },
-              { name_ar:  new RegExp(searchQ.trim(), 'i') },
+                { name_en: new RegExp(searchQ.trim(), 'i') },
+                { name_ar: new RegExp(searchQ.trim(), 'i') },
             ],
-          })
-        .select('category name_en name_ar productType imageUrl')
-        .skip((page - 1) * productPerPage)
-        .limit(productPerPage);
+        })
+            .select('category name_en name_ar productType imageUrl')
+            .skip((page - 1) * productPerPage)
+            .limit(productPerPage);
 
         res.status(200).json({
             state: 1,
@@ -122,13 +122,13 @@ exports.postAddToCart = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
-            error.state      = 5 ;
+            error.state = 5;
             throw error;
         }
         if (unit != 'kg' && unit != 'g' && unit != 'grain' && unit != 'Liter' && unit != 'Gallon' && unit != 'drzn' && unit != 'bag') {
             const error = new Error(`validation faild for unit not a key`);
             error.statusCode = 422;
-            error.state      = 5 ;
+            error.state = 5;
             throw error;
         }
         if (newProduct) {
@@ -141,7 +141,7 @@ exports.postAddToCart = async (req, res, next) => {
         if (!product) {
             const error = new Error(`product not found`);
             error.statusCode = 404;
-            error.state      = 9 ;
+            error.state = 9;
             throw error;
         }
         const updatedUSer = await client.addToCart(productId, Number(amount), unit, ref);
@@ -169,18 +169,18 @@ exports.deleteCart = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
-            error.state      = 5 ;
+            error.state = 5;
             throw error;
         }
         const client = await Client.findById(req.userId).select('cart')
-        .populate({
-            path: 'cart.product',
-            select: 'category name_en name_ar imageUrl name'
-        });
+            .populate({
+                path: 'cart.product',
+                select: 'category name_en name_ar imageUrl name'
+            });
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
-            error.state      = 3 ;
+            error.state = 3;
             throw error;
         }
         const updatedClient = await client.removeFromCart(cartItemId);
@@ -212,17 +212,17 @@ exports.getCart = async (req, res, next) => {
         if (!cart) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
-            error.state      = 3 ;
+            error.state = 3;
             throw error;
         }
 
-        const location = await Location.find({client:req.userId}).select('Location name mobile stringAdress ');
+        const location = await Location.find({ client: req.userId }).select('Location name mobile stringAdress ');
 
 
         res.status(200).json({
             state: 1,
             data: cart.cart,
-            location:location,
+            location: location,
             message: `client's cart with location`
         });
 
@@ -232,7 +232,7 @@ exports.getCart = async (req, res, next) => {
         }
         next(err);
     }
-} 
+}
 
 exports.postAddToCartFood = async (req, res, next) => {
     const name = req.body.name;
@@ -243,13 +243,13 @@ exports.postAddToCartFood = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
-            error.state      = 5 ;
+            error.state = 5;
             throw error;
         }
         if (unit != 'kg' && unit != 'g' && unit != 'grain' && unit != 'Liter' && unit != 'Gallon' && unit != 'drzn' && unit != 'bag') {
             const error = new Error(`validation faild for unit not a key`);
             error.statusCode = 422;
-            error.state      = 5 ;
+            error.state = 5;
             throw error;
         }
         const client = await Client.findById(req.userId).select('cart');
@@ -257,7 +257,7 @@ exports.postAddToCartFood = async (req, res, next) => {
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
-            error.state      = 3 ;
+            error.state = 3;
             throw error;
         }
 
@@ -296,7 +296,7 @@ exports.postAddFev = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
-            error.state      = 5 ;
+            error.state = 5;
             throw error;
         }
 
@@ -305,13 +305,13 @@ exports.postAddFev = async (req, res, next) => {
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
-            error.state      = 3 ;
+            error.state = 3;
             throw error;
         }
         if (!product) {
             const error = new Error(`product not found`);
             error.statusCode = 404;
-            error.state      = 9 ;
+            error.state = 9;
             throw error;
         }
 
@@ -333,13 +333,13 @@ exports.postAddFev = async (req, res, next) => {
 
 exports.postAddFevList = async (req, res, next) => {
     const ListName = req.body.ListName;
-    const send = [] ;
+    const send = [];
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
-            error.state      = 5 ;
+            error.state = 5;
             throw error;
         }
 
@@ -347,14 +347,14 @@ exports.postAddFevList = async (req, res, next) => {
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
-            error.state      = 3 ;
+            error.state = 3;
             throw error;
         }
         const updatedUser = await client.addFevList(ListName);
-        updatedUser.fevProducts.forEach(i=>{
+        updatedUser.fevProducts.forEach(i => {
             send.push({
-                _id:i._id,
-                name:i.list.name
+                _id: i._id,
+                name: i.list.name
             });
         })
         res.status(201).json({
@@ -381,19 +381,19 @@ exports.deleteFev = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
-            error.state      = 5 ;
+            error.state = 5;
             throw error;
         }
         console.log(req.userId);
 
         const client = await Client.findById(req.userId).select('fevProducts').populate('fevProducts.list.product');
         const updatedClient = await client.deleteFev(productId, listId);
-        const ListProducts = updatedClient.fevProducts.filter(f=>{
+        const ListProducts = updatedClient.fevProducts.filter(f => {
             return f._id.toString() === listId.toString();
         });
-        
-        const products = await Products.find({_id:{$in:ListProducts[0].list.product}})
-        .select('category name_en name_ar productType imageUrl');
+
+        const products = await Products.find({ _id: { $in: ListProducts[0].list.product } })
+            .select('category name_en name_ar productType imageUrl');
 
         res.status(200).json({
             state: 1,
@@ -409,32 +409,33 @@ exports.deleteFev = async (req, res, next) => {
     }
 }
 
+//orders
 exports.postAddOrder = async (req, res, next) => {
-    const locationId = req.body.locationId ;
+    const locationId = req.body.locationId;
     const arriveDate = req.body.arriveDate || 0;
     let category = [];
-    let cart     = []; 
-    let amount_count   = 0; 
+    let cart = [];
+    let amount_count = 0;
 
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
-            error.state      = 5 ;
+            error.state = 5;
             throw error;
         }
         const client = await Client.findById(req.userId).select('cart').populate('cart.product');
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
-            error.state      = 3 ;
+            error.state = 3;
             throw error;
         }
         if (client.cart.length == 0) {
             const error = new Error(`validation faild cart in empty`);
             error.statusCode = 422;
-            error.state      = 10 ;
+            error.state = 10;
             throw error;
         }
 
@@ -446,33 +447,33 @@ exports.postAddOrder = async (req, res, next) => {
                 unit: i.unit,
                 path: i.path
             });
-            amount_count+=i.amount;
+            amount_count += i.amount;
         });
 
         var uniqueCategory = category.filter((value, index, self) => {
             return self.indexOf(value) === index;
         });
         const location = await Location.findById(locationId);
-        if(!location){
+        if (!location) {
             const error = new Error(`location not found`);
             error.statusCode = 404;
-            error.state      = 9 ;
+            error.state = 9;
             throw error;
         }
         const newOrder = new Order({
             client: client._id,
-            amount_count:amount_count,
+            amount_count: amount_count,
             category: uniqueCategory,
             products: cart,
             location: {
                 type: "Point",
                 coordinates: [location.Location.coordinates[0], location.Location.coordinates[1]]
             },
-            arriveDate:arriveDate,
+            arriveDate: arriveDate,
             locationDetails: {
-                name:location.name,
-                stringAdress:location.stringAdress,
-                mobile2:location.mobile
+                name: location.name,
+                stringAdress: location.stringAdress,
+                mobile2: location.mobile
             }
         });
         await newOrder.save();
@@ -495,26 +496,64 @@ exports.postAddOrder = async (req, res, next) => {
     }
 }
 
-//offers
-exports.getOffers = async (req, res, next) => {
+exports.getSingleOrder = async (req, res, next) => {
 
-    const page         = req.query.page || 1 ;
-    const offerPerPage = 10 ;
+    const orderId = req.params.id ;
 
     try {
-        const offer = await Offer.find({client:req.userId})
-        .populate('order seller')
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * offerPerPage)
-        .limit(offerPerPage);
+        const order = await Order.findById(orderId)
+        .select('location locationDetails products arriveDate client')
+        .populate({path:'products.product',select:'name_en name_ar imageUrl' });
 
-        const totalOffer = await Offer.find({client:req.userId}).countDocuments();
+        if(order.client.toString()!==req.userId){
+            const error = new Error(`not the order owner`);
+            error.statusCode = 403;
+            error.state = 18;
+            throw error;
+        }
 
         res.status(200).json({
             state:1,
-            data:offer,
-            total:totalOffer,
-            message:`offers in page ${page}`
+            data:order,
+            message:`order with id = ${orderId}`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+} 
+
+//offers
+exports.getOffers = async (req, res, next) => {
+
+    const page = req.query.page || 1;
+    const offerPerPage = 10;
+
+    try {
+        const offer = await Offer.find({ client: req.userId })
+            .select('order seller banana_delivery price createdAt')
+            .populate({
+                path: 'order', select: 'products',
+                populate: {
+                    path: 'products.product',
+                    select:'name_en name_ar name',
+                }
+            })
+            .populate({ path: 'seller', select: 'rete' })
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * offerPerPage)
+            .limit(offerPerPage);
+
+        const totalOffer = await Offer.find({ client: req.userId }).countDocuments();
+
+        res.status(200).json({
+            state: 1,
+            data: offer,
+            total: totalOffer,
+            message: `offers in page ${page}`
         });
 
     } catch (err) {

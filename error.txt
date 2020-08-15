@@ -24,6 +24,8 @@
     17=> "token expired becouse the user chosed to logout from other devices... only the other devices will logout"
     //change mobile
     16=> "if new mobile = old mobile"
+    //single order
+    18=>'not the order owner'
 
 
 

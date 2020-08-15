@@ -38,6 +38,10 @@ const sellerSchema = new schema({
     sendNotfication: {
         type: Boolean,
         default: true
+    },
+    rate: {
+        type: Number,
+        default: 0
     }
 });
 

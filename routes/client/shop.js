@@ -62,6 +62,8 @@ router.post('/order',[
     .not().isEmpty(),
 ],isAuth,shopController.postAddOrder);
 
+router.get('/order/single/:id',isAuth,shopController.getSingleOrder);
+
 //offers
 router.get('/offers',isAuth,shopController.getOffers);
 
