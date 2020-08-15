@@ -218,7 +218,7 @@ exports.postEditPassword = async (req, res, next) => {
         //logout from other devices
 
         if (logout) {
-            client.updated = Date.now();
+            client.updated = Date.now().toString();
         }
 
         const updatedClient = await client.save();

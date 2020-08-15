@@ -32,7 +32,7 @@ exports.postSignup = async (req, res, next) => {
             mobile: mobile,
             password: hashedPass,
             fevProducts:[],
-            updated:Date.now()
+            updated:Date.now().toString()
         });
 
         const client = await newClient.initFev();

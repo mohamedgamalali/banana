@@ -65,7 +65,7 @@ const clientSchema = new schema({
         default: true
     },
     updated:{
-        type:Date,
+        type:String,
         required:true
     }
 });
