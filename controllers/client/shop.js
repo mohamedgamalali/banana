@@ -1,4 +1,6 @@
 const { validationResult } = require('express-validator');
+const https = require('https');
+const querystring = require('querystring');
 
 const Products = require('../../models/products');
 const ClientProduct = require('../../models/clientProducts');
@@ -6,6 +8,8 @@ const Client = require('../../models/client');
 const Order = require('../../models/order');
 const Location = require('../../models/location');
 const Offer = require('../../models/offer');
+
+const pay = require('../../helpers/pay');
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
@@ -498,14 +502,14 @@ exports.postAddOrder = async (req, res, next) => {
 
 exports.getSingleOrder = async (req, res, next) => {
 
-    const orderId = req.params.id ;
+    const orderId = req.params.id;
 
     try {
         const order = await Order.findById(orderId)
-        .select('location locationDetails products arriveDate client')
-        .populate({path:'products.product',select:'name_en name_ar imageUrl' });
+            .select('location locationDetails products arriveDate client')
+            .populate({ path: 'products.product', select: 'name_en name_ar imageUrl' });
 
-        if(order.client.toString()!==req.userId){
+        if (order.client.toString() !== req.userId) {
             const error = new Error(`not the order owner`);
             error.statusCode = 403;
             error.state = 18;
@@ -513,9 +517,9 @@ exports.getSingleOrder = async (req, res, next) => {
         }
 
         res.status(200).json({
-            state:1,
-            data:order,
-            message:`order with id = ${orderId}`
+            state: 1,
+            data: order,
+            message: `order with id = ${orderId}`
         });
 
     } catch (err) {
@@ -524,36 +528,76 @@ exports.getSingleOrder = async (req, res, next) => {
         }
         next(err);
     }
-} 
+}
 
 //offers
 exports.getOffers = async (req, res, next) => {
 
     const page = req.query.page || 1;
+    const filter = req.query.filter || 1;
     const offerPerPage = 10;
+    let offer;
+    let totalOffer;
 
     try {
-        const offer = await Offer.find({ client: req.userId })
-            .select('order seller banana_delivery price createdAt')
-            .populate({
-                path: 'order', select: 'products',
-                populate: {
-                    path: 'products.product',
-                    select:'name_en name_ar name',
-                }
-            })
-            .populate({ path: 'seller', select: 'rete' })
-            .sort({ createdAt: -1 })
-            .skip((page - 1) * offerPerPage)
-            .limit(offerPerPage);
+        if (filter == 1) {
+            offer = await Offer.find({ client: req.userId, status: 'started' })
+                .select('order seller banana_delivery price createdAt')
+                .populate({
+                    path: 'order', select: 'products',
+                    populate: {
+                        path: 'products.product',
+                        select: 'name_en name_ar name',
+                    }
+                })
+                .populate({ path: 'seller', select: 'rete' })
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * offerPerPage)
+                .limit(offerPerPage);
 
-        const totalOffer = await Offer.find({ client: req.userId }).countDocuments();
+            totalOffer = await Offer.find({  client: req.userId, status: 'started' }).countDocuments();
+        }else if (filter == 2) {
+            offer = await Offer.find({ client: req.userId, status: 'started' })
+                .select('order seller banana_delivery price createdAt')
+                .populate({
+                    path: 'order', select: 'products',
+                    populate: {
+                        path: 'products.product',
+                        select: 'name_en name_ar name',
+                    }
+                })
+                .populate({ path: 'seller', select: 'rete' })
+                .sort({ price: 0})
+                .skip((page - 1) * offerPerPage)
+                .limit(offerPerPage);
+
+            totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
+        }
+        //filter for rating
+        // else if (filter == 2) {
+        //     offer = await Offer.find({ client: req.userId, status: 'started' })
+        //         .select('order seller banana_delivery price createdAt')
+        //         .populate({
+        //             path: 'order', select: 'products',
+        //             populate: {
+        //                 path: 'products.product',
+        //                 select: 'name_en name_ar name',
+        //             }
+        //         })
+        //         .populate({ path: 'seller', select: 'rete' })
+        //         .sort({ price: 0})
+        //         .skip((page - 1) * offerPerPage)
+        //         .limit(offerPerPage);
+
+        //     totalOffer = await Offer.find({ client: req.userId }).countDocuments();
+        // }
+
 
         res.status(200).json({
             state: 1,
             data: offer,
             total: totalOffer,
-            message: `offers in page ${page}`
+            message: `offers in page ${page} and filter = ${filter}`
         });
 
     } catch (err) {
@@ -562,4 +606,104 @@ exports.getOffers = async (req, res, next) => {
         }
         next(err);
     }
-} 
+}
+
+exports.postCancelOffer = async (req, res, next) => {
+
+    const offerId = req.body.offerId;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        const offer = await Offer.findById(offerId).select('client status');
+        if (!offer) {
+            const error = new Error(`offer not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+        if (offer.client.toString() !== req.userId) {
+            const error = new Error(`not the order owner`);
+            error.statusCode = 403;
+            error.state = 18;
+            throw error;
+        }
+
+        await offer.cancel();
+
+        res.status(200).json({
+            state: 1,
+            message: 'offer canceled'
+        });
+
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+//offer pay 
+
+exports.postPay = async (req, res, next) => {
+
+    const offerId = req.body.offerId;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        var path = '/v1/checkouts';
+        var data = querystring.stringify({
+            'entityId': '8a8294174d0595bb014d05d82e5b01d2',
+            'amount': '92.00',
+            'currency': 'EUR',
+            'paymentType': 'DB'
+        });
+        var options = {
+            port: 443,
+            host: 'https://test.oppwa.com',
+            path: path,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': data.length,
+                'Authorization': 'Bearer OGE4Mjk0MTc0ZDA1OTViYjAxNGQwNWQ4MjllNzAxZDF8OVRuSlBjMm45aA=='
+            }
+        };
+        var postRequest = https.request(options, function (res) {
+            console.log(res);
+            res.setEncoding('utf8');
+            res.on('data', function (chunk) {
+                const jsonRes = JSON.parse(chunk);
+                return cb(jsonRes);
+            });
+        });
+        postRequest.on('error', (e) => {
+            console.log("Error posting message: " + e);
+        });
+        postRequest.write(data);
+        postRequest.end();
+
+        res.status(200).json({
+            state: 1
+        })
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}

@@ -67,4 +67,16 @@ router.get('/order/single/:id',isAuth,shopController.getSingleOrder);
 //offers
 router.get('/offers',isAuth,shopController.getOffers);
 
+router.post('/offers/cancel',[
+    body('offerId')
+    .not().isEmpty(),
+],isAuth,shopController.postCancelOffer);
+
+//offer pay
+
+router.post('/offers/pay',[
+    body('offerId')
+    .not().isEmpty(),
+],isAuth,shopController.postPay);
+
 module.exports = router;
