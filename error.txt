@@ -26,6 +26,8 @@
     16=> "if new mobile = old mobile"
     //single order
     18=>'not the order owner'
+    //pay
+    19=>'offer is canceled or the order is ended'
 
 
 

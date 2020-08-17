@@ -10,6 +10,7 @@ const Location = require('../../models/location');
 const Offer = require('../../models/offer');
 
 const pay = require('../../helpers/pay');
+const { pbkdf2Sync } = require('crypto');
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
@@ -555,8 +556,8 @@ exports.getOffers = async (req, res, next) => {
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
-            totalOffer = await Offer.find({  client: req.userId, status: 'started' }).countDocuments();
-        }else if (filter == 2) {
+            totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
+        } else if (filter == 2) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
                 .select('order seller banana_delivery price createdAt')
                 .populate({
@@ -567,7 +568,7 @@ exports.getOffers = async (req, res, next) => {
                     }
                 })
                 .populate({ path: 'seller', select: 'rete' })
-                .sort({ price: 0})
+                .sort({ price: 0 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
@@ -652,7 +653,7 @@ exports.postCancelOffer = async (req, res, next) => {
 
 //offer pay 
 
-exports.postPay = async (req, res, next) => {
+exports.postCreateCheckOut = async (req, res, next) => {
 
     const offerId = req.body.offerId;
 
@@ -664,41 +665,72 @@ exports.postPay = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        var path = '/v1/checkouts';
-        var data = querystring.stringify({
-            'entityId': '8a8294174d0595bb014d05d82e5b01d2',
-            'amount': '92.00',
-            'currency': 'EUR',
-            'paymentType': 'DB'
-        });
-        var options = {
-            port: 443,
-            host: 'https://test.oppwa.com',
-            path: path,
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': data.length,
-                'Authorization': 'Bearer OGE4Mjk0MTc0ZDA1OTViYjAxNGQwNWQ4MjllNzAxZDF8OVRuSlBjMm45aA=='
-            }
-        };
-        var postRequest = https.request(options, function (res) {
-            console.log(res);
-            res.setEncoding('utf8');
-            res.on('data', function (chunk) {
-                const jsonRes = JSON.parse(chunk);
-                return cb(jsonRes);
-            });
-        });
-        postRequest.on('error', (e) => {
-            console.log("Error posting message: " + e);
-        });
-        postRequest.write(data);
-        postRequest.end();
+        const offer = await Offer.findById(offerId)
+        .select('order status')
+        .populate({path:'order',select:'status pay'});
+        if(!offer){
+            const error = new Error(`offer not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+
+        if(offer.status !== 'started'){
+            const error = new Error(`offer is canceled or the order is ended`);
+            error.statusCode = 409;
+            error.state = 19;
+            throw error;
+        }
+        if(offer.order.status !== 'started'){
+            const error = new Error(`offer is canceled or the order is ended`);
+            error.statusCode = 409;
+            error.state = 19;
+            throw error;
+        }
+        if(offer.order.pay !== false){
+            const error = new Error(`you already payed for the order`);
+            error.statusCode = 409;
+            error.state = 19;
+            throw error;
+        }
+        
+        const { body, status } = await pay.createCheckOut(offer.price);
+
 
         res.status(200).json({
-            state: 1
-        })
+            state: 1,
+            status: status,
+            data: body,
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postCheckPayment = async (req, res, next) => {
+
+    const checkoutId = req.body.checkoutId;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+       const {body,status} = await pay.getStatus(checkoutId);
+
+        res.status(200).json({
+            state:1,
+            status:status,
+            data:body
+        });
 
     } catch (err) {
         if (!err.statusCode) {

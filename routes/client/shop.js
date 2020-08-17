@@ -74,9 +74,22 @@ router.post('/offers/cancel',[
 
 //offer pay
 
-router.post('/offers/pay',[
+router.post('/offers/CreateCheckOut',[
     body('offerId')
     .not().isEmpty(),
-],isAuth,shopController.postPay);
+],isAuth,shopController.postCreateCheckOut);
+
+router.post('/offers/checkPayment',[
+    body('checkoutId')
+    .not().isEmpty(),
+    body('name')
+    .not().isEmpty(),
+    body('mobile')
+    .not().isEmpty(),
+    body('adressString')
+    .not().isEmpty(),
+    body('arriveIn')
+    .not().isEmpty(),
+],isAuth,shopController.postCheckPayment);
 
 module.exports = router;
