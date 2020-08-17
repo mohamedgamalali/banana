@@ -58,6 +58,7 @@ const erorrMeddlewere = require('./helpers/errors');
 
 
 app.use('/client', router.client.auth, router.client.shop,router.client.user,router.client.support);
+app.use('/client/guest',router.client.guest );
 app.use('/seller', router.seller.auth,router.client.shop);
 app.use('/admin', router.admin.auth, router.admin.shop);
 

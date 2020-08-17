@@ -3,4 +3,5 @@ module.exports = {
     shop : require('./shop.js'),
     user : require('./user.js'),
     support : require('./support.js'),
+    guest : require('./guest.js'),
  }

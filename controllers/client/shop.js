@@ -10,7 +10,6 @@ const Location = require('../../models/location');
 const Offer = require('../../models/offer');
 
 const pay = require('../../helpers/pay');
-const { pbkdf2Sync } = require('crypto');
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
