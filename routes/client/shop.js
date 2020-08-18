@@ -90,6 +90,8 @@ router.post('/offers/checkPayment',[
     .not().isEmpty(),
     body('arriveIn')
     .not().isEmpty(),
+    body('offerId')
+    .not().isEmpty(),
 ],isAuth,shopController.postCheckPayment);
 
 module.exports = router;

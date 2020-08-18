@@ -8,8 +8,10 @@ const Client = require('../../models/client');
 const Order = require('../../models/order');
 const Location = require('../../models/location');
 const Offer = require('../../models/offer');
+const Pay = require('../../models/pay');
 
 const pay = require('../../helpers/pay');
+const { updateMany } = require('../../models/products');
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
@@ -714,6 +716,10 @@ exports.postCheckPayment = async (req, res, next) => {
 
     const checkoutId = req.body.checkoutId;
     const offerId = req.body.offerId;
+    const name = req.body.name;
+    const mobile = req.body.mobile;
+    const adressString = req.body.adressString;
+    const arriveIn = req.body.arriveIn;
 
     const errors = validationResult(req);
     try {
@@ -726,8 +732,8 @@ exports.postCheckPayment = async (req, res, next) => {
 
         const { body, status } = await pay.getStatus(checkoutId);
 
-        const reg1 = new RegExp("(000\.000\.|000\.100\.1|000\.[36])") ;
-        const reg2 = new RegExp("(000\.400\.0[^3]|000\.400\.100)")    ; 
+        const reg1 = new RegExp("^(000\.000\.|000\.100\.1|000\.[36])","m") ;
+        const reg2 = new RegExp("^(000\.400\.0[^3]|000\.400\.100)",'m')    ; 
         console.log(reg1.test(body.result.code.toString()));
         console.log(reg2.test(body.result.code.toString()));
         console.log(body.result.code.toString());
@@ -740,13 +746,45 @@ exports.postCheckPayment = async (req, res, next) => {
                 throw error;
         }
 
-        //const offer = await Offer.findById(offerId);
+        const offer = await Offer.findById(offerId);
+        if (!offer) {
+            const error = new Error(`offer not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+        offer.selected = true ;
+        const order = await Order.findById(offer.order);
+        if (!order) {
+            const error = new Error(`order not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
 
+        await Offer.updateMany({order:order._id},{status:'ended'});
+        order.pay = true ;
+        const p = new Pay({
+            name: name,
+            mobile: mobile,
+            adressString: adressString,
+            arriveIn: Number(arriveIn),
+            offer: offer._id,
+            order: order._id,
+            client: req.userId,
+            seller: offer.seller,
+            payId:body.id,
+        });
+
+        //saving
+        await order.endOrder();
+        await offer.save()    ;
+        await p.save()        ;
 
         res.status(200).json({
             state: 1,
-            status: status,
-            data: body
+            message: 'message payment created',
+            paymentStatusCode:body.result.code.toString()
         });
 
     } catch (err) {
