@@ -8,7 +8,7 @@ exports.createCheckOut = async (price) => {
             'entityId': process.env.HYPERPAY_ENTITYID,
             'amount': price,
             'currency': 'SAR',
-            'paymentType': 'VISA'
+            'paymentType': 'DB'
         });
        const {body,status} = await unirest
             .post(process.env.HYPERPAY_URL + '/v1/checkouts')
