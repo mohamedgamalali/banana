@@ -726,8 +726,12 @@ exports.postCheckPayment = async (req, res, next) => {
 
         const { body, status } = await pay.getStatus(checkoutId);
 
-        const reg1 = new RegExp("/^(000\\.000\\.|000\\.100\\.1|000\\.[36])/") ;
-        const reg2 = new RegExp("/^(000\\.400\\.0[^3]|000\\.400\\.100)/")    ; 
+        const reg1 = new RegExp("(000\.000\.|000\.100\.1|000\.[36])") ;
+        const reg2 = new RegExp("(000\.400\.0[^3]|000\.400\.100)")    ; 
+        console.log(reg1.test(body.result.code.toString()));
+        console.log(reg2.test(body.result.code.toString()));
+        console.log(body.result.code.toString());
+
 
         if (!reg1.test(body.result.code.toString()) && !reg2.test(body.result.code.toString())) {
                 const error = new Error(`payment error`);
