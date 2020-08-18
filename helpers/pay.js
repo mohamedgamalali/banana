@@ -6,7 +6,7 @@ exports.createCheckOut = async (price) => {
     try {
         var data = querystring.stringify({
             'entityId': process.env.HYPERPAY_ENTITYID,
-            'amount': price.toString(),
+            'amount': price,
             'currency': 'SAR',
             'paymentType': 'DB'
         });

@@ -665,7 +665,7 @@ exports.postCreateCheckOut = async (req, res, next) => {
             throw error;
         }
         const offer = await Offer.findById(offerId)
-        .select('order status')
+        .select('order status price')
         .populate({path:'order',select:'status pay'});
         if(!offer){
             const error = new Error(`offer not found`);
