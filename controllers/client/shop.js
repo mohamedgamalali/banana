@@ -665,34 +665,34 @@ exports.postCreateCheckOut = async (req, res, next) => {
             throw error;
         }
         const offer = await Offer.findById(offerId)
-        .select('order status price')
-        .populate({path:'order',select:'status pay'});
-        if(!offer){
+            .select('order status price')
+            .populate({ path: 'order', select: 'status pay' });
+        if (!offer) {
             const error = new Error(`offer not found`);
             error.statusCode = 404;
             error.state = 9;
             throw error;
         }
 
-        if(offer.status !== 'started'){
+        if (offer.status !== 'started') {
             const error = new Error(`offer is canceled or the order is ended`);
             error.statusCode = 409;
             error.state = 19;
             throw error;
         }
-        if(offer.order.status !== 'started'){
+        if (offer.order.status !== 'started') {
             const error = new Error(`offer is canceled or the order is ended`);
             error.statusCode = 409;
             error.state = 19;
             throw error;
         }
-        if(offer.order.pay !== false){
+        if (offer.order.pay !== false) {
             const error = new Error(`you already payed for the order`);
             error.statusCode = 409;
             error.state = 19;
             throw error;
         }
-        
+
         const { body, status } = await pay.createCheckOut(offer.price);
 
 
@@ -713,6 +713,7 @@ exports.postCreateCheckOut = async (req, res, next) => {
 exports.postCheckPayment = async (req, res, next) => {
 
     const checkoutId = req.body.checkoutId;
+    const offerId = req.body.offerId;
 
     const errors = validationResult(req);
     try {
@@ -723,12 +724,25 @@ exports.postCheckPayment = async (req, res, next) => {
             throw error;
         }
 
-       const {body,status} = await pay.getStatus(checkoutId);
+        const { body, status } = await pay.getStatus(checkoutId);
+
+        const reg1 = new RegExp("/^(000\\.000\\.|000\\.100\\.1|000\\.[36])/") ;
+        const reg2 = new RegExp("/^(000\\.400\\.0[^3]|000\\.400\\.100)/")    ; 
+
+        if (!reg1.test(body.result.code.toString()) && !reg2.test(body.result.code.toString())) {
+                const error = new Error(`payment error`);
+                error.statusCode = 402;
+                error.state = 20;
+                throw error;
+        }
+
+        //const offer = await Offer.findById(offerId);
+
 
         res.status(200).json({
-            state:1,
-            status:status,
-            data:body
+            state: 1,
+            status: status,
+            data: body
         });
 
     } catch (err) {

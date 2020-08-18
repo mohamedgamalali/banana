@@ -28,6 +28,7 @@
     18=>'not the order owner'
     //pay
     19=>'offer is canceled or the order is ended'
+    20=>'payment error'
 
 
 
