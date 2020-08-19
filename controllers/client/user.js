@@ -7,6 +7,7 @@ const Client = require('../../models/client');
 const Order = require('../../models/order');
 const Products = require('../../models/products');
 const Locations = require('../../models/location');
+const Notfications = require('../../models/notfications');
 
 exports.getOrders = async (req, res, next) => {
     const page = req.query.page || 1;
@@ -183,7 +184,7 @@ exports.postEditPassword = async (req, res, next) => {
     const oldPassword = req.body.oldPassword;
     const password = req.body.password;
     const logout = req.body.logout || false;
-    let   token ;
+    let token;
     let message = 'password changed';
 
     const errors = validationResult(req);
@@ -222,22 +223,22 @@ exports.postEditPassword = async (req, res, next) => {
         }
 
         const updatedClient = await client.save();
-        
-        if(logout){
+
+        if (logout) {
             token = jwt.sign(
                 {
                     mobile: updatedClient.mobile,
                     userId: updatedClient._id.toString(),
-                    updated:updatedClient.updated.toString()
+                    updated: updatedClient.updated.toString()
                 },
                 process.env.JWT_PRIVATE_KEY_CLIENT
             );
-            message += ' and loged out from other devices' ;
+            message += ' and loged out from other devices';
         }
 
         res.status(200).json({
             state: 1,
-            data:token,
+            data: token,
             message: message
         });
 
@@ -302,7 +303,7 @@ exports.postAddLocation = async (req, res, next) => {
 
     const errors = validationResult(req);
     try {
-        
+
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
@@ -311,22 +312,22 @@ exports.postAddLocation = async (req, res, next) => {
         }
 
         const newLoc = new Locations({
-            client:req.userId,
+            client: req.userId,
             Location: {
                 type: "Point",
                 coordinates: [long, lat]
             },
-            name:name,
-            mobile:mobile,
-            stringAdress:stringAdress
+            name: name,
+            mobile: mobile,
+            stringAdress: stringAdress
         });
 
         const loc = await newLoc.save();
 
         res.status(201).json({
-            state:1,
-            data:loc,
-            message:'location added'
+            state: 1,
+            data: loc,
+            message: 'location added'
         });
 
     } catch (err) {
@@ -339,14 +340,14 @@ exports.postAddLocation = async (req, res, next) => {
 
 exports.getLocations = async (req, res, next) => {
 
-    
+
     try {
-        const location = await Locations.find({client:req.userId}).select('Location name mobile stringAdress');
+        const location = await Locations.find({ client: req.userId }).select('Location name mobile stringAdress');
 
         res.status(200).json({
-            state:1,
-            data:location,
-            message:'client locations'
+            state: 1,
+            data: location,
+            message: 'client locations'
         });
 
     } catch (err) {
@@ -358,11 +359,11 @@ exports.getLocations = async (req, res, next) => {
 }
 
 exports.deleteLocation = async (req, res, next) => {
-    const locationId = req.body.locationId ;
+    const locationId = req.body.locationId;
 
     const errors = validationResult(req);
     try {
-        
+
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
@@ -370,21 +371,49 @@ exports.deleteLocation = async (req, res, next) => {
             throw error;
         }
         const location = await Locations.findById(locationId);
-        if(!location){
+        if (!location) {
             const error = new Error(`location not found`);
             error.statusCode = 404;
             error.state = 9;
             throw error;
         }
 
-        await Locations.deleteOne({_id:location._id});
+        await Locations.deleteOne({ _id: location._id });
 
-        const allLocations = await Locations.find({client:req.userId}).select('Location name mobile stringAdress');
+        const allLocations = await Locations.find({ client: req.userId }).select('Location name mobile stringAdress');
 
         res.status(200).json({
-            state:1,
-            data:allLocations,
-            message:'client locations'
+            state: 1,
+            data: allLocations,
+            message: 'client locations'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+exports.getNotfications = async (req, res, next) => {
+    const page = req.query.page || 1;
+    const productPerPage = 10;
+
+    try {
+        const total = await Notfications.find({}).countDocuments();
+        const notfications = await Notfications.find({})
+        .select('data notification date createdAt')
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * productPerPage)
+            .limit(productPerPage);
+
+        res.status(200).json({
+            state: 1,
+            data: notfications,
+            total: total,
+            message: `Notification in page ${page}`
         });
 
     } catch (err) {

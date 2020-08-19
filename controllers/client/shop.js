@@ -11,7 +11,7 @@ const Offer = require('../../models/offer');
 const Pay = require('../../models/pay');
 
 const pay = require('../../helpers/pay');
-const { updateMany } = require('../../models/products');
+
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
@@ -535,7 +535,7 @@ exports.getSingleOrder = async (req, res, next) => {
 //offers
 exports.getOffers = async (req, res, next) => {
 
-    const page = req.query.page || 1;
+    const page = req.query.page || 0;
     const filter = req.query.filter || 1;
     const offerPerPage = 10;
     let offer;
@@ -570,6 +570,21 @@ exports.getOffers = async (req, res, next) => {
                 })
                 .populate({ path: 'seller', select: 'rete' })
                 .sort({ price: 0 })
+                .skip((page - 1) * offerPerPage)
+                .limit(offerPerPage);
+
+            totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
+        }else if (filter == 0) {
+            offer = await Offer.find({ client: req.userId, status: 'started' })
+                .select('order seller banana_delivery price createdAt')
+                .populate({
+                    path: 'order', select: 'products',
+                    populate: {
+                        path: 'products.product',
+                        select: 'name_en name_ar name',
+                    }
+                })
+                .populate({ path: 'seller', select: 'rete' })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 

@@ -74,4 +74,6 @@ router.post('/profile/delete/location',[
     .not().isEmpty()
 ],isAuth,userController.deleteLocation);
 
+router.get('/notfication',isAuth,userController.getNotfications);
+
 module.exports = router;
