@@ -6,6 +6,7 @@ const Issue = require('../../models/issues');
 const SupportMessage = require('../../models/supportMessages');
 
 const deleteFile = require("../../helpers/file");
+const { findOne } = require('../../models/order');
 
 exports.postIssue = async (req, res, next) => {
 
@@ -51,6 +52,14 @@ exports.postIssue = async (req, res, next) => {
             const error = new Error(`can't find selected offer for the order`);
             error.statusCode = 404;
             error.state = 24;
+            throw error;
+        }
+
+        const checkIssue = await Issue.findOne({order:order._id,client:req.userId});
+        if(checkIssue){
+            const error = new Error(`issue allready creted`);
+            error.statusCode = 409;
+            error.state = 25;
             throw error;
         }
 
