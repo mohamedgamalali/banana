@@ -50,7 +50,9 @@ exports.getSingleIssue = async(req,res,next)=>{
 
     try {
         
-        const issues = await Issue.findById(issueId).select('imageUrl state order reason demands');
+        const issues = await Issue.findById(issueId)
+        .select('imageUrl state order reason demands offer')
+        .populate({path:'offer',select:'price'});
         if (!issues) {
             const error = new Error(`issues not found`);
             error.statusCode = 404;
