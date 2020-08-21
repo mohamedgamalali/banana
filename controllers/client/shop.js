@@ -692,13 +692,13 @@ exports.postCreateCheckOut = async (req, res, next) => {
         }
 
         if (offer.status !== 'started') {
-            const error = new Error(`offer is canceled or the order is ended`);
+            const error = new Error(`offer is canceled or the offer is ended`);
             error.statusCode = 409;
             error.state = 19;
             throw error;
         }
         if (offer.order.status !== 'started') {
-            const error = new Error(`offer is canceled or the order is ended`);
+            const error = new Error(`order is canceled or the order is ended`);
             error.statusCode = 409;
             error.state = 19;
             throw error;

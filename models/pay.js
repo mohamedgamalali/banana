@@ -41,7 +41,7 @@ const paySchema = new schema({
     },
     deliver :{
         type:Boolean,
-        default:false
+        default: false
     }
 
 }, { timestamps: true });

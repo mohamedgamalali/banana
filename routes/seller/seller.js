@@ -1,4 +1,5 @@
 module.exports = {
     auth : require('./auth.js'),
-    auth : require('./shop.js'),
+    shop : require('./shop.js'),
+    user : require('./user.js'),
  }
