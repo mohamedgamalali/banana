@@ -11,6 +11,10 @@ const issueSchema = new schema({
         type: schema.Types.ObjectId,
         ref: 'order'
     },
+    seller:{
+        type: schema.Types.ObjectId,
+        ref: 'seller'
+    },
     reason:{
         type: String,
         required:true

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const schema = mongoose.Schema;
 
 const offerSchema = new schema({
-    order: {
+    order: { 
         type: schema.Types.ObjectId,
         ref: 'order'
     },

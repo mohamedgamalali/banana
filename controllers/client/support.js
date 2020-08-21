@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 
 const Order = require('../../models/order');
+const Offer = require('../../models/offer');
 const Issue = require('../../models/issues');
 const SupportMessage = require('../../models/supportMessages');
 
@@ -34,7 +35,7 @@ exports.postIssue = async (req, res, next) => {
             error.state = 9;
             throw error;
         }
-        if (order.status != 'started') {
+        if (order.status != 'ended') {
             const error = new Error(`wanna put issue for not ended order`);
             error.statusCode = 422;
             error.state = 14;
@@ -44,12 +45,22 @@ exports.postIssue = async (req, res, next) => {
             imageUrl.push(element.path);
         });
 
+        const offer = await Offer.findOne({order:order._id,selected:true,status:'ended'}).select('seller');
+
+        if(!offer){
+            const error = new Error(`can't find selected offer for the order`);
+            error.statusCode = 404;
+            error.state = 24;
+            throw error;
+        }
+
         const issue = new Issue({
             client: req.userId,
             order: order._id,
             reason: reason,
             demands: demands,
-            imageUrl: imageUrl
+            imageUrl: imageUrl,
+            seller:offer.seller._id
         });
         const i = await issue.save();
 

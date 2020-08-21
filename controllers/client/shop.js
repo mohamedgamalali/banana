@@ -783,13 +783,14 @@ exports.postCheckPayment = async (req, res, next) => {
             name: name,
             mobile: mobile,
             adressString: adressString,
-            arriveIn: Number(arriveIn),
             offer: offer._id,
             order: order._id,
             client: req.userId,
             seller: offer.seller,
             payId:body.id,
         });
+
+        order.arriveDate = arriveIn.toString();
 
         //saving
         await order.endOrder();

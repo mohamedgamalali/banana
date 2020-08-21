@@ -141,6 +141,15 @@ exports.putOffer = async (req, res, next) => {
             error.state = 12;
             throw error;
         }
+        const ifOffer = await Offer.findOne({seller:req.userId,order:order._id});
+
+        if(ifOffer){
+            const error = new Error(`seller can't add more than offer for the same order`);
+            error.statusCode = 409;
+            error.state = 23;
+            throw error;
+        }
+
         const offer = new Offer({
             order: order._id,
             client: order.client,

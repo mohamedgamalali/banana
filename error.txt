@@ -29,7 +29,16 @@
     //pay
     19=>'offer is canceled or the order is ended'
     20=>'payment error'
+    
+    //seller get client data
+    21=>client didn't select the seller's offer 
+    22=>some thing happend in client payment
 
+    //seller add offer
+    23=>seller can't add more than offer for the same order
+
+    //client issue 
+    24=>can't find selected offer for the order
 
 
 

@@ -9,6 +9,26 @@ const Products = require('../../models/products');
 const Locations = require('../../models/location');
 const Notfications = require('../../models/notfications');
 
+// const not = new Notfications({
+//     user:'5f36fd4c7f02aa0004fd247d',
+//     data:{
+//         id:'5',
+//         key:'String',
+//     },
+//     notification:{
+//         title:'title',
+//         body:'body'
+//     },
+//     date:new Date().getTime().toString()
+// });
+
+// not.save().then(i=>{
+//     console.log(i);
+// })
+// .catch(err=>{
+//     console.log(err);
+// })
+
 exports.getOrders = async (req, res, next) => {
     const page = req.query.page || 1;
     const productPerPage = 10;
