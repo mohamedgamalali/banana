@@ -26,7 +26,12 @@ const issueSchema = new schema({
     imageUrl:[{
         type:String,
         required:true
-    }]
+    }],
+    state:{
+        type:String,
+        default:'binding',
+        enum:['binding','ok','cancel']
+    }
 });
 
 module.exports = mongoose.model('issue', issueSchema);
