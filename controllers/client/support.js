@@ -69,7 +69,8 @@ exports.postIssue = async (req, res, next) => {
             reason: reason,
             demands: demands,
             imageUrl: imageUrl,
-            seller:offer.seller._id
+            seller:offer.seller._id,
+            offer:offer._id
         });
         const i = await issue.save();
 

@@ -15,6 +15,10 @@ const issueSchema = new schema({
         type: schema.Types.ObjectId,
         ref: 'seller'
     },
+    offer:{
+        type: schema.Types.ObjectId,
+        ref: 'offer'
+    },
     reason:{
         type: String,
         required:true
@@ -32,6 +36,6 @@ const issueSchema = new schema({
         default:'binding',
         enum:['binding','ok','cancel']
     }
-});
+},{ timestamps: true });
 
 module.exports = mongoose.model('issue', issueSchema);

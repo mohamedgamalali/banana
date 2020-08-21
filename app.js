@@ -13,35 +13,35 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 const port = process.env.PORT || 8080;
 
- //multer
- const fileStorage = multer.diskStorage({
-  destination:(req,file,cb)=>{
-      cb(null,'images');
-  },
-  filename:(req,file,cb)=>{
-    cb(null,new Date().toISOString()+'-' + file.originalname);
-  }
+//multer
+const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'images');
+    },
+    filename: (req, file, cb) => {
+        cb(null, new Date().toISOString() + '-' + file.originalname);
+    }
 });
 
 
 
 
-const fileFilter = (req,file,cb)=>{
-  if(file.mimetype==='image/png'||
-  file.mimetype==='image/jpg'   ||
-  file.mimetype==='image/jpeg'){
-      cb(null,true);
-  }else {
-    cb(null,false);
-  }
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'image/png' ||
+        file.mimetype === 'image/jpg' ||
+        file.mimetype === 'image/jpeg') {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
 }
 
 //meddleWere
 app.use(bodyParser.json());
 
 //multer meddlewere
-app.use(multer({storage:fileStorage,fileFilter:fileFilter}).array('image'));
-app.use('/images',express.static(path.join(__dirname,'images')));
+app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).array('image'));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 //headers meddlewere
 app.use((req, res, next) => {
@@ -52,14 +52,14 @@ app.use((req, res, next) => {
 });
 
 //routes
-const router          = require('./routes/router');
+const router = require('./routes/router');
 const erorrMeddlewere = require('./helpers/errors');
 
 
 
-app.use('/client', router.client.auth, router.client.shop,router.client.user,router.client.support);
-app.use('/client/guest',router.client.guest );
-app.use('/seller', router.seller.auth,router.seller.shop, router.seller.user);
+app.use('/client', router.client.auth, router.client.shop, router.client.user, router.client.support);
+app.use('/client/guest', router.client.guest);
+app.use('/seller', router.seller.auth, router.seller.shop, router.seller.user, router.seller.support);
 app.use('/admin', router.admin.auth, router.admin.shop);
 
 
