@@ -29,7 +29,6 @@ const issueSchema = new schema({
     },
     imageUrl:[{
         type:String,
-        required:true
     }],
     state:{
         type:String,

@@ -9,6 +9,7 @@ exports.postSignup = async (req, res, next) => {
     const name = req.body.name;
     const password = req.body.password;
     const mobile = req.body.mobile;
+    const email = req.body.email;
 
     try {
         if (!errors.isEmpty()) {
@@ -21,15 +22,24 @@ exports.postSignup = async (req, res, next) => {
         const checkClient = await Client.findOne({ mobile: mobile });
 
         if (checkClient) {
-            const error = new Error(`This user is already registered`);
+            const error = new Error(`This user is already registered with mobile`);
             error.statusCode = 409;
             error.state = 6;
+            throw error;
+        }
+        const checkClientEmail = await Client.findOne({ email: email });
+
+        if (checkClientEmail) {
+            const error = new Error(`This user is already registered with email`);
+            error.statusCode = 409;
+            error.state = 26;
             throw error;
         }
         const hashedPass = await bycript.hash(password, 12);
         const newClient = new Client({
             name: name,
             mobile: mobile,
+            email:email,
             password: hashedPass,
             fevProducts:[],
             updated:Date.now().toString()

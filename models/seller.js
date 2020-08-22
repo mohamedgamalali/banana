@@ -15,10 +15,41 @@ const sellerSchema = new schema({
         type: String,
         required: true
     },
+    email:{
+        type: String,
+        required: true
+    },
+    image:{
+        type: Number,
+        default: 1
+    },
     category:[{
-        type:String,
-        enum: ['F-V', 'B', 'F-M','F'],
-        required:true
+        name:{
+            type:String,
+            enum: ['F-V', 'B', 'F-M','F'],
+            required:true,
+        },
+        activated:{
+            type:Boolean,
+            default:false
+        },
+        certificate:{
+            image:{
+                type:String,
+                default:'0'
+            },
+            expiresAt:{
+                type:Number,
+                default:0
+            },
+            state:{
+                type:String,
+                enum:['binding','approve','disapprove'],
+                default:'binding'
+            },
+            adminNote:String,
+        }
+        
     }],
     verfication: {
         type: Boolean,
@@ -49,6 +80,18 @@ const sellerSchema = new schema({
     }
 });
 
+sellerSchema.methods.addSert = function (categoryId,imageUrl,expires){
+    let cat = this.category ;
 
+    cat.forEach(element => {
+        if(element._id == categoryId){
+            element.certificate.image=imageUrl ;
+            element.certificate.expiresAt=expires ;
+            element.activated = true ;
+        }
+    });
+    this.category = cat ;
+    return this.save()  ;
+}
 
 module.exports = mongoose.model('seller', sellerSchema);

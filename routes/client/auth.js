@@ -6,10 +6,13 @@ const authController = require('../../controllers/client/auth');
 
 const router  = express.Router();
 router.put('/signup',[
+    body('email')
+    .isEmail()
+    .withMessage('please enter a valid email.')
+    .normalizeEmail(),
     body('password','enter a password with only number and text and at least 5 characters.')
     .isLength({min:5})
-    .trim()
-    ,
+    .trim(),
     body('comfirmPassword')
     .trim()
     .custom((value,{req})=>{

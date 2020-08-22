@@ -135,6 +135,10 @@ exports.putOffer = async (req, res, next) => {
             error.state = 9;
             throw error;
         }
+        order.category.forEach(i=>{
+            const index = req.sellerCat['name'].indexOf(i);
+            console.log(index);
+        });
         if (order.status == 'endeed' || order.status == 'cancel') {
             const error = new Error(`order ended or canceled`);
             error.statusCode = 404;

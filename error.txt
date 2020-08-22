@@ -6,7 +6,8 @@
     4=> "client have been blocked",
     5=> "validation faild",
     //signup
-    6=> "This user is already registered"
+    6=> "This user is already registered with mobile"
+    26=> "This user is already registered with email"
     //login
     7=> "Client not found"
     8=> "wrong password"
