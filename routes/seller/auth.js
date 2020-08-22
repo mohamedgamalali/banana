@@ -7,6 +7,10 @@ const authController = require('../../controllers/seller/auth');
 const router  = express.Router();
 
 router.put('/signup',[
+    body('email')
+    .isEmail()
+    .withMessage('please enter a valid email.')
+    .normalizeEmail(),
     body('name')
     .not().isEmpty()
     .trim(),

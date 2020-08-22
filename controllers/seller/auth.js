@@ -7,6 +7,7 @@ const Seller = require('../../models/seller');
 exports.postSignup = async (req, res, next) => {
     const errors = validationResult(req);
     const name = req.body.name;
+    const email = req.body.email;
     const password = req.body.password;
     const mobile = req.body.mobile;
     const category = req.body.category;
@@ -31,15 +32,24 @@ exports.postSignup = async (req, res, next) => {
         const checkSeller = await Seller.findOne({ mobile: mobile });
 
         if (checkSeller) {
-            const error = new Error(`This user is already registered`);
+            const error = new Error(`This user is already registered with mobile`);
             error.statusCode = 409;
             error.state = 6;
+            throw error;
+        }
+        const checkSellerEmail = await Seller.findOne({ email: email });
+
+        if (checkSellerEmail) {
+            const error = new Error(`This user is already registered with email`);
+            error.statusCode = 409;
+            error.state = 26;
             throw error;
         }
         const hashedPass = await bycript.hash(password, 12);
         const newSeller = new Seller({
             name: name,
             mobile: mobile,
+            email:email,
             password: hashedPass,
             category:category,
             updated:Date.now().toString()

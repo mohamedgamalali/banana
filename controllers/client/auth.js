@@ -89,11 +89,11 @@ exports.postLogin = async (req, res, next) => {
         }
         
         const isEmail          = emailOrPhone.search('@');
-        
+
         let client;
         if(isEmail>=0){
             await check('mobile').isEmail().normalizeEmail().run(req);   
-            client = await Client.findOne({email:req.body.emailOrPhone}) 
+            client = await Client.findOne({email:req.body.mobile}) 
         }else{
             client = await Client.findOne({mobile:emailOrPhone})
         }
