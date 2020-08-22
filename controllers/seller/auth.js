@@ -46,12 +46,18 @@ exports.postSignup = async (req, res, next) => {
             throw error;
         }
         const hashedPass = await bycript.hash(password, 12);
+        const cat = [];
+        category.forEach(i=>{
+            cat.push({
+                name:i
+            })
+        })
         const newSeller = new Seller({
             name: name,
             mobile: mobile,
             email:email,
             password: hashedPass,
-            category:category,
+            category:cat,
             updated:Date.now().toString()
         });
 
