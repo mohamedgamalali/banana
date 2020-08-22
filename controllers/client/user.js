@@ -173,7 +173,7 @@ exports.postEditName = async (req, res, next) => {
 
         const client = await Client.findById(req.userId).select('name');
 
-        client.name = name;
+        client.name = name; 
 
         const updatedClient = await client.save();
 

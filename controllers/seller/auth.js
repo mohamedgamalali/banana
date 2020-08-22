@@ -41,7 +41,8 @@ exports.postSignup = async (req, res, next) => {
             name: name,
             mobile: mobile,
             password: hashedPass,
-            category:category
+            category:category,
+            updated:Date.now().toString()
         });
 
         const seller = await newSeller.save();
@@ -49,7 +50,8 @@ exports.postSignup = async (req, res, next) => {
         const token = jwt.sign(
             {
                 mobile: seller.mobile,
-                userId: seller._id.toString()
+                userId: seller._id.toString(),
+                updated:seller.updated.toString()
             },
             process.env.JWT_PRIVATE_KEY_SELLER
         );
@@ -111,7 +113,8 @@ exports.postLogin = async (req, res, next) => {
         const token = jwt.sign(
             {
                 mobile: seller.mobile,
-                userId: seller._id.toString()
+                userId: seller._id.toString(),
+                updated:seller.updated.toString()
             },
             process.env.JWT_PRIVATE_KEY_SELLER
         );

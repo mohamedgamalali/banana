@@ -683,7 +683,7 @@ exports.postCreateCheckOut = async (req, res, next) => {
         }
         const offer = await Offer.findById(offerId)
             .select('order status price')
-            .populate({ path: 'order', select: 'status pay' });
+            .populate({ path: 'order', select: 'status pay client' });
         if (!offer) {
             const error = new Error(`offer not found`);
             error.statusCode = 404;
@@ -707,6 +707,13 @@ exports.postCreateCheckOut = async (req, res, next) => {
             const error = new Error(`you already payed for the order`);
             error.statusCode = 409;
             error.state = 19;
+            throw error;
+        }
+
+        if(offer.order.client._id != req.userId){
+            const error = new Error(`not the order owner`);
+            error.statusCode = 403;
+            error.state = 11;
             throw error;
         }
 

@@ -36,6 +36,12 @@ exports.postIssue = async (req, res, next) => {
             error.state = 9;
             throw error;
         }
+        if(order.client._id != req.userId){
+            const error = new Error(`not the order owner`);
+            error.statusCode = 403;
+            error.state = 11;
+            throw error;
+        }
         if (order.status != 'ended') {
             const error = new Error(`wanna put issue for not ended order`);
             error.statusCode = 422;

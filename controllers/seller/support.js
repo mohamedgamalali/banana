@@ -1,6 +1,50 @@
-const Issue = require('../../models/issues');
-const Offer = require('../../models/offer');
+const { validationResult } = require('express-validator');
 
+const Issue = require('../../models/issues');
+const SupportMessage = require('../../models/supportMessages');
+
+
+exports.postContactUs = async (req, res, next) => {
+
+    const name = req.body.name;
+    const email = req.body.email;
+    const message = req.body.message;
+
+    const errors = validationResult(req);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const mm = new SupportMessage({
+            name: name,
+            email: email,
+            message: message,
+            user:req.userId,
+            user_type:'seller'
+        });
+
+        const m = await mm.save(); 
+
+        res.status(201).json({
+            state:1,
+            message:'support message sent'
+        });
+        
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+
+        console.log(err);
+        next(err);
+    }
+}
 
 exports.getIssues = async(req,res,next)=>{
     const page   = req.query.page   || 1 ;
@@ -97,8 +141,50 @@ exports.postIssueAccept = async(req,res,next)=>{
             throw error;
         }
 
-        const offer = await Offer.findOne({})
+        //manage with wallet
+        //to be contenue
 
+        
+        
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+
+        console.log(err);
+        next(err);
+    }
+}
+
+exports.postIssueRefuse = async(req,res,next)=>{
+    const issueId   = req.body.issueId ;
+
+    const errors = validationResult(req);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        
+        const issues = await Issue.findById(issueId).select('imageUrl state order reason demands');
+        if (!issues) {
+            const error = new Error(`issues not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        } 
+        
+        issues.state = 'cancel' ;
+        
+        await issues.save();
+
+        res.status(200).json({
+            state:1,
+            message:'issue canceld'
+        });
         
         
     } catch (err) {

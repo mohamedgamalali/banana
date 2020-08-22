@@ -18,4 +18,20 @@ router.post('/issue/accept',[
     .not().isEmpty()
 ],isAuth,supportController.postIssueAccept);
 
+router.post('/issue/refuse',[
+    body('issueId')
+    .not().isEmpty()
+],isAuth,supportController.postIssueRefuse);
+
+
+//constact us
+router.post('/support/contactUs',[
+    body('name')
+    .not().isEmpty(),
+    body('email')
+    .not().isEmpty(),
+    body('message')
+    .not().isEmpty(),
+],isAuth,supportController.postContactUs);
+
 module.exports = router;

@@ -1,8 +1,10 @@
-const Order = require('../../models/order');
 const Offer = require('../../models/offer');
 const Pay = require('../../models/pay');
-const e = require('express');
+const Seller = require('../../models/seller');
 
+const bycript = require('bcryptjs');
+const { validationResult } = require('express-validator');
+const jwt = require('jsonwebtoken');
 
 
 exports.getMyOrders = async (req, res, next) => {
@@ -163,4 +165,136 @@ exports.getMyOffers = async (req, res, next) => {
         next(err);
     }
 
+}
+
+exports.postEditName = async (req, res, next) => {
+    const name = req.body.name;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const seller = await Seller.findById(req.userId).select('name');
+
+        seller.name = name;
+
+        const updatedSeller = await seller.save();
+
+        res.status(200).json({
+            state: 1,
+            data: updatedSeller.name,
+            message: 'seller name changed'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postEditPassword = async (req, res, next) => {
+
+    const oldPassword = req.body.oldPassword;
+    const password = req.body.password;
+    const logout = req.body.logout || false;
+    let token;
+    let message = 'password changed';
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const seller  = await Seller.findById(req.userId).select('password');
+        
+        const isEqual = await bycript.compare(oldPassword, seller.password);
+        if (!isEqual) {
+            const error = new Error('wrong password');
+            error.statusCode = 401;
+            error.state = 8;
+            throw error;
+        }
+
+        const isEqualNew = await bycript.compare(password, seller.password);
+
+        if (isEqualNew) {
+            const error = new Error('new password must be defferent from old password');
+            error.statusCode = 409;
+            error.state = 15;
+            throw error;
+        }
+
+        const hashedPass = await bycript.hash(password, 12);
+
+        seller.password = hashedPass;
+        //logout from other devices
+
+        if (logout) {
+            seller.updated = Date.now().toString();
+        }
+
+        const updatedClient = await seller.save();
+
+        if (logout) {
+            token = jwt.sign(
+                {
+                    mobile: updatedClient.mobile,
+                    userId: updatedClient._id.toString(),
+                    updated: updatedClient.updated.toString()
+                },
+                process.env.JWT_PRIVATE_KEY_SELLER
+            );
+            message += ' and loged out from other devices';
+        }
+
+        res.status(200).json({
+            state: 1,
+            data: token,
+            message: message
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+
+exports.postSMS = async (req, res, next) => {
+    const name = req.body.name;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        res.status(200).json({
+            state:1,
+            message:'message sent'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
 }

@@ -33,7 +33,7 @@ module.exports = async (req, res, next) => {
             throw error;
         }
 
-        const seller = await Seller.findById(decodedToken.userId).select('blocked category');
+        const seller = await Seller.findById(decodedToken.userId).select('blocked category updated');
 
         if (!seller) {
             const error = new Error('user not found');
@@ -46,6 +46,13 @@ module.exports = async (req, res, next) => {
             const error = new Error('seller have been blocked');
             error.statusCode = 403;
             error.state = 4;
+            throw error;
+        }
+        
+        if (decodedToken.updated !== seller.updated.toString()) {
+            const error = new Error('token expired please login');
+            error.statusCode = 403;
+            error.state = 17;
             throw error;
         }
 
