@@ -1,6 +1,6 @@
 const bycript = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { validationResult } = require('express-validator');
+const {check,validationResult} = require('express-validator');
 
 const Client = require('../../models/client');
 
@@ -77,8 +77,9 @@ exports.postSignup = async (req, res, next) => {
 
 exports.postLogin = async (req, res, next) => {
     const errors = validationResult(req);
-    const mobile = req.body.mobile;
+    const emailOrPhone = req.body.mobile;
     const password = req.body.password;
+
 
     try {
         if (!errors.isEmpty()) {
@@ -86,8 +87,16 @@ exports.postLogin = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
-
-        const client = await Client.findOne({ mobile: mobile })
+        
+        const isEmail          = emailOrPhone.search('@');
+        
+        let client;
+        if(isEmail>=0){
+            await check('mobile').isEmail().normalizeEmail().run(req);   
+            client = await Client.findOne({email:req.body.emailOrPhone}) 
+        }else{
+            client = await Client.findOne({mobile:emailOrPhone})
+        }
         if (!client) {
             const error = new Error(`Client not found`);
             error.statusCode = 404;
