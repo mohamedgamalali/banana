@@ -1,6 +1,6 @@
 const bycript = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { validationResult } = require('express-validator');
+const {check,validationResult} = require('express-validator');
 
 const Seller = require('../../models/seller');
 
@@ -94,7 +94,7 @@ exports.postSignup = async (req, res, next) => {
 
 exports.postLogin = async (req, res, next) => {
     const errors = validationResult(req);
-    const mobile = req.body.mobile;
+    const emailOrPhone = req.body.mobile;
     const password = req.body.password;
 
     try {
@@ -104,8 +104,16 @@ exports.postLogin = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-    
-        const seller = await Seller.findOne({ mobile: mobile })
+        const isEmail          = emailOrPhone.search('@');
+
+        let seller;
+        if(isEmail>=0){
+            await check('mobile').isEmail().normalizeEmail().run(req);   
+            seller = await Seller.findOne({email:req.body.mobile}) 
+        }else{
+            seller = await Seller.findOne({mobile:emailOrPhone})
+        }
+
         if (!seller) {
             const error = new Error(`seller not found`);
             error.statusCode = 404;
