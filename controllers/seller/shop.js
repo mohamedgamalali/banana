@@ -37,6 +37,10 @@ exports.getOrders = async (req, res, next) => {
     let find = {};
     let cord = false;
     let orders;
+    const cat = [] ;
+    req.sellerCat.forEach(i=>{
+        cat.push(i.name)
+    });
 
     try {
         if (lat && long) {
@@ -44,12 +48,12 @@ exports.getOrders = async (req, res, next) => {
         }
         if (!cord) {
             find = {
-                category: { $in: req.sellerCat },
+                category:{ $in: cat } ,
                 status: 'started'
             }
         } else {
             find = {
-                category: { $in: req.sellerCat },
+                category:{ $in: cat } ,
                 status: 'started',
                 location: {
                     $near: {
@@ -66,27 +70,26 @@ exports.getOrders = async (req, res, next) => {
         if (date == 0 && amount == 0) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress')
-                .populate({ path: 'products.product', select: 'category name_en name_ar ' })
+                .populate({ path: 'products.product',select: 'category name name_en name_ar'  })
         } else if (date == 1 && amount == 0) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress')
-                .populate({ path: 'products.product', select: 'category name_en name_ar ' })
+                .populate({ path: 'products.product',select: 'category name name_en name_ar' })
                 .sort({ createdAt: -1 });
         } else if (date == 0 && amount == 1) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress')
-                .populate({ path: 'products.product', select: 'category name_en name_ar ' })
+                .populate({ path: 'products.product',select: 'category name name_en name_ar' })
                 .sort({ amount_count: -1 });
         } else if (date == 1 && amount == 1) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress')
-                .populate({ path: 'products.product', select: 'category name_en name_ar ' })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ amount_count: -1 });
         }
 
-
         for (let element of orders) {
-            if (element.category.every(v => req.sellerCat.includes(v))) {
+            if (element.category.every(v => cat.includes(v))) {
                 const total_client_orders = await Order.find({ client: element.client._id }).countDocuments();
                 const ended_client_orders = await Order.find({ client: element.client._id, status: 'ended' }).countDocuments();
                 finalOrders.push({
