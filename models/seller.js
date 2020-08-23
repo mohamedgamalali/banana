@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+const deleteFile = require("../helpers/file");
+
 const schema = mongoose.Schema;
 
 const sellerSchema = new schema({
@@ -85,6 +87,10 @@ sellerSchema.methods.addSert = function (categoryId,imageUrl,expires){
 
     cat.forEach(element => {
         if(element._id == categoryId){
+
+            if(element.certificate.image!='0'){
+                deleteFile.deleteFile(__dirname + '/../' + element.certificate.image )
+            }
             element.certificate.image     =  imageUrl ;
             element.certificate.expiresAt =  expires ;
             element.certificate.state     =  'binding' ;
