@@ -19,6 +19,10 @@ const clientSchema = new schema({
         type: String,
         required: true
     },
+    image: {
+        type: Number,
+        default: 1
+    },
     verfication: {
         type: Boolean,
         default: false

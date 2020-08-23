@@ -160,7 +160,8 @@ exports.getMyfevProducts = async (req, res, next) => {
 }
 
 exports.postEditName = async (req, res, next) => {
-    const name = req.body.name;
+    const name       = req.body.name;
+    const image = req.body.imageIndex;
 
     const errors = validationResult(req);
     try {
@@ -174,6 +175,9 @@ exports.postEditName = async (req, res, next) => {
         const client = await Client.findById(req.userId).select('name');
 
         client.name = name; 
+        if(image){
+            client.image = image ;
+        }
 
         const updatedClient = await client.save();
 
