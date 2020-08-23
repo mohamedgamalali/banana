@@ -33,7 +33,7 @@ exports.getProducts = async (req, res, next) => {
         } else if (date == '1' && sold == '1') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
-                .sort({orders: -1 ,createdAt: -1})
+                .sort({ orders: -1, createdAt: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
         } else if (date == '0' && sold == '1') {
@@ -42,9 +42,9 @@ exports.getProducts = async (req, res, next) => {
                 .sort({ orders: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
-        }else if (date == '0' && sold == '0') {
+        } else if (date == '0' && sold == '0') {
             totalProducts = await Products.find(find).countDocuments();
-            products = await Products.find(find) 
+            products = await Products.find(find)
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
         }
@@ -134,7 +134,7 @@ exports.postEditProduct = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
-        if (Number(productType) > 13 || Number(productType) < 1 ) {
+        if (Number(productType) > 13 || Number(productType) < 1) {
             const error = new Error(`invalid productType input`);
             error.statusCode = 422;
             throw error;
@@ -183,28 +183,28 @@ exports.deleteProduct = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
-        if(!Array.isArray(productId)){
+        if (!Array.isArray(productId)) {
             const error = new Error(`productId must be array of IDs`);
             error.statusCode = 422;
             throw error;
         }
-        const product = await Products.find({_id:{$in:productId}});
-        if (product.length!=productId.length) {
+        const product = await Products.find({ _id: { $in: productId } });
+        if (product.length != productId.length) {
             const error = new Error(`products not found`);
             error.statusCode = 404;
             throw error;
         }
-        product.forEach(p=>{
+        product.forEach(p => {
             deleteFile.deleteFile(path.join(__dirname + '/../../' + p.imageUrl));
         });
 
-        await Products.deleteMany({_id:{$in:productId}});
+        await Products.deleteMany({ _id: { $in: productId } });
 
         res.status(200).json({
-            state:1,
-            message:`${productId.length} items deleted`,
+            state: 1,
+            message: `${productId.length} items deleted`,
         });
-        
+
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
@@ -216,22 +216,22 @@ exports.deleteProduct = async (req, res, next) => {
 exports.getSingleProduct = async (req, res, next) => {
 
     const productId = req.params.id;
-  
+
     try {
         const product = await Products.findById(productId);
-        if(!product){
+        if (!product) {
             const error = new Error('product not found');
             error.statusCode = 404;
             throw error;
         }
 
         res.status(200).json({
-            state:1,
-            data:product,
-            message:'all product data'
+            state: 1,
+            data: product,
+            message: 'all product data'
         });
 
-        
+
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
@@ -242,16 +242,88 @@ exports.getSingleProduct = async (req, res, next) => {
 
 exports.getCertificate = async (req, res, next) => {
 
-    const productId = req.params.id;
-  
+    const page = req.query.page || 1;
+    const productPerPage = 10;
+
     try {
-        const seller = await Seller.find({category:{$elemMatch:{review:false}}}).select('category');
+        const seller = await Seller.find({ category: { $elemMatch: { review: false } } })
+            .skip((page - 1) * productPerPage)
+            .limit(productPerPage)
+            .select('name mobile email category');
+
+        const total = await Seller.find({ category: { $elemMatch: { review: false } } }).countDocuments();
+
+        res.status(200).json({
+            state: 1,
+            data: seller,
+            total: total,
+            message: 'Certificates need approve'
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+exports.getSingleUserCertificates = async (req, res, next) => {
+
+    const sellerId = req.params.sellerId;
+
+    try {
+
+        const seller = await Seller.findById(sellerId)
+        .select('name mobile email category');
+        if (!seller) {
+            const error = new Error('seller not found');
+            error.statusCode = 404;
+            throw error;
+        }
 
         res.status(200).json({
             state:1,
-            seller:seller,
-            message:'Certificates need approve'
-        });   
+            data:seller,
+            message:'all seller certificates'
+        })
+
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
+
+exports.postApproveCertificate = async (req, res, next) => {
+
+    const sellerId = req.body.sellerId;
+    const certificateId = req.body.CertificateId;
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+        
+        const seller = await Seller.findById(sellerId).select('category');
+        if(!seller){
+            const error = new Error('seller not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        await seller.certApprove(certificateId);
+
+
+        res.status(200).json({
+            state: 1,
+            message: `certificate approved`,
+        });
+
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;

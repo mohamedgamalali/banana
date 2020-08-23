@@ -40,6 +40,17 @@ router.post('/product/delete',[
 
 router.get('/product/single/:id',isAuth,shopController.getSingleProduct);
 
+
+//seller Certificates
 router.get('/seller/Certificates',isAuth,shopController.getCertificate);
+
+router.get('/seller/single/Certificates/:sellerId',isAuth,shopController.getSingleUserCertificates);
+
+router.post('/seller/Certificates/approve',[
+    body('sellerId')
+    .not().isEmpty(),
+    body('CertificateId')
+    .not().isEmpty(),
+],isAuth,shopController.postApproveCertificate);
 
 module.exports = router;
