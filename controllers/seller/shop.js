@@ -37,8 +37,8 @@ exports.getOrders = async (req, res, next) => {
     let find = {};
     let cord = false;
     let orders;
-    const cat = [] ;
-    req.sellerCat.forEach(i=>{
+    const cat = [];
+    req.sellerCat.forEach(i => {
         cat.push(i.name)
     });
 
@@ -48,12 +48,12 @@ exports.getOrders = async (req, res, next) => {
         }
         if (!cord) {
             find = {
-                category:{ $in: cat } ,
+                category: { $in: cat },
                 status: 'started'
             }
         } else {
             find = {
-                category:{ $in: cat } ,
+                category: { $in: cat },
                 status: 'started',
                 location: {
                     $near: {
@@ -70,16 +70,16 @@ exports.getOrders = async (req, res, next) => {
         if (date == 0 && amount == 0) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress')
-                .populate({ path: 'products.product',select: 'category name name_en name_ar'  })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
         } else if (date == 1 && amount == 0) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress')
-                .populate({ path: 'products.product',select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ createdAt: -1 });
         } else if (date == 0 && amount == 1) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress')
-                .populate({ path: 'products.product',select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ amount_count: -1 });
         } else if (date == 1 && amount == 1) {
             orders = await Order.find(find)
@@ -138,9 +138,34 @@ exports.putOffer = async (req, res, next) => {
             error.state = 9;
             throw error;
         }
-        order.category.forEach(i=>{
-            const index = req.sellerCat['name'].indexOf(i);
-            console.log(index);
+        const cat = [];
+        req.sellerCat.forEach(i => {
+            cat.push(i.name)
+        });
+        order.category.forEach(i => {
+            const index = cat.indexOf(i);
+            if (req.sellerCat[index].certificate.image = '0') {
+                const error = new Error(`you should provide certificate for order category`);
+                error.statusCode = 403;
+                error.state = 27;
+                throw error;
+            }
+            if (req.sellerCat[index].certificate.image != '0' 
+            && req.sellerCat[index].certificate.expiresAt != 0
+            && req.sellerCat[index].certificate.state != 'approve') {
+                const error = new Error(`one or more of the order category is under review or disapproved`);
+                error.statusCode = 403;
+                error.state = 28;
+                throw error;
+            }
+            if (req.sellerCat[index].certificate.image != '0' 
+            && req.sellerCat[index].certificate.expiresAt != 0
+            && req.sellerCat[index].certificate.state == 'binding') {
+                const error = new Error(`one or more of the order category is under review`);
+                error.statusCode = 403;
+                error.state = 27;
+                throw error;
+            }
         });
         if (order.status == 'endeed' || order.status == 'cancel') {
             const error = new Error(`order ended or canceled`);
@@ -148,9 +173,9 @@ exports.putOffer = async (req, res, next) => {
             error.state = 12;
             throw error;
         }
-        const ifOffer = await Offer.findOne({seller:req.userId,order:order._id});
+        const ifOffer = await Offer.findOne({ seller: req.userId, order: order._id });
 
-        if(ifOffer){
+        if (ifOffer) {
             const error = new Error(`seller can't add more than offer for the same order`);
             error.statusCode = 409;
             error.state = 23;

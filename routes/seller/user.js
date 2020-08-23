@@ -37,6 +37,15 @@ router.post('/profile/edit/password',[
     })
 ],isAuth,userController.postEditPassword);
 
+
 router.post('/sms',userController.postSMS)
+
+//certificate
+router.post('/profile/certificate',[
+    body('certificateId')
+    .not().isEmpty(),
+    body('expiresAt')
+    .not().isEmpty(),
+],isAuth,userController.postAddCertificate)
 
 module.exports = router;

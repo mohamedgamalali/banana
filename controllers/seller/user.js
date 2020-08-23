@@ -298,3 +298,42 @@ exports.postSMS = async (req, res, next) => {
         next(err);
     }
 }
+
+exports.postAddCertificate = async (req, res, next) => {
+    const certificateId = req.body.certificateId;
+    const expiresAt = Number(req.body.expiresAt);
+    const image = req.files;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        if (image.length == 0) {
+            const error = new Error(`you shold insert image!!`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const seller = await Seller.findById(req.userId).select('category');
+
+        const updatedseller  = await seller.addSert(certificateId,image[0].path,expiresAt) ;
+
+        res.status(201).json({
+            state:1,
+            data:updatedseller.category,
+            message:'Certificate added'
+        });
+    
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}

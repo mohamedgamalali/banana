@@ -37,6 +37,8 @@
 
     //seller add offer
     23=>seller can't add more than offer for the same order
+    27=>you should provide certificate for order category
+    28=>one or more of the order category is under review
 
     //client issue 
     24=>can't find selected offer for the order

@@ -62,7 +62,6 @@ app.use('/client/guest', router.client.guest);
 app.use('/seller', router.seller.auth, router.seller.shop, router.seller.user, router.seller.support);
 app.use('/admin', router.admin.auth, router.admin.shop);
 
-
 //error handle meddlewere
 app.use(erorrMeddlewere);
 
