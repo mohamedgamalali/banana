@@ -144,7 +144,7 @@ exports.putOffer = async (req, res, next) => {
         });
         order.category.forEach(i => {
             const index = cat.indexOf(i);
-            if (req.sellerCat[index].certificate.image = '0') {
+            if (req.sellerCat[index].certificate.image == '0') {
                 const error = new Error(`you should provide certificate for order category`);
                 error.statusCode = 403;
                 error.state = 27;
