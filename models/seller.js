@@ -85,9 +85,10 @@ sellerSchema.methods.addSert = function (categoryId,imageUrl,expires){
 
     cat.forEach(element => {
         if(element._id == categoryId){
-            element.certificate.image=imageUrl ;
-            element.certificate.expiresAt=expires ;
-            element.activated = true ;
+            element.certificate.image     =  imageUrl ;
+            element.certificate.expiresAt =  expires ;
+            element.certificate.state     =  'binding' ;
+            element.activated = false ;
         }
     });
     this.category = cat ;
