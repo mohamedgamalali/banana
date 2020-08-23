@@ -1,10 +1,12 @@
 const { validationResult } = require("express-validator");
+const schedule = require('node-schedule');
 const path = require("path");
 
 const deleteFile = require("../../helpers/file");
 const Admin = require("../../models/admin");
 const Products = require("../../models/products");
 const Seller = require("../../models/seller");
+const Scad = require("../../models/cert-expire");
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
@@ -246,12 +248,12 @@ exports.getCertificate = async (req, res, next) => {
     const productPerPage = 10;
 
     try {
-        const seller = await Seller.find({ category: { $elemMatch: { review: false } } })
+        const seller = await Seller.find({ category: { $elemMatch: {$nin:{ review: false }} } })
             .skip((page - 1) * productPerPage)
             .limit(productPerPage)
             .select('name mobile email category');
 
-        const total = await Seller.find({ category: { $elemMatch: { review: false } } }).countDocuments();
+        const total = await Seller.find({ category: { $elemMatch: {$nin:{ review: false }} } }).countDocuments();
 
         res.status(200).json({
             state: 1,
@@ -302,6 +304,7 @@ exports.postApproveCertificate = async (req, res, next) => {
 
     const sellerId = req.body.sellerId;
     const certificateId = req.body.CertificateId;
+    let scadTime ;
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
@@ -316,12 +319,63 @@ exports.postApproveCertificate = async (req, res, next) => {
             error.statusCode = 404;
             throw error;
         }
-        await seller.certApprove(certificateId);
+        const updatedSeller = await seller.certApprove(certificateId);
+        updatedSeller.category.forEach(i=>{
+            if(i._id == certificateId){
+                scadTime = i.certificate.expiresAt ;
+            }
+        })
+        schedule.scheduleJob(new Date(scadTime).getTime(),async(fireDate)=>{
+            await updatedSeller.certExpired(certificateId) ; 
+        });
 
+        const newSchedule = new Scad({
+            seller:updatedSeller._id,
+            certId:certificateId,
+            expiresin:scadTime
+        });
+        await newSchedule.save();
 
         res.status(200).json({
             state: 1,
             message: `certificate approved`,
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
+exports.postDisapproveCertificate = async (req, res, next) => {
+
+    const sellerId = req.body.sellerId;
+    const certificateId = req.body.CertificateId;
+    const adminNote = req.body.adminNote;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+        
+        const seller = await Seller.findById(sellerId).select('category');
+        if(!seller){
+            const error = new Error('seller not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        const updatedSeller = await seller.certDisapprove(certificateId,adminNote);
+        
+        
+        res.status(200).json({
+            state: 1,
+            message: `certificate disapproved`,
         });
 
     } catch (err) {

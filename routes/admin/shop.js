@@ -53,4 +53,13 @@ router.post('/seller/Certificates/approve',[
     .not().isEmpty(),
 ],isAuth,shopController.postApproveCertificate);
 
+router.post('/seller/Certificates/disapprove',[
+    body('sellerId')
+    .not().isEmpty(),
+    body('CertificateId')
+    .not().isEmpty(),
+    body('adminNote')
+    .not().isEmpty(),
+],isAuth,shopController.postDisapproveCertificate);
+
 module.exports = router;

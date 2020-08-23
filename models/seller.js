@@ -127,7 +127,25 @@ sellerSchema.methods.certApprove = function (categoryId) {
     return this.save();
 }
 
-sellerSchema.methods.certDisapprove = function (categoryId) {
+sellerSchema.methods.certExpired = function (categoryId) {
+    let cat   = this.category;
+    let found = false;
+    cat.forEach(element => {
+        if (element._id == categoryId) {
+            element.activated = false;
+            found = true ;
+        }
+    });
+    if (!found) {
+        const error = new Error('certificate not found');
+        error.statusCode = 404;
+        throw error;
+    }
+    this.category = cat;
+    return this.save();
+}
+
+sellerSchema.methods.certDisapprove = function (categoryId,adminN) {
     let cat = this.category;
     let found = false;
     cat.forEach(element => {
@@ -137,6 +155,7 @@ sellerSchema.methods.certDisapprove = function (categoryId) {
             element.activated = false;
             element.review = true;
             found = true ;
+            element.certificate.adminNote = adminN ;
         }
     });
     if (!found) {

@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
+const schedule = require('node-schedule');
+
 
 require('dotenv').config();
 
@@ -56,6 +58,7 @@ const router = require('./routes/router');
 const erorrMeddlewere = require('./helpers/errors');
 
 
+console.log(new Date().getTime()+60*60*120);
 
 app.use('/client', router.client.auth, router.client.shop, router.client.user, router.client.support);
 app.use('/client/guest', router.client.guest);
@@ -70,14 +73,27 @@ mongoose
     .connect(
         MONGODB_URI, {
         useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false
-    }
-    )
+    })
     .then(result => {
         const server = app.listen(port);
         const io = require('./socket.io/socket').init(server);
         io.on('connection', socket => {
             console.log("Clint connected");
         })
+        //run scadual stuff
+        const Scad = mongoose.model('scheduleCert');
+        return Scad.find({expiresin:{$gt:new Date().getTime()}})
+    })
+    .then(s=>{
+        console.log(s);
+        s.forEach(task=>{
+        const Seller = mongoose.model('seller');
+            schedule.scheduleJob(new Date(task.expiresin).getTime(),async(fireDate)=>{
+                console.log('scadual');
+                const seller = await Seller.findById(task.seller._id).select('category')
+                await seller.certExpired(task.certId) ; 
+            });
+        })   
     })
     .catch(err => {
         console.log(err);
