@@ -160,10 +160,11 @@ exports.putOffer = async (req, res, next) => {
             }
             if (req.sellerCat[index].certificate.image != '0' 
             && req.sellerCat[index].certificate.expiresAt != 0
-            && req.sellerCat[index].certificate.state == 'binding') {
-                const error = new Error(`one or more of the order category is under review`);
+            && req.sellerCat[index].certificate.state == 'approve'
+            && req.sellerCat[index].activated == false) {
+                const error = new Error(`certificate expired`);
                 error.statusCode = 403;
-                error.state = 27;
+                error.state = 29;
                 throw error;
             }
         });
