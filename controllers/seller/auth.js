@@ -49,7 +49,8 @@ exports.postSignup = async (req, res, next) => {
         const cat = [];
         category.forEach(i=>{
             cat.push({
-                name:i
+                name:i,
+                review:true
             })
         })
         const newSeller = new Seller({

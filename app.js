@@ -58,7 +58,7 @@ const router = require('./routes/router');
 const erorrMeddlewere = require('./helpers/errors');
 
 
-console.log(new Date().getTime()+60*60*120);
+console.log(new Date().getTime()+1000*60*15);
 
 app.use('/client', router.client.auth, router.client.shop, router.client.user, router.client.support);
 app.use('/client/guest', router.client.guest);
@@ -86,6 +86,7 @@ mongoose
     })
     .then(s=>{
         console.log(s);
+        const Scad = mongoose.model('scheduleCert');
         s.forEach(task=>{
         const Seller = mongoose.model('seller');
             schedule.scheduleJob(new Date(task.expiresin).getTime(),async(fireDate)=>{
@@ -93,7 +94,12 @@ mongoose
                 const seller = await Seller.findById(task.seller._id).select('category')
                 await seller.certExpired(task.certId) ; 
             });
-        })   
+        })
+        return Scad.deleteMany({expiresin:{$lt:new Date().getTime()}})
+
+    })
+    .then(done=>{
+        console.log('schedule activated');
     })
     .catch(err => {
         console.log(err);
