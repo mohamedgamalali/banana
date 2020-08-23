@@ -4,6 +4,7 @@ const path = require("path");
 const deleteFile = require("../../helpers/file");
 const Admin = require("../../models/admin");
 const Products = require("../../models/products");
+const Seller = require("../../models/seller");
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
@@ -231,6 +232,26 @@ exports.getSingleProduct = async (req, res, next) => {
         });
 
         
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+exports.getCertificate = async (req, res, next) => {
+
+    const productId = req.params.id;
+  
+    try {
+        const seller = await Seller.find({category:{$elemMatch:{review:false}}}).select('category');
+
+        res.status(200).json({
+            state:1,
+            seller:seller,
+            message:'Certificates need approve'
+        });   
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;

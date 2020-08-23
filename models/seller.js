@@ -35,6 +35,10 @@ const sellerSchema = new schema({
             type:Boolean,
             default:false
         },
+        review:{
+            type:Boolean,
+            default:false
+        },
         certificate:{
             image:{
                 type:String,
@@ -95,6 +99,7 @@ sellerSchema.methods.addSert = function (categoryId,imageUrl,expires){
             element.certificate.expiresAt =  expires ;
             element.certificate.state     =  'binding' ;
             element.activated = false ;
+            element.review = false ;
         }
     });
     this.category = cat ;
