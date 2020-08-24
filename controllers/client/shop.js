@@ -398,7 +398,6 @@ exports.deleteFev = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        console.log(req.userId);
 
         const client = await Client.findById(req.userId).select('fevProducts').populate('fevProducts.list.product');
         const updatedClient = await client.deleteFev(productId, listId);
@@ -435,22 +434,16 @@ exports.postDeleteFevList = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        console.log(req.userId);
+        const client = await Client.findById(req.userId).select('fevProducts') ;
 
-        const client = await Client.findById(req.userId).select('fevProducts').populate('fevProducts.list.product');
-        const updatedClient = await client.deleteFev(productId, listId);
-        const ListProducts = updatedClient.fevProducts.filter(f => {
-            return f._id.toString() === listId.toString();
-        });
-
-        const products = await Products.find({ _id: { $in: ListProducts[0].list.product } })
-            .select('category name_en name_ar productType imageUrl');
+        const updatedClient = await client.deleteFevList(listId);
 
         res.status(200).json({
-            state: 1,
-            data: products,
-            message: "deleted"
+            state:1,
+            data:updatedClient.fevProducts,
+            message:'list deleted'
         });
+
 
     } catch (err) {
         if (!err.statusCode) {

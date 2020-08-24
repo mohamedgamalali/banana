@@ -56,6 +56,11 @@ router.post('/fev/delete',[
     .not().isEmpty(),
 ],isAuth,shopController.deleteFev);
 
+router.post('/fev/list/delete',[
+    body('listId')
+    .not().isEmpty(),
+],isAuth,shopController.postDeleteFevList);
+
 //order
 router.post('/order',[
     body('locationId')

@@ -203,4 +203,23 @@ clientSchema.methods.deleteFev = function (productId, listId = 'general') {
 
 };
 
+clientSchema.methods.deleteFevList = function (listId) {
+    
+    const updatedFev = this.fevProducts.filter(f=>{
+        if(f._id.toString() === listId.toString() ){
+            if(!f.list.name){
+                const error = new Error(`not allowed to delete general list`);
+                error.statusCode = 403;
+                error.state      = 38 ;
+                throw error;
+            }
+        }
+        return f._id.toString() !== listId.toString();
+    });
+
+    this.fevProducts = updatedFev ;
+    return this.save();
+
+};
+
 module.exports = mongoose.model('client', clientSchema);

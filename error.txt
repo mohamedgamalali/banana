@@ -57,6 +57,10 @@
     35=>not allowed url accout allready verfied
     36=>wrong code
     37=>validation code expired
+
+    //delete fev list
+    38=>not allowed to delete general list
+
     
 
 
