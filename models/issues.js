@@ -20,8 +20,8 @@ const issueSchema = new schema({
         ref: 'offer'
     },
     reason:{
-        type: String,
-        required:true
+        type: schema.Types.ObjectId,
+        ref: 'issueReason'
     },
     demands:{
         type: String,

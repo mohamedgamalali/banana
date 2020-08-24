@@ -16,8 +16,10 @@ const Notfications = require('../../models/notfications');
 //         key:'String',
 //     },
 //     notification:{
-//         title:'title',
-//         body:'body'
+//         title_ar:'عنوان',
+//         body_ar:'مش عنوان',
+//         title_en:'title',
+//         body_en:'not title'
 //     },
 //     date:new Date().getTime().toString()
 // });

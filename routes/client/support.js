@@ -16,6 +16,8 @@ router.post('/support/issue',[
     .not().isEmpty(),
 ],isAuth,supportController.postIssue);
 
+router.get('/support/issue/reasons',isAuth,supportController.getIssueReasons);
+
 //contact us
 router.post('/support/contactUs',[
     body('name')

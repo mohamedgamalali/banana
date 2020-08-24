@@ -3,10 +3,10 @@ const { validationResult } = require('express-validator');
 const Order = require('../../models/order');
 const Offer = require('../../models/offer');
 const Issue = require('../../models/issues');
+const IssueResons = require('../../models/issue-reason');
 const SupportMessage = require('../../models/supportMessages');
 
 const deleteFile = require("../../helpers/file");
-const { findOne } = require('../../models/order');
 
 exports.postIssue = async (req, res, next) => {
 
@@ -69,6 +69,14 @@ exports.postIssue = async (req, res, next) => {
             throw error;
         }
 
+        const re = await IssueResons.findById(reason);
+        if(!re){
+            const error = new Error(`reason not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+
         const issue = new Issue({
             client: req.userId,
             order: order._id,
@@ -127,6 +135,30 @@ exports.postContactUs = async (req, res, next) => {
             message:'support message sent'
         });
         
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+
+        console.log(err);
+        next(err);
+    }
+}
+
+
+exports.getIssueReasons = async (req, res, next) => {
+
+    
+
+    try {
+        const issuesReson = await IssueResons.find({});
+
+        res.status(200).json({
+            state:1,
+            data:issuesReson,
+            message:'issue reasons'
+        });
 
     } catch (err) {
         if (!err.statusCode) {

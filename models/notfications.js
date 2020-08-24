@@ -12,8 +12,10 @@ const notficationSchema = new schema({
         key:String,
     },
     notification:{
-        title:String,
-        body:String
+        title_ar:String,
+        body_ar:String,
+        title_en:String,
+        body_en:String
     },
     date:{
         type:String,
