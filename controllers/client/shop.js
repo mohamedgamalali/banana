@@ -158,6 +158,10 @@ exports.postAddToCart = async (req, res, next) => {
             error.state = 9;
             throw error;
         }
+        if(ref == 'product'){
+            product.orders += 1 ;
+            await product.save();
+        }
         const updatedUSer = await client.addToCart(productId, Number(amount), unit, ref);
 
         res.status(201).json({
