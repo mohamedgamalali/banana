@@ -2,12 +2,15 @@ const bycript = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const io = require("../../socket.io/socket");
+const crypto = require('crypto');
 
 const Client = require('../../models/client');
 const Order = require('../../models/order');
 const Products = require('../../models/products');
 const Locations = require('../../models/location');
 const Notfications = require('../../models/notfications');
+
+const SMS    = require('../../helpers/sms');
 
 // const not = new Notfications({
 //     user:'5f36fd4c7f02aa0004fd247d',
@@ -277,7 +280,7 @@ exports.postEditPassword = async (req, res, next) => {
 }
 
 
-
+//mobile
 exports.postEditMobile = async (req, res, next) => {
 
     const mobile = req.body.mobile;
@@ -291,7 +294,7 @@ exports.postEditMobile = async (req, res, next) => {
             throw error;
         }
 
-        const client = await Client.findById(req.userId).select('mobile');
+        const client = await Client.findById(req.userId).select('mobile tempMobile');
         if (mobile == client.mobile) {
             const error = new Error('new mobile must be defferent from old mobile');
             error.statusCode = 409;
@@ -299,17 +302,93 @@ exports.postEditMobile = async (req, res, next) => {
             throw error;
         }
 
-        client.mobile = mobile;
-        client.verfication = false;
+        client.tempMobile = mobile;
 
         const updatedClient = await client.save();
 
         res.status(200).json({
             state: 1,
-            data: updatedClient.mobile,
+            data: updatedClient.tempMobile,
             message: 'mobile changed'
-        })
+        });
 
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postSendSMS = async (req, res, next) => {
+
+    try {
+        const client = await Client.findById(req.userId);
+
+        const buf = crypto.randomBytes(3).toString('hex');
+        const hashedCode = await bycript.hash(buf,12)
+        client.verficationCode = hashedCode;
+        client.codeExpireDate =  Date.now()  + 3600000 ;
+
+        const message       = `your verification code is ${buf}` ;
+        
+        //const {body,status} = await SMS.send(client.tempMobile,message);
+
+        await client.save();
+     
+        res.status(200).json({
+            state:1,
+            //data:body,
+            code:buf,
+            message:'code sent'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postCheckCode = async (req, res, next) => {
+    const code = req.body.code ;
+
+    const errors = validationResult(req);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        const client = await Client.findById(req.userId).select('verficationCode codeExpireDate tempMobile mobile');
+
+        const isEqual = bycript.compare(code,client.verficationCode);
+
+        if(!isEqual){
+            const error = new Error('wrong code!!');
+            error.statusCode = 403 ;
+            error.state = 36 ;
+            throw error ;
+        }
+        if(client.codeExpireDate <= Date.now()){
+            const error = new Error('verfication code expired');
+            error.statusCode = 403 ;
+            error.state = 37 ;
+            throw error ;
+        }
+
+        client.mobile = client.tempMobile ;
+        const updatedClient = await client.save();
+
+        res.status(200).json({
+            state:1,
+            data:updatedClient.mobile,
+            messaage:'mobile changed'
+        });
+        
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;

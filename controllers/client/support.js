@@ -44,8 +44,6 @@ exports.postIssue = async (req, res, next) => {
             throw error;
         }
         
-        
-
         const offer = await Offer.findOne({order:order._id,selected:true,status:'ended'}).select('seller');
 
         if(!offer){
@@ -96,7 +94,7 @@ exports.postIssue = async (req, res, next) => {
         }
 
         const issue = new Issue(i);
-        const i = await issue.save();
+        const i     = await issue.save();
 
         res.status(201).json({
             state: 1,

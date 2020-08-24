@@ -51,6 +51,14 @@ router.post('/profile/edit/mobile',[
     .trim().isMobilePhone(),
 ],isAuth,userController.postEditMobile);
 
+router.post('/profile/edit/mobile/sendSMS',isAuth,userController.postSendSMS);
+
+router.post('/profile/edit/mobile/checkCode',[
+    body('code')
+    .not().isEmpty()
+],isAuth,userController.postCheckCode);
+
+
 //my location
 router.post('/profile/add/location',[
     body('lat1')
