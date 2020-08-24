@@ -23,12 +23,7 @@ exports.postIssue = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        if (image.length == 0) {
-            const error = new Error(`you shold insert one image at least!!`);
-            error.statusCode = 422;
-            error.state = 5;
-            throw error;
-        }
+        
         const order = await Order.findById(orderId);
         if (!order) {
             const error = new Error(`order not found`);
@@ -48,9 +43,8 @@ exports.postIssue = async (req, res, next) => {
             error.state = 14;
             throw error;
         }
-        image.forEach(element => {
-            imageUrl.push(element.path);
-        });
+        
+        
 
         const offer = await Offer.findOne({order:order._id,selected:true,status:'ended'}).select('seller');
 
@@ -76,19 +70,33 @@ exports.postIssue = async (req, res, next) => {
             error.state = 9;
             throw error;
         }
+        let temp ;
+        if (image.length > 0) {
+            image.forEach(element => {
+                imageUrl.push(element.path);
+            });    
+            temp = {
+                client: req.userId,
+                order: order._id,
+                reason: reason,
+                demands: demands,
+                imageUrl: imageUrl,
+                seller:offer.seller._id,
+                offer:offer._id
+            };
+        }else{
+            temp = {
+                client: req.userId,
+                order: order._id,
+                reason: reason,
+                demands: demands,
+                seller:offer.seller._id,
+                offer:offer._id
+            };
+        }
 
-        const issue = new Issue({
-            client: req.userId,
-            order: order._id,
-            reason: reason,
-            demands: demands,
-            imageUrl: imageUrl,
-            seller:offer.seller._id,
-            offer:offer._id
-        });
+        const issue = new Issue(i);
         const i = await issue.save();
-
-        //seller id must be added
 
         res.status(201).json({
             state: 1,
