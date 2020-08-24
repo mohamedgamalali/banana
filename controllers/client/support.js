@@ -93,8 +93,8 @@ exports.postIssue = async (req, res, next) => {
             };
         }
 
-        const issue = new Issue(i);
-        const i     = await issue.save();
+        const issue = new Issue(temp);
+        const iii     = await issue.save();
 
         res.status(201).json({
             state: 1,
