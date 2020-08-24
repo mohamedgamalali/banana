@@ -162,7 +162,7 @@ exports.postAddToCart = async (req, res, next) => {
 
         res.status(201).json({
             state: 1,
-            data: updatedUSer.cart,
+            cart: updatedUSer.cart.length,
             message: 'added to cart'
         });
 
@@ -287,7 +287,7 @@ exports.postAddToCartFood = async (req, res, next) => {
 
         res.status(201).json({
             state: 1,
-            data: updatedUSer.cart,
+            cart: updatedUSer.cart.length,
             message: 'client product added to cart'
         })
 
@@ -388,6 +388,43 @@ exports.postAddFevList = async (req, res, next) => {
 
 exports.deleteFev = async (req, res, next) => {
     const productId = req.body.productId;
+    const listId = req.body.listId;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        console.log(req.userId);
+
+        const client = await Client.findById(req.userId).select('fevProducts').populate('fevProducts.list.product');
+        const updatedClient = await client.deleteFev(productId, listId);
+        const ListProducts = updatedClient.fevProducts.filter(f => {
+            return f._id.toString() === listId.toString();
+        });
+
+        const products = await Products.find({ _id: { $in: ListProducts[0].list.product } })
+            .select('category name_en name_ar productType imageUrl');
+
+        res.status(200).json({
+            state: 1,
+            data: products,
+            message: "deleted"
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postDeleteFevList = async (req, res, next) => {
+
     const listId = req.body.listId;
 
     const errors = validationResult(req);
