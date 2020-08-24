@@ -1,8 +1,8 @@
 const bycript = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const {check,validationResult} = require('express-validator');
+const { check, validationResult } = require('express-validator');
 const crypto = require('crypto');
-const SMS    = require('../../helpers/sms');
+const SMS = require('../../helpers/sms');
 
 const Client = require('../../models/client');
 
@@ -41,10 +41,10 @@ exports.postSignup = async (req, res, next) => {
         const newClient = new Client({
             name: name,
             mobile: mobile,
-            email:email,
+            email: email,
             password: hashedPass,
-            fevProducts:[],
-            updated:Date.now().toString()
+            fevProducts: [],
+            updated: Date.now().toString()
         });
 
         const client = await newClient.initFev();
@@ -53,20 +53,20 @@ exports.postSignup = async (req, res, next) => {
             {
                 mobile: client.mobile,
                 userId: client._id.toString(),
-                updated:client.updated.toString()
+                updated: client.updated.toString()
             },
             process.env.JWT_PRIVATE_KEY_CLIENT
         );
 
-        res.status(201).json({ 
-            state: 1, 
-            message: 'client created and logedIn', 
-            data:{
+        res.status(201).json({
+            state: 1,
+            message: 'client created and logedIn',
+            data: {
                 token: token,
                 clientName: client.name,
                 clientMobile: client.mobile,
                 clientId: client._id,
-                image:client.image
+                image: client.image
             }
         });
 
@@ -91,15 +91,15 @@ exports.postLogin = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        
-        const isEmail          = emailOrPhone.search('@');
+
+        const isEmail = emailOrPhone.search('@');
 
         let client;
-        if(isEmail>=0){
-            await check('mobile').isEmail().normalizeEmail().run(req);   
-            client = await Client.findOne({email:req.body.mobile}) 
-        }else{
-            client = await Client.findOne({mobile:emailOrPhone})
+        if (isEmail >= 0) {
+            await check('mobile').isEmail().normalizeEmail().run(req);
+            client = await Client.findOne({ email: req.body.mobile })
+        } else {
+            client = await Client.findOne({ mobile: emailOrPhone })
         }
         if (!client) {
             const error = new Error(`Client not found`);
@@ -125,20 +125,20 @@ exports.postLogin = async (req, res, next) => {
             {
                 mobile: client.mobile,
                 userId: client._id.toString(),
-                updated:client.updated.toString(),
+                updated: client.updated.toString(),
             },
             process.env.JWT_PRIVATE_KEY_CLIENT
         );
 
         res.status(200).json({
             state: 1,
-            message:"logedin",
-            data:{
+            message: "logedin",
+            data: {
                 token: token,
                 clientName: client.name,
                 clientMobile: client.mobile,
                 clientId: client._id,
-                image:client.image
+                image: client.image
             }
         });
 
@@ -153,25 +153,25 @@ exports.postLogin = async (req, res, next) => {
 exports.postSendSms = async (req, res, next) => {
 
     try {
-        
+
         const client = await Client.findById(req.userId);
 
         const buf = crypto.randomBytes(3).toString('hex');
-        const hashedCode = await bycript.hash(buf,12)
+        const hashedCode = await bycript.hash(buf, 12)
         client.verficationCode = hashedCode;
-        client.codeExpireDate =  Date.now()  + 3600000 ;
+        client.codeExpireDate = Date.now() + 3600000;
 
-        const message       = `your verification code is ${buf}` ;
-        
+        const message = `your verification code is ${buf}`;
+
         //const {body,status} = await SMS.send(client.mobile,message);
 
         await client.save();
-     
+
         res.status(200).json({
-            state:1,
+            state: 1,
             //data:body,
-            code:buf,
-            message:'code sent'
+            code: buf,
+            message: 'code sent'
         });
 
     } catch (err) {
@@ -184,40 +184,40 @@ exports.postSendSms = async (req, res, next) => {
 
 
 exports.postCheckVerCode = async (req, res, next) => {
-    const code = req.body.code ;
+    const code = req.body.code;
     const errors = validationResult(req);
 
     try {
-        if(!errors.isEmpty()){
+        if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
             error.state = 5;
             throw error;
         }
 
-        const client  = await Client.findById(req.userId).select('verficationCode mobile codeExpireDate verfication');
-        const isEqual = bycript.compare(code,client.verficationCode);
+        const client = await Client.findById(req.userId).select('verficationCode mobile codeExpireDate verfication');
+        const isEqual = await bycript.compare(code, client.verficationCode);
 
-        if(!isEqual){
+        if (!isEqual) {
             const error = new Error('wrong code!!');
-            error.statusCode = 403 ;
-            error.state = 36 ;
-            throw error ;
+            error.statusCode = 403;
+            error.state = 36;
+            throw error;
         }
-        if(client.codeExpireDate <= Date.now()){
+        if (client.codeExpireDate <= Date.now()) {
             const error = new Error('verfication code expired');
-            error.statusCode = 403 ;
-            error.state = 37 ;
-            throw error ;
+            error.statusCode = 403;
+            error.state = 37;
+            throw error;
         }
 
-        client.verfication = true ;
+        client.verfication = true;
 
-        await client.save() ;
+        await client.save();
 
         res.status(200).json({
-            state:1,
-            message:'account activated'
+            state: 1,
+            message: 'account activated'
         });
 
     } catch (err) {
@@ -229,26 +229,134 @@ exports.postCheckVerCode = async (req, res, next) => {
 }
 
 exports.postChangeMobile = async (req, res, next) => {
-    const mobile = req.body.mobile ;
+    const mobile = req.body.mobile;
     const errors = validationResult(req);
 
     try {
-        if(!errors.isEmpty()){
+        if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
             error.state = 5;
             throw error;
         }
 
-        const client  = await Client.findById(req.userId).select('mobile');
-        
-        client.mobile = mobile ;
-        await client.save()    ;
+        const client = await Client.findById(req.userId).select('mobile');
+
+        client.mobile = mobile;
+        await client.save();
 
         res.status(200).json({
-            state:1,
-            data:client.mobile,
-            message:'mobile changed'
+            state: 1,
+            data: client.mobile,
+            message: 'mobile changed'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postForgetPassword = async (req, res, next) => {
+    const mobile = req.body.mobile;
+    const errors = validationResult(req);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const client = await Client.findOne({ mobile: mobile }).select('mobile verficationCode codeExpireDate');
+
+        if (!client) {
+            const error = new Error(`Client not found`);
+            error.statusCode = 404;
+            error.state = 7;
+            throw error;
+        }
+
+        const buf = crypto.randomBytes(3).toString('hex');
+        const hashedCode = await bycript.hash(buf, 12)
+        client.verficationCode = hashedCode;
+        client.codeExpireDate = Date.now() + 3600000;
+
+        const message = `your verification code is ${buf}`;
+
+        //const {body,status} = await SMS.send(client.mobile,message);
+        await client.save();
+
+
+        res.status(200).json({
+            state: 1,
+            code: buf,
+            message: 'code sent'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+exports.postForgetPasswordVerfy = async (req, res, next) => {
+    const mobile = req.body.mobile;
+    const code = req.body.code;
+    const errors = validationResult(req);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const client = await Client.findOne({ mobile: mobile }).select('mobile verficationCode codeExpireDate updated');
+
+        if (!client) {
+            const error = new Error(`Client not found`);
+            error.statusCode = 404;
+            error.state = 7;
+            throw error;
+        }
+
+
+        const isEqual = await bycript.compare(code, client.verficationCode);
+
+        if (!isEqual) {
+            const error = new Error('wrong code!!');
+            error.statusCode = 403;
+            error.state = 36;
+            throw error;
+        }
+        if (client.codeExpireDate <= Date.now()) {
+            const error = new Error('verfication code expired');
+            error.statusCode = 403;
+            error.state = 37;
+            throw error;
+        }
+
+        const token = jwt.sign(
+            {
+                mobile: client.mobile,
+                userId: client._id.toString(),
+                updated: client.updated.toString()
+            },
+            process.env.JWT_PRIVATE_KEY_CLIENT
+        );
+
+        res.status(200).json({
+            state: 1,
+            token:token,
+            message: 'code is ok <3'
         });
 
     } catch (err) {

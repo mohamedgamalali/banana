@@ -50,4 +50,18 @@ router.post('/signup/verfication/changeMobile',[
     .not().isEmpty(),
 ],isAuthVerfy,authController.postChangeMobile);
 
+//forget password
+router.post('/forgetPassword/mobile/sendSMS',[
+    body('mobile')
+    .not().isEmpty(),
+],authController.postForgetPassword);
+
+router.post('/forgetPassword/mobile/verfy',[
+    body('mobile')
+    .not().isEmpty(),
+    body('code')
+    .not().isEmpty(),
+],authController.postForgetPasswordVerfy);
+
+
 module.exports = router;
