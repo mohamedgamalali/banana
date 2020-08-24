@@ -1,6 +1,8 @@
 const bycript = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const {check,validationResult} = require('express-validator');
+const crypto = require('crypto');
+const SMS    = require('../../helpers/sms');
 
 const Client = require('../../models/client');
 
@@ -63,7 +65,8 @@ exports.postSignup = async (req, res, next) => {
                 token: token,
                 clientName: client.name,
                 clientMobile: client.mobile,
-                clientId: client._id
+                clientId: client._id,
+                image:client.image
             }
         });
 
@@ -85,6 +88,7 @@ exports.postLogin = async (req, res, next) => {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
             error.statusCode = 422;
+            error.state = 5;
             throw error;
         }
         
@@ -121,7 +125,7 @@ exports.postLogin = async (req, res, next) => {
             {
                 mobile: client.mobile,
                 userId: client._id.toString(),
-                updated:client.updated.toString()
+                updated:client.updated.toString(),
             },
             process.env.JWT_PRIVATE_KEY_CLIENT
         );
@@ -133,8 +137,118 @@ exports.postLogin = async (req, res, next) => {
                 token: token,
                 clientName: client.name,
                 clientMobile: client.mobile,
-                clientId: client._id
+                clientId: client._id,
+                image:client.image
             }
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postSendSms = async (req, res, next) => {
+
+    try {
+        
+        const client = await Client.findById(req.userId);
+
+        const buf = crypto.randomBytes(3).toString('hex');
+        const hashedCode = await bycript.hash(buf,12)
+        client.verficationCode = hashedCode;
+        client.codeExpireDate =  Date.now()  + 3600000 ;
+
+        const message       = `your verification code is ${buf}` ;
+        
+        //const {body,status} = await SMS.send(client.mobile,message);
+
+        await client.save();
+     
+        res.status(200).json({
+            state:1,
+            //data:body,
+            code:buf,
+            message:'code sent'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+exports.postCheckVerCode = async (req, res, next) => {
+    const code = req.body.code ;
+    const errors = validationResult(req);
+
+    try {
+        if(!errors.isEmpty()){
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const client  = await Client.findById(req.userId).select('verficationCode mobile codeExpireDate verfication');
+        const isEqual = bycript.compare(code,client.verficationCode);
+
+        if(!isEqual){
+            const error = new Error('wrong code!!');
+            error.statusCode = 403 ;
+            error.state = 36 ;
+            throw error ;
+        }
+        if(client.codeExpireDate <= Date.now()){
+            const error = new Error('verfication code expired');
+            error.statusCode = 403 ;
+            error.state = 37 ;
+            throw error ;
+        }
+
+        client.verfication = true ;
+
+        await client.save() ;
+
+        res.status(200).json({
+            state:1,
+            message:'account activated'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postChangeMobile = async (req, res, next) => {
+    const mobile = req.body.mobile ;
+    const errors = validationResult(req);
+
+    try {
+        if(!errors.isEmpty()){
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const client  = await Client.findById(req.userId).select('mobile');
+        
+        client.mobile = mobile ;
+        await client.save()    ;
+
+        res.status(200).json({
+            state:1,
+            data:client.mobile,
+            message:'mobile changed'
         });
 
     } catch (err) {

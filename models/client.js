@@ -75,7 +75,9 @@ const clientSchema = new schema({
     updated:{
         type:String,
         required:true
-    }
+    },
+    verficationCode:String,
+    codeExpireDate:Date,
 });
 
 clientSchema.methods.addToCart = function (prodductId, amount, unit, ref) {

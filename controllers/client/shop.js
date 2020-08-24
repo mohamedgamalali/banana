@@ -59,11 +59,16 @@ exports.getProducts = async (req, res, next) => {
                 .select('category name_en name_ar productType imageUrl');
         }
 
+        const client = await Client.findById(req.userId).select('cart') ;
+
+
+
 
         res.status(200).json({
             state: 1,
             data: products,
             total: totalProducts,
+            cart:client.cart.length,
             message: `products in page ${page}, filter ${filter}, date ${date} and sold ${sold}`
         });
     } catch (err) {
@@ -100,11 +105,14 @@ exports.getSearch = async (req, res, next) => {
             .select('category name_en name_ar productType imageUrl')
             .skip((page - 1) * productPerPage)
             .limit(productPerPage);
+        
+        const client = await Client.findById(req.userId).select('cart') ;
 
         res.status(200).json({
             state: 1,
             data: products,
             total: totalItems,
+            cart:client.cart.length,
             message: `products with ur search (${searchQ})`
         });
     } catch (err) {
@@ -154,7 +162,7 @@ exports.postAddToCart = async (req, res, next) => {
 
         res.status(201).json({
             state: 1,
-            data: updatedUSer.cart,
+            data: updatedUSer.cart.length,
             message: 'added to cart'
         });
 

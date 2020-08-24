@@ -2,6 +2,7 @@ const express      = require('express');
 const {body}       = require('express-validator');
 
 const authController = require('../../controllers/client/auth');
+const isAuthVerfy         = require('../../meddlewere/client/isAuthVerfy');
 
 
 const router  = express.Router();
@@ -35,5 +36,18 @@ router.post('/login',[
     .not().isEmpty()
     .trim(),
 ],authController.postLogin);
+
+//verfication
+router.post('/signup/verfication/send',isAuthVerfy,authController.postSendSms);
+
+router.post('/signup/verfication/check',[
+    body('code')
+    .not().isEmpty(),
+],isAuthVerfy,authController.postCheckVerCode);
+
+router.post('/signup/verfication/changeMobile',[
+    body('mobile')
+    .not().isEmpty(),
+],isAuthVerfy,authController.postChangeMobile);
 
 module.exports = router;

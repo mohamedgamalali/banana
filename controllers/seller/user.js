@@ -337,3 +337,71 @@ exports.postAddCertificate = async (req, res, next) => {
         next(err);
     }
 }
+
+
+exports.postAddCCategory = async (req, res, next) => {
+    const name = req.body.name;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        if( name!='F-V'&& name!='B'&& name!='F-M'&& name!='F' ){
+            const error = new Error(`validation faild for category in body.. not allowed value`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const seller = await Seller.findById(req.userId).select('category');
+
+        const updatedseller  = await seller.addCategory(name) ;
+
+        res.status(201).json({
+            state:1,
+            data:updatedseller.category,
+            message:'category added'
+        });
+    
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postDeleteCategory = async (req, res, next) => {
+    const categoryId = req.body.categoryId;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        
+
+        const seller = await Seller.findById(req.userId).select('category');
+
+        const updatedseller  = await seller.deleteCategory(categoryId) ;
+
+        res.status(201).json({
+            state:1,
+            data:updatedseller.category,
+            message:'category added'
+        });
+    
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}

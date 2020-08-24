@@ -115,12 +115,13 @@ sellerSchema.methods.certApprove = function (categoryId) {
             element.certificate.state = 'approve';
             element.activated = true;
             element.review = true;
-            found = true ;
+            found = true;
         }
     });
     if (!found) {
         const error = new Error('certificate not found');
         error.statusCode = 404;
+        error.state = 9;
         throw error;
     }
     this.category = cat;
@@ -128,24 +129,25 @@ sellerSchema.methods.certApprove = function (categoryId) {
 }
 
 sellerSchema.methods.certExpired = function (categoryId) {
-    let cat   = this.category;
+    let cat = this.category;
     let found = false;
     cat.forEach(element => {
         if (element._id == categoryId) {
             element.activated = false;
-            found = true ;
+            found = true;
         }
     });
     if (!found) {
         const error = new Error('certificate not found');
         error.statusCode = 404;
+        error.state = 9;
         throw error;
     }
     this.category = cat;
     return this.save();
 }
 
-sellerSchema.methods.certDisapprove = function (categoryId,adminN) {
+sellerSchema.methods.certDisapprove = function (categoryId, adminN) {
     let cat = this.category;
     let found = false;
     cat.forEach(element => {
@@ -154,17 +156,48 @@ sellerSchema.methods.certDisapprove = function (categoryId,adminN) {
             element.certificate.state = 'disapprove';
             element.activated = false;
             element.review = true;
-            found = true ;
-            element.certificate.adminNote = adminN ;
+            found = true;
+            element.certificate.adminNote = adminN;
         }
     });
     if (!found) {
         const error = new Error('certificate not found');
         error.statusCode = 404;
+        error.state = 9;
         throw error;
     }
     this.category = cat;
     return this.save();
 }
+
+sellerSchema.methods.addCategory = function (name) {
+    let temp = this.category;
+    const find = temp.filter(f => {
+        return f.name == name;
+    });
+    if (find.length > 0) {
+        const error = new Error('category already exestes');
+        error.statusCode = 409;
+        error.state = 30;
+        throw error;
+    }
+    temp.push({
+        name: name,
+        review: true
+    });
+    this.category = temp ;
+    return this.save()   ;
+}
+
+sellerSchema.methods.deleteCategory = function (categoryId) {
+    let temp = this.category;
+    const updatedCategory = temp.filter(f => {
+        return f._id.toString() !== categoryId.toString();
+    });
+    
+    this.category = updatedCategory ;
+    return this.save()   ;
+}
+
 
 module.exports = mongoose.model('seller', sellerSchema);

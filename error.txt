@@ -1,5 +1,6 @@
-    //client
+    0=>internal server error
 
+    //client
     1=> "success",
     2=> "not authrized",
     3=> "user not found",
@@ -40,10 +41,24 @@
     27=>you should provide certificate for order category
     28=>one or more of the order category is under review
     29=>certificate expired
+    
+    //seller add category
+    30=>category already exestes 
 
     //client issue 
     24=>can't find selected offer for the order
     25=>issue allready creted
+
+    //SMS
+    31=>error sending sms
+    32=>invalid mobile number
+    33=>no sms Credi
+    34=>you must verfy the account to countenue
+    35=>not allowed url accout allready verfied
+    36=>wrong code
+    37=>validation code expired
+    
+
 
 
 

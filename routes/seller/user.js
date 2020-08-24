@@ -48,4 +48,14 @@ router.post('/profile/certificate',[
     .not().isEmpty(),
 ],isAuth,userController.postAddCertificate)
 
+router.post('/profile/category/add',[
+    body('name')
+    .not().isEmpty(),
+],isAuth,userController.postAddCCategory)
+
+router.post('/profile/category/delete',[
+    body('categoryId')
+    .not().isEmpty(),
+],isAuth,userController.postDeleteCategory)
+
 module.exports = router;

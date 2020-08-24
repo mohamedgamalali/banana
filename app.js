@@ -58,8 +58,6 @@ const router = require('./routes/router');
 const erorrMeddlewere = require('./helpers/errors');
 
 
-console.log(new Date().getTime()+1000*60*15);
-
 app.use('/client', router.client.auth, router.client.shop, router.client.user, router.client.support);
 app.use('/client/guest', router.client.guest);
 app.use('/seller', router.seller.auth, router.seller.shop, router.seller.user, router.seller.support);
@@ -85,7 +83,7 @@ mongoose
         return Scad.find({expiresin:{$gt:new Date().getTime()}})
     })
     .then(s=>{
-        console.log(s);
+        //console.log(s);
         const Scad = mongoose.model('scheduleCert');
         s.forEach(task=>{
         const Seller = mongoose.model('seller');

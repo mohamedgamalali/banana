@@ -48,11 +48,11 @@ module.exports = async (req, res, next) => {
             error.state = 4;
             throw error;
         }
-
-        if (client.verfication == false) {
-            const error = new Error('you must verfy the account to contenue');
+        
+        if (client.verfication == true) {
+            const error = new Error('not allowed url accout allready verfied');
             error.statusCode = 403;
-            error.state = 34;
+            error.state = 35;
             throw error;
         }
 
@@ -62,6 +62,7 @@ module.exports = async (req, res, next) => {
             error.state = 17;
             throw error;
         }
+
 
         req.userId = decodedToken.userId;
 

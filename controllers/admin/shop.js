@@ -248,12 +248,12 @@ exports.getCertificate = async (req, res, next) => {
     const productPerPage = 10;
 
     try {
-        const seller = await Seller.find({ category: { $elemMatch: {$nin:{ review: false }} } })
+        const seller = await Seller.find({ category: { $elemMatch:{ review: false }} })
             .skip((page - 1) * productPerPage)
             .limit(productPerPage)
             .select('name mobile email category');
 
-        const total = await Seller.find({ category: { $elemMatch: {$nin:{ review: false }} } }).countDocuments();
+        const total = await Seller.find({ category: { $elemMatch: { review: false }}  }).countDocuments();
 
         res.status(200).json({
             state: 1,

@@ -52,6 +52,7 @@ exports.getProducts = async (req, res, next) => {
             state: 1,
             data: products,
             total: totalProducts,
+            cart:0,
             message: `products in page ${page}, filter ${filter}, date ${date} and sold ${sold}`
         });
     } catch (err) {
@@ -94,6 +95,7 @@ exports.getSearch = async (req, res, next) => {
             state: 1,
             data: products,
             total: totalItems,
+            cart:0,
             message: `products with ur search (${searchQ})`
         });
     } catch (err) {
