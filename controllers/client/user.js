@@ -295,7 +295,15 @@ exports.postEditMobile = async (req, res, next) => {
             throw error;
         }
 
-        const client = await Client.findById(req.userId).select('mobile tempMobile tempCode');
+        const client      = await Client.findById(req.userId).select('mobile tempMobile tempCode');
+        const checkClient = await Client.findOne({ mobile: mobile });
+
+        if (checkClient) {
+            const error = new Error(`This user is already registered with mobile`);
+            error.statusCode = 409;
+            error.state = 6;
+            throw error;
+        }
         if (mobile == client.mobile) {
             const error = new Error('new mobile must be defferent from old mobile');
             error.statusCode = 409;

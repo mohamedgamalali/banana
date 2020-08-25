@@ -70,5 +70,24 @@ router.post('/forgetPassword/mobile/verfy',[
     .not().isEmpty(),
 ],authController.postForgetPasswordVerfy);
 
+router.post('/forgetPassword/changePassword',[
+    body('mobile')
+    .not().isEmpty(),
+    body('VerCode')
+    .not().isEmpty(),
+    body('password','enter a password with only number and text and at least 5 characters.')
+    .isLength({min:5})
+    .trim()
+    ,
+    body('comfirmPassword')
+    .trim()
+    .custom((value,{req})=>{
+        if(value!=req.body.password){
+            return Promise.reject('password has to match');
+        }
+        return true ;
+    })
+],authController.postForgetPasswordChangePassword);
+
 
 module.exports = router;

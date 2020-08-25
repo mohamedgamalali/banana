@@ -349,19 +349,93 @@ exports.postForgetPasswordVerfy = async (req, res, next) => {
             throw error;
         }
 
+
+        res.status(200).json({
+            state: 1,
+            message: 'code is ok <3'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+exports.postForgetPasswordChangePassword = async (req, res, next) => {
+    const mobile   = req.body.mobile;
+    const code     = req.body.VerCode;
+    const password = req.body.password ;
+    const errors = validationResult(req);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const client = await Client.findOne({ mobile: mobile }).select('image name mobile verficationCode codeExpireDate updated password');
+
+        if (!client) {
+            const error = new Error(`Client not found`);
+            error.statusCode = 404;
+            error.state = 7;
+            throw error;
+        }
+
+
+        const isEqual = await bycript.compare(code, client.verficationCode);
+
+        if (!isEqual) {
+            const error = new Error('wrong code!!');
+            error.statusCode = 403;
+            error.state = 36;
+            throw error;
+        }
+        if (client.codeExpireDate <= Date.now()) {
+            const error = new Error('verfication code expired');
+            error.statusCode = 403;
+            error.state = 37;
+            throw error;
+        }
+        const isEqualNew = await bycript.compare(password, client.password);
+        if (isEqualNew) {
+            const error = new Error('new password must be defferent from old password');
+            error.statusCode = 409;
+            error.state = 15;
+            throw error;
+        }
+
+        const hashedPass = await bycript.hash(password, 12);
+
+        client.password = hashedPass;
+
+        const updatedClient =  await client.save() ;
+        
+
         const token = jwt.sign(
             {
-                mobile: client.mobile,
-                userId: client._id.toString(),
-                updated: client.updated.toString()
+                mobile: updatedClient.mobile,
+                userId: updatedClient._id.toString(),
+                updated: updatedClient.updated.toString()
             },
             process.env.JWT_PRIVATE_KEY_CLIENT
         );
 
         res.status(200).json({
             state: 1,
-            token:token,
-            message: 'code is ok <3'
+            message: 'password changed and loged in',
+            data: {
+                token: token,
+                clientName: updatedClient.name,
+                clientMobile: updatedClient.mobile,
+                clientId: updatedClient._id,
+                image: updatedClient.image
+            }
         });
 
     } catch (err) {
