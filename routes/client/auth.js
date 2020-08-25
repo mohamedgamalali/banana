@@ -25,7 +25,10 @@ router.put('/signup',[
     body('name').not().isEmpty().trim(),
     body('mobile')
     .not().isEmpty()
-    .trim().isMobilePhone()
+    .trim().isMobilePhone(),
+    body('code')
+    .not().isEmpty()
+    .trim()
 ],authController.postSignup);
 
 router.post('/login',[
@@ -47,7 +50,11 @@ router.post('/signup/verfication/check',[
 
 router.post('/signup/verfication/changeMobile',[
     body('mobile')
-    .not().isEmpty(),
+    .not().isEmpty()
+    .trim().isMobilePhone(),
+    body('code')
+    .not().isEmpty()
+    .trim()
 ],isAuthVerfy,authController.postChangeMobile);
 
 //forget password
@@ -59,7 +66,7 @@ router.post('/forgetPassword/mobile/sendSMS',[
 router.post('/forgetPassword/mobile/verfy',[
     body('mobile')
     .not().isEmpty(),
-    body('code')
+    body('VerCode')
     .not().isEmpty(),
 ],authController.postForgetPasswordVerfy);
 

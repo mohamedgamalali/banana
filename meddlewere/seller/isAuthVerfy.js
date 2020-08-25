@@ -49,10 +49,10 @@ module.exports = async (req, res, next) => {
             throw error;
         }
 
-        if (seller.verfication == false) {
-            const error = new Error('you must verfy the account to contenue');
+        if (seller.verfication == true) {
+            const error = new Error('not allowed url accout allready verfied');
             error.statusCode = 403;
-            error.state = 34;
+            error.state = 35;
             throw error;
         }
         

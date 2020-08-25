@@ -405,3 +405,35 @@ exports.postDeleteCategory = async (req, res, next) => {
         next(err);
     }
 }
+
+//notfications
+exports.postManageSendNotfication = async (req, res, next) => {
+    const action = req.body.action ;
+
+    const errors = validationResult(req);
+    try {
+
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        const seller = await Seller.findById(req.userId).select('sendNotfication') ;
+
+        seller.sendNotfication = action ;
+
+        const updatedSeller  = await seller.save() ;
+
+        res.status(200).json({
+            state:1,
+            message:`notfication action ${updatedSeller.sendNotfication}`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}

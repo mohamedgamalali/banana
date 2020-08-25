@@ -284,6 +284,7 @@ exports.postEditPassword = async (req, res, next) => {
 exports.postEditMobile = async (req, res, next) => {
 
     const mobile = req.body.mobile;
+    const code = req.body.code;
 
     const errors = validationResult(req);
     try {
@@ -294,7 +295,7 @@ exports.postEditMobile = async (req, res, next) => {
             throw error;
         }
 
-        const client = await Client.findById(req.userId).select('mobile tempMobile');
+        const client = await Client.findById(req.userId).select('mobile tempMobile tempCode');
         if (mobile == client.mobile) {
             const error = new Error('new mobile must be defferent from old mobile');
             error.statusCode = 409;
@@ -303,12 +304,13 @@ exports.postEditMobile = async (req, res, next) => {
         }
 
         client.tempMobile = mobile;
+        client.tempCode = code;
 
         const updatedClient = await client.save();
 
         res.status(200).json({
             state: 1,
-            data: updatedClient.tempMobile,
+            data:updatedClient.tempCode + updatedClient.tempMobile,
             message: 'mobile changed'
         });
 
@@ -332,7 +334,7 @@ exports.postSendSMS = async (req, res, next) => {
 
         const message       = `your verification code is ${buf}` ;
         
-        //const {body,status} = await SMS.send(client.tempMobile,message);
+        const {body,status} = await SMS.send(client.tempCode + client.tempMobile,message);
 
         await client.save();
      
@@ -363,7 +365,7 @@ exports.postCheckCode = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        const client = await Client.findById(req.userId).select('verficationCode codeExpireDate tempMobile mobile');
+        const client = await Client.findById(req.userId).select('verficationCode codeExpireDate tempMobile mobile tempCode code');
 
         const isEqual = bycript.compare(code,client.verficationCode);
 
@@ -381,11 +383,12 @@ exports.postCheckCode = async (req, res, next) => {
         }
 
         client.mobile = client.tempMobile ;
+        client.code = client.tempCode ;
         const updatedClient = await client.save();
 
         res.status(200).json({
             state:1,
-            data:updatedClient.mobile,
+            data:updatedClient.code  + updatedClient.mobile,
             messaage:'mobile changed'
         });
         
@@ -501,7 +504,7 @@ exports.deleteLocation = async (req, res, next) => {
     }
 }
 
-
+//notfications
 exports.getNotfications = async (req, res, next) => {
     const page = req.query.page || 1;
     const productPerPage = 10;
@@ -529,3 +532,34 @@ exports.getNotfications = async (req, res, next) => {
     }
 }
 
+
+exports.postManageSendNotfication = async (req, res, next) => {
+    const action = req.body.action ;
+
+    const errors = validationResult(req);
+    try {
+
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        const client = await Client.findById(req.userId).select('sendNotfication') ;
+
+        client.sendNotfication = action ;
+
+        const updatedClient  = await client.save() ;
+
+        res.status(200).json({
+            state:1,
+            message:`notfication action ${updatedClient.sendNotfication}`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}

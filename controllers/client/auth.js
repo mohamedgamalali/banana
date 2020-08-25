@@ -12,6 +12,7 @@ exports.postSignup = async (req, res, next) => {
     const password = req.body.password;
     const mobile = req.body.mobile;
     const email = req.body.email;
+    const code = req.body.code;
 
     try {
         if (!errors.isEmpty()) {
@@ -42,6 +43,7 @@ exports.postSignup = async (req, res, next) => {
             name: name,
             mobile: mobile,
             email: email,
+            code:code,
             password: hashedPass,
             fevProducts: [],
             updated: Date.now().toString()
@@ -163,7 +165,7 @@ exports.postSendSms = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(client.mobile,message);
+        const {body,status} = await SMS.send(client.code + client.mobile, message);
 
         await client.save();
 
@@ -230,6 +232,7 @@ exports.postCheckVerCode = async (req, res, next) => {
 
 exports.postChangeMobile = async (req, res, next) => {
     const mobile = req.body.mobile;
+    const code = req.body.code;
     const errors = validationResult(req);
 
     try {
@@ -243,6 +246,8 @@ exports.postChangeMobile = async (req, res, next) => {
         const client = await Client.findById(req.userId).select('mobile');
 
         client.mobile = mobile;
+        client.code   = code  ;
+
         await client.save();
 
         res.status(200).json({
@@ -271,7 +276,7 @@ exports.postForgetPassword = async (req, res, next) => {
             throw error;
         }
 
-        const client = await Client.findOne({ mobile: mobile }).select('mobile verficationCode codeExpireDate');
+        const client = await Client.findOne({ mobile: mobile }).select('code mobile verficationCode codeExpireDate');
 
         if (!client) {
             const error = new Error(`Client not found`);
@@ -287,7 +292,7 @@ exports.postForgetPassword = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(client.mobile,message);
+        const {body,status} = await SMS.send(client.code + client.mobile,message);
         await client.save();
 
 
@@ -308,7 +313,7 @@ exports.postForgetPassword = async (req, res, next) => {
 
 exports.postForgetPasswordVerfy = async (req, res, next) => {
     const mobile = req.body.mobile;
-    const code = req.body.code;
+    const code = req.body.VerCode;
     const errors = validationResult(req);
 
     try {

@@ -58,4 +58,11 @@ router.post('/profile/category/delete',[
     .not().isEmpty(),
 ],isAuth,userController.postDeleteCategory)
 
+
+//notfication
+router.post('/notfication/send',[
+    body('action')
+    .not().isEmpty()
+    .isBoolean()
+],isAuth,userController.postManageSendNotfication);
 module.exports = router;

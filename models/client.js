@@ -11,6 +11,10 @@ const clientSchema = new schema({
         type: String,
         required: true
     },
+    code:{
+        type: String,
+        required: true
+    },
     email:{
         type: String,
         required: true
@@ -78,7 +82,8 @@ const clientSchema = new schema({
     },
     verficationCode:String,
     codeExpireDate:Date,
-    tempMobile:String
+    tempMobile:String,
+    tempCode:String
 });
 
 clientSchema.methods.addToCart = function (prodductId, amount, unit, ref) {
