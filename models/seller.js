@@ -21,6 +21,10 @@ const sellerSchema = new schema({
         type: String,
         required: true
     },
+    code:{
+        type: String,
+        required: true
+    },
     image: {
         type: Number,
         default: 1
@@ -83,8 +87,12 @@ const sellerSchema = new schema({
     updated: {
         type: String,
         required: true
-    }
-});
+    },
+    verficationCode:String,
+    codeExpireDate:Date,
+    tempMobile:String,
+    tempCode:String
+}); 
 
 sellerSchema.methods.addSert = function (categoryId, imageUrl, expires) {
     let cat = this.category;

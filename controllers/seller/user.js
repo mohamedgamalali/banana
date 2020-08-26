@@ -1,11 +1,12 @@
 const Offer = require('../../models/offer');
 const Pay = require('../../models/pay');
 const Seller = require('../../models/seller');
+const crypto = require('crypto');
 
 const bycript = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
-
+ 
 
 exports.getMyOrders = async (req, res, next) => {
     const page = req.query.page || 1;
@@ -274,31 +275,6 @@ exports.postEditPassword = async (req, res, next) => {
 
 
 
-exports.postSMS = async (req, res, next) => {
-    const name = req.body.name;
-
-    const errors = validationResult(req);
-    try {
-        if (!errors.isEmpty()) {
-            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
-            error.statusCode = 422;
-            error.state = 5;
-            throw error;
-        }
-
-        res.status(200).json({
-            state:1,
-            message:'message sent'
-        });
-
-    } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
-    }
-}
-
 exports.postAddCertificate = async (req, res, next) => {
     const certificateId = req.body.certificateId;
     const expiresAt = Number(req.body.expiresAt);
@@ -430,6 +406,136 @@ exports.postManageSendNotfication = async (req, res, next) => {
             message:`notfication action ${updatedSeller.sendNotfication}`
         });
 
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+
+//mobile
+exports.postEditMobile = async (req, res, next) => {
+ 
+    const mobile = req.body.mobile;
+    const code = req.body.code;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const seller      = await Seller.findById(req.userId).select('mobile tempMobile tempCode');
+        const checkClient = await Seller.findOne({ mobile: mobile });
+
+        if (checkClient) {
+            const error = new Error(`This user is already registered with mobile`);
+            error.statusCode = 409;
+            error.state = 6;
+            throw error;
+        }
+        if (mobile == seller.mobile) {
+            const error = new Error('new mobile must be defferent from old mobile');
+            error.statusCode = 409;
+            error.state = 16;
+            throw error;
+        }
+
+        seller.tempMobile = mobile;
+        seller.tempCode = code;
+
+        const updatedClient = await seller.save();
+
+        res.status(200).json({
+            state: 1,
+            data:updatedClient.tempCode + updatedClient.tempMobile,
+            message: 'mobile changed'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postSendSMS = async (req, res, next) => {
+
+    try {
+        const seller = await Seller.findById(req.userId);
+
+        const buf = crypto.randomBytes(3).toString('hex');
+        const hashedCode = await bycript.hash(buf,12)
+        seller.verficationCode = hashedCode;
+        seller.codeExpireDate =  Date.now()  + 3600000 ;
+
+        const message       = `your verification code is ${buf}` ;
+        
+        //const {body,status} = await SMS.send(seller.tempCode + seller.tempMobile,message);
+
+        await seller.save();
+     
+        res.status(200).json({
+            state:1,
+            //data:body,
+            code:buf,
+            message:'code sent'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postCheckCode = async (req, res, next) => {
+    const code = req.body.code ;
+
+    const errors = validationResult(req);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        const seller = await Seller.findById(req.userId).select('verficationCode codeExpireDate tempMobile mobile tempCode code');
+
+        const isEqual = bycript.compare(code,seller.verficationCode);
+
+        if(!isEqual){
+            const error = new Error('wrong code!!');
+            error.statusCode = 403 ;
+            error.state = 36 ;
+            throw error ;
+        }
+        if(seller.codeExpireDate <= Date.now()){
+            const error = new Error('verfication code expired');
+            error.statusCode = 403 ;
+            error.state = 37 ;
+            throw error ;
+        }
+
+        seller.mobile = seller.tempMobile ;
+        seller.code = seller.tempCode ;
+        const updatedClient = await seller.save();
+
+        res.status(200).json({
+            state:1,
+            data:updatedClient.code  + updatedClient.mobile,
+            messaage:'mobile changed'
+        });
+        
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;

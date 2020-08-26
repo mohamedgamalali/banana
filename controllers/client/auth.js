@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const SMS = require('../../helpers/sms');
 
 const Client = require('../../models/client');
-
+ 
 exports.postSignup = async (req, res, next) => {
     const errors = validationResult(req);
     const name = req.body.name;
@@ -243,8 +243,18 @@ exports.postChangeMobile = async (req, res, next) => {
             throw error;
         }
 
+
         const client = await Client.findById(req.userId).select('mobile');
 
+        const checkClient = await Client.findOne({ mobile: mobile });
+
+        if (checkClient) {
+            const error = new Error(`This user is already registered with mobile`);
+            error.statusCode = 409;
+            error.state = 6;
+            throw error;
+        }
+        
         client.mobile = mobile;
         client.code   = code  ;
 

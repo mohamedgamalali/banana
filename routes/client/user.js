@@ -32,7 +32,7 @@ router.post('/notfication/send',[
     .not().isEmpty()
     .isBoolean()
 ],isAuth,userController.postManageSendNotfication);
-
+ 
 router.post('/profile/edit/password',[
     body('oldPassword','enter a password with only number and text and at least 5 characters.')
     .not().isEmpty()
@@ -51,6 +51,7 @@ router.post('/profile/edit/password',[
     })
 ],isAuth,userController.postEditPassword);
 
+//mobile
 router.post('/profile/edit/mobile',[
     body('mobile')
     .not().isEmpty()

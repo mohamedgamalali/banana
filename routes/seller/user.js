@@ -37,8 +37,22 @@ router.post('/profile/edit/password',[
     })
 ],isAuth,userController.postEditPassword);
 
+ //mobile
+router.post('/profile/edit/mobile',[
+    body('mobile')
+    .not().isEmpty()
+    .trim().isMobilePhone(),
+    body('code')
+    .not().isEmpty()
+    .trim()
+],isAuth,userController.postEditMobile);
 
-router.post('/sms',userController.postSMS)
+router.post('/profile/edit/mobile/sendSMS',isAuth,userController.postSendSMS);
+
+router.post('/profile/edit/mobile/checkCode',[
+    body('code')
+    .not().isEmpty()
+],isAuth,userController.postCheckCode);
 
 //certificate
 router.post('/profile/certificate',[

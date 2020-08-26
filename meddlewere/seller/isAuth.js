@@ -33,7 +33,7 @@ module.exports = async (req, res, next) => {
             throw error;
         }
 
-        const seller = await Seller.findById(decodedToken.userId).select('blocked category updated');
+        const seller = await Seller.findById(decodedToken.userId).select('blocked category updated verfication');
 
         if (!seller) {
             const error = new Error('user not found');

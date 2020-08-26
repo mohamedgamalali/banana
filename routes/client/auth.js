@@ -69,7 +69,7 @@ router.post('/forgetPassword/mobile/verfy',[
     body('VerCode')
     .not().isEmpty(),
 ],authController.postForgetPasswordVerfy);
-
+ 
 router.post('/forgetPassword/changePassword',[
     body('mobile')
     .not().isEmpty(),
