@@ -34,4 +34,7 @@ router.post('/support/contactUs',[
     .not().isEmpty(),
 ],isAuth,supportController.postContactUs);
 
+//policy
+router.get('/support/policy',supportController.getPolicy);
+
 module.exports = router;
