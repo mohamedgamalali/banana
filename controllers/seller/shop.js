@@ -121,6 +121,7 @@ exports.getOrders = async (req, res, next) => {
 exports.putOffer = async (req, res, next) => {
     const orderId = req.body.orderId;
     const price = req.body.price;
+    const amount = req.body.amountArray;
     const banana_delivery = req.body.banana_delivery;
 
     const errors = validationResult(req);
@@ -131,11 +132,18 @@ exports.putOffer = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
+
         const order = await Order.findById(orderId);
         if (!order) {
             const error = new Error(`order not found`);
             error.statusCode = 404;
             error.state = 9;
+            throw error;
+        }
+        if (amount.length != order.products.length) {
+            const error = new Error(`validation faild for amount ..not equal order products length`);
+            error.statusCode = 422;
+            error.state = 5;
             throw error;
         }
         const cat = [];
@@ -150,18 +158,18 @@ exports.putOffer = async (req, res, next) => {
                 error.state = 27;
                 throw error;
             }
-            if (req.sellerCat[index].certificate.image != '0' 
-            && req.sellerCat[index].certificate.expiresAt != 0
-            && req.sellerCat[index].certificate.state != 'approve') {
+            if (req.sellerCat[index].certificate.image != '0'
+                && req.sellerCat[index].certificate.expiresAt != 0
+                && req.sellerCat[index].certificate.state != 'approve') {
                 const error = new Error(`one or more of the order category is under review or disapproved`);
                 error.statusCode = 403;
                 error.state = 28;
                 throw error;
             }
-            if (req.sellerCat[index].certificate.image != '0' 
-            && req.sellerCat[index].certificate.expiresAt != 0
-            && req.sellerCat[index].certificate.state == 'approve'
-            && req.sellerCat[index].activated == false) {
+            if (req.sellerCat[index].certificate.image != '0'
+                && req.sellerCat[index].certificate.expiresAt != 0
+                && req.sellerCat[index].certificate.state == 'approve'
+                && req.sellerCat[index].activated == false) {
                 const error = new Error(`certificate expired`);
                 error.statusCode = 403;
                 error.state = 29;
@@ -182,13 +190,35 @@ exports.putOffer = async (req, res, next) => {
             error.state = 23;
             throw error;
         }
+        let offerProducts = [];
+
+        amount.forEach((element, index) => {
+            const f = order.products.find(i => i._id.toString() === element.cartItem.toString()) ;
+            if (!f) {
+                const error = new Error(`cart item id not found for index ${index}`);
+                error.statusCode = 404;
+                error.state = 9;
+                throw error;
+            }
+            let equals = true  ;
+            if(f.amount > element.amount){
+                equals = false ;
+            }
+            offerProducts.push({
+                cartItem: element.cartItem,
+                amount: element.amount,
+                unit: f.unit,
+                equals:equals
+            });
+        });
 
         const offer = new Offer({
             order: order._id,
             client: order.client,
             seller: req.userId,
             banana_delivery: banana_delivery,
-            price: Number(price)
+            price: Number(price),
+            offerProducts:offerProducts
         });
 
         await offer.save();
@@ -199,6 +229,7 @@ exports.putOffer = async (req, res, next) => {
         });
 
     } catch (err) {
+        console.log(err);
         if (!err.statusCode) {
             err.statusCode = 500;
         }

@@ -586,7 +586,7 @@ exports.getOffers = async (req, res, next) => {
     try {
         if (filter == 1) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
-                .select('order seller banana_delivery price createdAt')
+                .select('order seller banana_delivery price createdAt offerProducts')
                 .populate({
                     path: 'order', select: 'products',
                     populate: {
@@ -602,7 +602,7 @@ exports.getOffers = async (req, res, next) => {
             totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
         } else if (filter == 2) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
-                .select('order seller banana_delivery price createdAt')
+                .select('order seller banana_delivery price createdAt offerProducts')
                 .populate({
                     path: 'order', select: 'products',
                     populate: {
@@ -618,7 +618,7 @@ exports.getOffers = async (req, res, next) => {
             totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
         }else if (filter == 0) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
-                .select('order seller banana_delivery price createdAt')
+                .select('order seller banana_delivery price createdAt offerProducts')
                 .populate({
                     path: 'order', select: 'products',
                     populate: {
@@ -635,7 +635,7 @@ exports.getOffers = async (req, res, next) => {
         //filter for rating
         // else if (filter == 2) {
         //     offer = await Offer.find({ client: req.userId, status: 'started' })
-        //         .select('order seller banana_delivery price createdAt')
+        //         .select('order seller banana_delivery price createdAt offerProducts')
         //         .populate({
         //             path: 'order', select: 'products',
         //             populate: {

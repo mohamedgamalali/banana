@@ -14,7 +14,7 @@ const offerSchema = new schema({
     seller: {
         type: schema.Types.ObjectId,
         ref: 'seller'
-    },
+    }, 
     banana_delivery: {
         type: Boolean,
         required: true
@@ -31,7 +31,26 @@ const offerSchema = new schema({
     selected:{
         type:Boolean,
         default:false
-    }
+    },
+    offerProducts: [{
+        cartItem: {
+            type: String,
+            required: true
+        },
+        amount: {
+            type: Number,
+            required: true
+        },
+        unit: {
+            type: String,
+            enum: ['kg', 'g', 'grain', 'Liter', 'Gallon', 'drzn', 'bag'],
+            required: true
+        },
+        equals:{
+            type:Boolean,
+            required:true
+        }
+    }]
 }, { timestamps: true });
 
 offerSchema.methods.cancel = function () {

@@ -21,7 +21,9 @@ router.put('/offer',[
     body('banana_delivery')
     .not().isEmpty()
     .isBoolean(),
-
+    body('amountArray')
+    .not().isEmpty()
+    .isArray()
 ],isAuth,shopController.putOffer);
 
 
