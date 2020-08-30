@@ -84,7 +84,9 @@ exports.postSignup = async (req, res, next) => {
                 token: token,
                 sellerName: seller.name,
                 sellerMobile: seller.mobile,
-                sellerId: seller._id
+                sellerId: seller._id,
+                sellerImage:seller.image,
+                sellerCatigory:seller.category
             }
         });
 
@@ -155,7 +157,9 @@ exports.postLogin = async (req, res, next) => {
                 token: token,
                 sellerName: seller.name,
                 sellerMobile: seller.mobile,
-                sellerId: seller._id
+                sellerId: seller._id,
+                sellerImage:seller.image,
+                sellerCatigory:seller.category
             }
         });
         
