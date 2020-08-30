@@ -59,7 +59,7 @@ exports.getProducts = async (req, res, next) => {
                 .select('category name_en name_ar productType imageUrl');
         }
 
-        const client = await Client.findById(req.userId).select('cart') ;
+        const client = await Client.findById(req.userId).select('cart');
 
 
 
@@ -68,7 +68,7 @@ exports.getProducts = async (req, res, next) => {
             state: 1,
             data: products,
             total: totalProducts,
-            cart:client.cart.length,
+            cart: client.cart.length,
             message: `products in page ${page}, filter ${filter}, date ${date} and sold ${sold}`
         });
     } catch (err) {
@@ -105,14 +105,14 @@ exports.getSearch = async (req, res, next) => {
             .select('category name_en name_ar productType imageUrl')
             .skip((page - 1) * productPerPage)
             .limit(productPerPage);
-        
-        const client = await Client.findById(req.userId).select('cart') ;
+
+        const client = await Client.findById(req.userId).select('cart');
 
         res.status(200).json({
             state: 1,
             data: products,
             total: totalItems,
-            cart:client.cart.length,
+            cart: client.cart.length,
             message: `products with ur search (${searchQ})`
         });
     } catch (err) {
@@ -158,8 +158,8 @@ exports.postAddToCart = async (req, res, next) => {
             error.state = 9;
             throw error;
         }
-        if(ref == 'product'){
-            product.orders += 1 ;
+        if (ref == 'product') {
+            product.orders += 1;
             await product.save();
         }
         const updatedUSer = await client.addToCart(productId, Number(amount), unit, ref);
@@ -438,14 +438,14 @@ exports.postDeleteFevList = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        const client = await Client.findById(req.userId).select('fevProducts') ;
+        const client = await Client.findById(req.userId).select('fevProducts');
 
         const updatedClient = await client.deleteFevList(listId);
 
         res.status(200).json({
-            state:1,
-            data:updatedClient.fevProducts,
-            message:'list deleted'
+            state: 1,
+            data: updatedClient.fevProducts,
+            message: 'list deleted'
         });
 
 
@@ -616,7 +616,7 @@ exports.getOffers = async (req, res, next) => {
                 .limit(offerPerPage);
 
             totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
-        }else if (filter == 0) {
+        } else if (filter == 0) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
                 .select('order seller banana_delivery price createdAt offerProducts')
                 .populate({
@@ -752,7 +752,7 @@ exports.postCreateCheckOut = async (req, res, next) => {
             throw error;
         }
 
-        if(offer.order.client._id != req.userId){
+        if (offer.order.client._id != req.userId) {
             const error = new Error(`not the order owner`);
             error.statusCode = 403;
             error.state = 11;
@@ -796,18 +796,18 @@ exports.postCheckPayment = async (req, res, next) => {
 
         const { body, status } = await pay.getStatus(checkoutId);
 
-        const reg1 = new RegExp("^(000\.000\.|000\.100\.1|000\.[36])","m") ;
-        const reg2 = new RegExp("^(000\.400\.0[^3]|000\.400\.100)",'m')    ; 
+        const reg1 = new RegExp("^(000\.000\.|000\.100\.1|000\.[36])", "m");
+        const reg2 = new RegExp("^(000\.400\.0[^3]|000\.400\.100)", 'm');
         console.log(reg1.test(body.result.code.toString()));
         console.log(reg2.test(body.result.code.toString()));
         console.log(body.result.code.toString());
 
 
         if (!reg1.test(body.result.code.toString()) && !reg2.test(body.result.code.toString())) {
-                const error = new Error(`payment error`);
-                error.statusCode = 402;
-                error.state = 20;
-                throw error;
+            const error = new Error(`payment error`);
+            error.statusCode = 402;
+            error.state = 20;
+            throw error;
         }
 
         const offer = await Offer.findById(offerId);
@@ -817,7 +817,7 @@ exports.postCheckPayment = async (req, res, next) => {
             error.state = 9;
             throw error;
         }
-        offer.selected = true ;
+        offer.selected = true;
         const order = await Order.findById(offer.order);
         if (!order) {
             const error = new Error(`order not found`);
@@ -826,8 +826,8 @@ exports.postCheckPayment = async (req, res, next) => {
             throw error;
         }
 
-        await Offer.updateMany({order:order._id},{status:'ended'});
-        order.pay = true ;
+        await Offer.updateMany({ order: order._id }, { status: 'ended' });
+        order.pay = true;
         const p = new Pay({
             name: name,
             mobile: mobile,
@@ -836,21 +836,196 @@ exports.postCheckPayment = async (req, res, next) => {
             order: order._id,
             client: req.userId,
             seller: offer.seller,
-            payId:body.id,
+            payId: body.id,
         });
 
         order.arriveDate = arriveIn.toString();
 
         //saving
         await order.endOrder();
-        await offer.save()    ;
-        await p.save()        ;
+        await offer.save();
+        await p.save();
 
         res.status(200).json({
             state: 1,
             message: 'message payment created',
-            paymentStatusCode:body.result.code.toString()
+            paymentStatusCode: body.result.code.toString()
         });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.cashPayment = async (req, res, next) => {
+
+    const offerId = req.body.offerId;
+    const name = req.body.name;
+    const mobile = req.body.mobile;
+    const adressString = req.body.adressString;
+    const arriveIn = req.body.arriveIn;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+
+        const offer = await Offer.findById(offerId)
+            .select('order status price seller')
+            .populate({ path: 'order', select: 'status pay client' });
+        
+        if (!offer) {
+            const error = new Error(`offer not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+        if (offer.status !== 'started') {
+            const error = new Error(`offer is canceled or the offer is ended`);
+            error.statusCode = 409;
+            error.state = 19;
+            throw error;
+        }
+        if (offer.order.status !== 'started') {
+            const error = new Error(`order is canceled or the order is ended`);
+            error.statusCode = 409;
+            error.state = 19;
+            throw error;
+        }
+        if (offer.order.pay !== false) {
+            const error = new Error(`you already payed for the order`);
+            error.statusCode = 409;
+            error.state = 19;
+            throw error;
+        }
+
+        if (offer.order.client._id != req.userId) {
+            const error = new Error(`not the order owner`);
+            error.statusCode = 403;
+            error.state = 11;
+            throw error;
+        }
+        offer.selected = true;
+        const order = await Order.findById(offer.order);
+        if (!order) {
+            const error = new Error(`order not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+
+        await Offer.updateMany({ order: order._id }, { status: 'ended' });
+        order.pay = true;
+        const p = new Pay({
+            name: name,
+            mobile: mobile,
+            adressString: adressString,
+            offer: offer._id,
+            order: order._id,
+            client: req.userId,
+            seller: offer.seller._id,
+            payId: 'cash',
+            method:'cash'
+        });
+
+        order.arriveDate = arriveIn.toString();
+
+        //saving
+        await order.endOrder();
+        await offer.save();
+        await p.save();
+
+        res.status(200).json({
+            state: 1,
+            message: 'cash Payment created'
+        });
+
+    } catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+//wallet 
+exports.postPayToWalletCreateCheckOut = async (req, res, next) => {
+
+    const amount = req.body.amount ;
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        
+        const { body, status } = await pay.createCheckOut(Number(amount));
+
+        res.status(200).json({
+            state: 1,
+            status: status,
+            data: body,
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+exports.postPayToWalletCheckPayment = async (req, res, next) => {
+
+    const checkoutId = req.body.checkoutId;
+    
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const { body, status } = await pay.getStatus(checkoutId);
+
+        const reg1 = new RegExp("^(000\.000\.|000\.100\.1|000\.[36])", "m");
+        const reg2 = new RegExp("^(000\.400\.0[^3]|000\.400\.100)", 'm');
+        
+
+
+        if (!reg1.test(body.result.code.toString()) && !reg2.test(body.result.code.toString())) {
+            const error = new Error(`payment error`);
+            error.statusCode = 402;
+            error.state = 20;
+            throw error;
+        }
+
+        const client  = await Client.findById(req.userId).select('wallet');
+
+        client.wallet += Number(body.amount) ;
+
+        const updatedClient = await client.save();
+
+        res.status(201).json({
+            state:1,
+            data:updatedClient.wallet,
+            message:'added to wallet'
+        });
+
 
     } catch (err) {
         if (!err.statusCode) {

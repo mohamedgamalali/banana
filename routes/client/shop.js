@@ -99,4 +99,29 @@ router.post('/offers/checkPayment',[
     .not().isEmpty(),
 ],isAuth,shopController.postCheckPayment);
 
+//cash
+router.post('/offers/cashPay',[
+    body('name')
+    .not().isEmpty(),
+    body('mobile')
+    .not().isEmpty(),
+    body('adressString')
+    .not().isEmpty(),
+    body('arriveIn')
+    .not().isEmpty(),
+    body('offerId')
+    .not().isEmpty(),
+],isAuth,shopController.cashPayment);
+
+//wallet
+router.post('/wallet/CreateCheckOut',[
+    body('amount')
+    .not().isEmpty(),
+],isAuth,shopController.postPayToWalletCreateCheckOut);
+
+router.post('/wallet/checkPayment',[
+    body('checkoutId')
+    .not().isEmpty(),
+],isAuth,shopController.postPayToWalletCheckPayment);
+
 module.exports = router;
