@@ -1034,3 +1034,114 @@ exports.postPayToWalletCheckPayment = async (req, res, next) => {
         next(err);
     }
 }
+
+
+//pay from wallet
+
+exports.walletPayment = async (req, res, next) => {
+
+    const offerId = req.body.offerId;
+    const name = req.body.name;
+    const mobile = req.body.mobile;
+    const adressString = req.body.adressString;
+    const arriveIn = req.body.arriveIn;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+
+        const offer = await Offer.findById(offerId)
+            .select('order status price seller')
+            .populate({ path: 'order', select: 'status pay client' });
+        
+        if (!offer) {
+            const error = new Error(`offer not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+        if (offer.status !== 'started') {
+            const error = new Error(`offer is canceled or the offer is ended`);
+            error.statusCode = 409;
+            error.state = 19;
+            throw error;
+        }
+        if (offer.order.status !== 'started') {
+            const error = new Error(`order is canceled or the order is ended`);
+            error.statusCode = 409;
+            error.state = 19;
+            throw error;
+        }
+        if (offer.order.pay !== false) {
+            const error = new Error(`you already payed for the order`);
+            error.statusCode = 409;
+            error.state = 19;
+            throw error;
+        }
+
+        if (offer.order.client._id != req.userId) {
+            const error = new Error(`not the order owner`);
+            error.statusCode = 403;
+            error.state = 11;
+            throw error;
+        }
+        offer.selected = true;
+        const order = await Order.findById(offer.order);
+        if (!order) {
+            const error = new Error(`order not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+
+        const client = await Client.findById(req.userId).select('wallet');
+
+        if(client.wallet < offer.price){
+            const error = new Error(`no enough mony in client wallet`);
+            error.statusCode = 400;
+            error.state = 39;
+            throw error;
+        }
+        client.wallet = client.wallet - offer.price ;
+
+        await Offer.updateMany({ order: order._id }, { status: 'ended' });
+        order.pay = true;
+        const p = new Pay({
+            name: name,
+            mobile: mobile,
+            adressString: adressString,
+            offer: offer._id,
+            order: order._id,
+            client: req.userId,
+            seller: offer.seller._id,
+            payId: 'wallet',
+            method:'wallet'
+        });
+
+        order.arriveDate = arriveIn.toString();
+
+        //saving
+        await order.endOrder();
+        await offer.save();
+        await p.save();
+        await client.save();
+
+        res.status(200).json({
+            state: 1,
+            message: 'wallet Payment created'
+        });
+
+    } catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}

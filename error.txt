@@ -61,6 +61,8 @@
     //delete fev list
     38=>not allowed to delete general list
 
+    //pay from wallet
+    39=>no enough mony in client wallet
     
 
 

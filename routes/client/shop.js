@@ -124,4 +124,18 @@ router.post('/wallet/checkPayment',[
     .not().isEmpty(),
 ],isAuth,shopController.postPayToWalletCheckPayment);
 
+//pay from wallet
+router.post('/offer/walletPay',[
+    body('offerId')
+    .not().isEmpty(),
+    body('name')
+    .not().isEmpty(),
+    body('mobile')
+    .not().isEmpty(),
+    body('adressString')
+    .not().isEmpty(),
+    body('arriveIn')
+    .not().isEmpty(),
+],isAuth,shopController.walletPayment);
+
 module.exports = router;
