@@ -6,6 +6,7 @@ const Issue = require('../../models/issues');
 const IssueResons = require('../../models/issue-reason');
 const SupportMessage = require('../../models/supportMessages');
 const Policy = require('../../models/policy');
+const Conditions               = require('../../models/conditions');
 
 const deleteFile = require("../../helpers/file");
 
@@ -188,6 +189,27 @@ exports.getPolicy = async (req, res, next) => {
         res.status(200).json({
             state:1,
             policy:policy
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+//conditions
+exports.getConditions = async (req, res, next) => {
+    
+    
+    try {
+        
+        const conditions = await Conditions.findOne({});
+        
+        res.status(200).json({
+            state:1,
+            conditions:conditions
         });
 
     } catch (err) {

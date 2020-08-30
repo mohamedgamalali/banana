@@ -37,4 +37,7 @@ router.post('/support/contactUs',[
 //policy
 router.get('/support/policy',supportController.getPolicy);
 
+//conditions
+router.get('/support/conditions',supportController.getConditions);
+
 module.exports = router;
