@@ -210,7 +210,8 @@ exports.getPolicy = async (req, res, next) => {
         
         res.status(200).json({
             state:1,
-            policy:policy
+            data:policy,
+            message:'policy'
         });
 
     } catch (err) {
@@ -231,7 +232,8 @@ exports.getConditions = async (req, res, next) => {
         
         res.status(200).json({
             state:1,
-            conditions:conditions
+            data:conditions,
+            message:'conditiond'
         });
 
     } catch (err) {
