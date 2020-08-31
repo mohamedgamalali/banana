@@ -135,36 +135,29 @@ exports.putOffer = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        const cat = [];
-        req.sellerCat.forEach(i => {
-            cat.push(i.name)
-        });
-        order.category.forEach(i => {
-            const index = cat.indexOf(i);
-            if (req.sellerCat[index].certificate.image == '0') {
-                const error = new Error(`you should provide certificate for order category`);
-                error.statusCode = 403;
-                error.state = 27;
-                throw error;
-            }
-            if (req.sellerCat[index].certificate.image != '0'
-                && req.sellerCat[index].certificate.expiresAt != 0
-                && req.sellerCat[index].certificate.state != 'approve') {
-                const error = new Error(`one or more of the order category is under review or disapproved`);
-                error.statusCode = 403;
-                error.state = 28;
-                throw error;
-            }
-            if (req.sellerCat[index].certificate.image != '0'
-                && req.sellerCat[index].certificate.expiresAt != 0
-                && req.sellerCat[index].certificate.state == 'approve'
-                && req.sellerCat[index].activated == false) {
-                const error = new Error(`certificate expired`);
-                error.statusCode = 403;
-                error.state = 29;
-                throw error;
-            }
-        });
+        
+        
+
+        if (!req.sellerCert.image) {
+            const error = new Error(`you should provide certificate for order category`);
+            error.statusCode = 403;
+            error.state = 27;
+            throw error;
+        }
+        if (req.sellerCert.review == false || req.sellerCert.state != 'approve') {
+            const error = new Error(`one or more of the order category is under review or disapproved`);
+            error.statusCode = 403;
+            error.state = 28;
+            throw error;
+        }
+        if ((req.sellerCert.expiresAt != 0 && req.sellerCert.state == 'approve' && req.sellerCert.activated == false)
+         || new Date(req.sellerCert.expiresAt).getTime() < new Date().getTime() ) {
+            const error = new Error(`certificate expired`);
+            error.statusCode = 403;
+            error.state = 29;
+            throw error;
+        }
+
         if (order.status == 'endeed' || order.status == 'cancel') {
             const error = new Error(`order ended or canceled`);
             error.statusCode = 404;
