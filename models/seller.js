@@ -157,7 +157,7 @@ sellerSchema.methods.certDisapprove = function (adminN) {
 sellerSchema.methods.addCategory = function (name) {
     let temp = this.category;
     const find = temp.filter(f => {
-        return f.name == name;
+        return f == name;
     });
     if (find.length > 0) {
         const error = new Error('category already exestes');
