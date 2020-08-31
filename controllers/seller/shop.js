@@ -27,67 +27,56 @@ exports.getHome = async (req, res, next) => {
 exports.getOrders = async (req, res, next) => {
 
     const page = req.query.page || 1;
-    const long = req.query.long || false;
-    const lat = req.query.lat || false;
-    const date = req.query.date || 0;
-    const amount = req.query.amount || 0;
+    const filter = req.query.filter || 0;    //0=>for date //1=>amount //2=>location
+
 
     const productPerPage = 10;
     let finalOrders = [];
-    let find = {};
-    let cord = false;
     let orders;
     const cat = [];
-    req.sellerCat.forEach(i => {
-        cat.push(i.name)
-    });
 
     try {
-        if (lat && long) {
-            cord = [Number(long), Number(lat)];
-        }
-        if (!cord) {
-            find = {
-                category: { $in: cat },
-                status: 'started'
+
+
+        if (filter == 2) {
+            if (req.sellerCert.location.coordinates.length == 0) {
+                const error = new Error(`you should provide certifecate`);
+                error.statusCode = 403;
+                error.state = 27;
+                throw error;
             }
-        } else {
-            find = {
-                category: { $in: cat },
+            orders = await Order.find({
+                category: { $in: req.sellerCat },
                 status: 'started',
                 location: {
                     $near: {
                         $maxDistance: 1000 * 100,
                         $geometry: {
                             type: "Point",
-                            coordinates: cord
+                            coordinates: req.sellerCert.location.coordinates
                         }
                     }
                 }
-            }
-        }
-
-        if (date == 0 && amount == 0) {
-            orders = await Order.find(find)
+            })
                 .select('location category client products amount_count stringAdress')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
-        } else if (date == 1 && amount == 0) {
-            orders = await Order.find(find)
+        } else if (filter == 0) {
+            orders = await Order.find({
+                category: { $in: req.sellerCat },
+                status: 'started'
+            })
                 .select('location category client products amount_count stringAdress')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ createdAt: -1 });
-        } else if (date == 0 && amount == 1) {
-            orders = await Order.find(find)
-                .select('location category client products amount_count stringAdress')
-                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
-                .sort({ amount_count: -1 });
-        } else if (date == 1 && amount == 1) {
-            orders = await Order.find(find)
+        } else if (filter == 1) {
+            orders = await Order.find({
+                category: { $in: req.sellerCat },
+                status: 'started'
+            })
                 .select('location category client products amount_count stringAdress')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ amount_count: -1 });
         }
-
         for (let element of orders) {
             if (element.category.every(v => cat.includes(v))) {
                 const total_client_orders = await Order.find({ client: element.client._id }).countDocuments();
@@ -106,7 +95,7 @@ exports.getOrders = async (req, res, next) => {
             state: 1,
             data: finalOrders.slice((page - 1) * productPerPage, productPerPage + 1),
             total: finalOrders.length,
-            message: `orders in ${page} and ${long} and ${lat}`
+            message: `orders in ${page} and filter ${filter}`
         });
 
     } catch (err) {
@@ -193,22 +182,22 @@ exports.putOffer = async (req, res, next) => {
         let offerProducts = [];
 
         amount.forEach((element, index) => {
-            const f = order.products.find(i => i._id.toString() === element.cartItem.toString()) ;
+            const f = order.products.find(i => i._id.toString() === element.cartItem.toString());
             if (!f) {
                 const error = new Error(`cart item id not found for index ${index}`);
                 error.statusCode = 404;
                 error.state = 9;
                 throw error;
             }
-            let equals = true  ;
-            if(f.amount > element.amount){
-                equals = false ;
+            let equals = true;
+            if (f.amount > element.amount) {
+                equals = false;
             }
             offerProducts.push({
                 cartItem: element.cartItem,
                 amount: element.amount,
                 unit: f.unit,
-                equals:equals
+                equals: equals
             });
         });
 
@@ -218,7 +207,7 @@ exports.putOffer = async (req, res, next) => {
             seller: req.userId,
             banana_delivery: banana_delivery,
             price: Number(price),
-            offerProducts:offerProducts
+            offerProducts: offerProducts
         });
 
         await offer.save();
