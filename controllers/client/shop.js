@@ -1231,6 +1231,11 @@ exports.postCancelComingOrder = async (req, res, next) => {
                 client.wallet += (offer.price - minus ) ;
     
                 await client.save() ;
+            }else{
+
+                client.wallet += offer.price  ;
+    
+                await client.save() ;
             }
         }
 
