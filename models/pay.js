@@ -47,6 +47,10 @@ const paySchema = new schema({
         type:String,
         default:'visa',
         enum:['visa','cash','wallet']
+    },
+    cancel:{
+        type:Boolean,
+        default:false
     }
 
 }, { timestamps: true });

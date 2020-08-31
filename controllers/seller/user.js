@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const bycript = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
- 
+
 
 exports.getMyOrders = async (req, res, next) => {
     const page = req.query.page || 1;
@@ -15,7 +15,7 @@ exports.getMyOrders = async (req, res, next) => {
     const offerPerPage = 10;
 
     try {
-        const pay = await Pay.find({ seller: req.userId, deliver: Boolean(filter) });
+        const pay = await Pay.find({ seller: req.userId, deliver: Boolean(filter), cancel: false });
         console.log(pay);
         pay.forEach(i => {
             orderIdS.push(i.order._id);
@@ -115,47 +115,47 @@ exports.getSingleOrderDetails = async (req, res, next) => {
 
 exports.getMyOffers = async (req, res, next) => {
     const page = req.query.page || 1;
-    const offerPerPage = 10 ;
+    const offerPerPage = 10;
     const filter = req.query.filter || 'started';
     let offer;
     let total;
     try {
         if (filter != 'ended') {
-            offer = await Offer.find({seller:req.userId,status:filter})
-            .select('order banana_delivery price createdAt status')
-            .sort({ createdAt: -1 })
-            .populate({
-                path: 'order', select: 'products',
-                populate: {
-                    path: 'products.product',
-                    select: 'name_en name_ar name',
-                }
-            })
-            .skip((page - 1) * offerPerPage)
-            .limit(offerPerPage);
-            total =  await Offer.find({seller:req.userId,status:filter}).countDocuments();
+            offer = await Offer.find({ seller: req.userId, status: filter })
+                .select('order banana_delivery price createdAt status')
+                .sort({ createdAt: -1 })
+                .populate({
+                    path: 'order', select: 'products',
+                    populate: {
+                        path: 'products.product',
+                        select: 'name_en name_ar name',
+                    }
+                })
+                .skip((page - 1) * offerPerPage)
+                .limit(offerPerPage);
+            total = await Offer.find({ seller: req.userId, status: filter }).countDocuments();
 
         } else {
-            offer = await Offer.find({seller:req.userId,status:filter,selected:true})
-            .select('order banana_delivery price createdAt status')
-            .sort({ createdAt: -1 })
-            .populate({
-                path: 'order', select: 'products',
-                populate: {
-                    path: 'products.product',
-                    select: 'name_en name_ar name',
-                }
-            })
-            .skip((page - 1) * offerPerPage)
-            .limit(offerPerPage);
-            total =  await Offer.find({seller:req.userId,status:filter,selected:true}).countDocuments();
+            offer = await Offer.find({ seller: req.userId, status: filter, selected: true })
+                .select('order banana_delivery price createdAt status')
+                .sort({ createdAt: -1 })
+                .populate({
+                    path: 'order', select: 'products',
+                    populate: {
+                        path: 'products.product',
+                        select: 'name_en name_ar name',
+                    }
+                })
+                .skip((page - 1) * offerPerPage)
+                .limit(offerPerPage);
+            total = await Offer.find({ seller: req.userId, status: filter, selected: true }).countDocuments();
         }
 
         res.status(200).json({
-            state:1,
-            data:offer,
-            total:total,
-            message:`offers in page ${page} and filter ${filter}`
+            state: 1,
+            data: offer,
+            total: total,
+            message: `offers in page ${page} and filter ${filter}`
         });
 
 
@@ -217,8 +217,8 @@ exports.postEditPassword = async (req, res, next) => {
             throw error;
         }
 
-        const seller  = await Seller.findById(req.userId).select('password');
-        
+        const seller = await Seller.findById(req.userId).select('password');
+
         const isEqual = await bycript.compare(oldPassword, seller.password);
         if (!isEqual) {
             const error = new Error('wrong password');
@@ -276,8 +276,14 @@ exports.postEditPassword = async (req, res, next) => {
 
 
 exports.postAddCertificate = async (req, res, next) => {
-    const certificateId = req.body.certificateId;
+
     const expiresAt = Number(req.body.expiresAt);
+    const StringAdress = req.body.StringAdress;
+    const long = req.body.long1;
+    const lat = req.body.lat1;
+    const openFrom = req.body.openFrom;
+    const openTo = req.body.openTo;
+
     const image = req.files;
 
     const errors = validationResult(req);
@@ -295,16 +301,16 @@ exports.postAddCertificate = async (req, res, next) => {
             throw error;
         }
 
-        const seller = await Seller.findById(req.userId).select('category');
+        const seller = await Seller.findById(req.userId).select('category certificate');
 
-        const updatedseller  = await seller.addSert(certificateId,image[0].path,expiresAt) ;
+        const updatedseller = await seller.addSert(image[0].path, expiresAt, long, lat, StringAdress, openFrom, openTo);
 
         res.status(201).json({
-            state:1,
-            data:updatedseller.category,
-            message:'Certificate added'
+            state: 1,
+            data: updatedseller.certificate,
+            message: 'Certificate added'
         });
-    
+
 
     } catch (err) {
         if (!err.statusCode) {
@@ -326,7 +332,7 @@ exports.postAddCCategory = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        if( name!='F-V'&& name!='B'&& name!='F-M'&& name!='F' ){
+        if (name != 'F-V' && name != 'B' && name != 'F-M' && name != 'F') {
             const error = new Error(`validation faild for category in body.. not allowed value`);
             error.statusCode = 422;
             error.state = 5;
@@ -335,14 +341,14 @@ exports.postAddCCategory = async (req, res, next) => {
 
         const seller = await Seller.findById(req.userId).select('category');
 
-        const updatedseller  = await seller.addCategory(name) ;
+        const updatedseller = await seller.addCategory(name);
 
         res.status(201).json({
-            state:1,
-            data:updatedseller.category,
-            message:'category added'
+            state: 1,
+            data: updatedseller.category,
+            message: 'category added'
         });
-    
+
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
@@ -362,18 +368,18 @@ exports.postDeleteCategory = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        
+
 
         const seller = await Seller.findById(req.userId).select('category');
 
-        const updatedseller  = await seller.deleteCategory(categoryId) ;
+        const updatedseller = await seller.deleteCategory(categoryId);
 
         res.status(201).json({
-            state:1,
-            data:updatedseller.category,
-            message:'category added'
+            state: 1,
+            data: updatedseller.category,
+            message: 'category added'
         });
-    
+
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
@@ -384,7 +390,7 @@ exports.postDeleteCategory = async (req, res, next) => {
 
 //notfications
 exports.postManageSendNotfication = async (req, res, next) => {
-    const action = req.body.action ;
+    const action = req.body.action;
 
     const errors = validationResult(req);
     try {
@@ -395,15 +401,15 @@ exports.postManageSendNotfication = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        const seller = await Seller.findById(req.userId).select('sendNotfication') ;
+        const seller = await Seller.findById(req.userId).select('sendNotfication');
 
-        seller.sendNotfication = action ;
+        seller.sendNotfication = action;
 
-        const updatedSeller  = await seller.save() ;
+        const updatedSeller = await seller.save();
 
         res.status(200).json({
-            state:1,
-            message:`notfication action ${updatedSeller.sendNotfication}`
+            state: 1,
+            message: `notfication action ${updatedSeller.sendNotfication}`
         });
 
     } catch (err) {
@@ -418,7 +424,7 @@ exports.postManageSendNotfication = async (req, res, next) => {
 
 //mobile
 exports.postEditMobile = async (req, res, next) => {
- 
+
     const mobile = req.body.mobile;
     const code = req.body.code;
 
@@ -431,7 +437,7 @@ exports.postEditMobile = async (req, res, next) => {
             throw error;
         }
 
-        const seller      = await Seller.findById(req.userId).select('mobile tempMobile tempCode');
+        const seller = await Seller.findById(req.userId).select('mobile tempMobile tempCode');
         const checkClient = await Seller.findOne({ mobile: mobile });
 
         if (checkClient) {
@@ -454,7 +460,7 @@ exports.postEditMobile = async (req, res, next) => {
 
         res.status(200).json({
             state: 1,
-            data:updatedClient.tempCode + updatedClient.tempMobile,
+            data: updatedClient.tempCode + updatedClient.tempMobile,
             message: 'mobile changed'
         });
 
@@ -472,21 +478,21 @@ exports.postSendSMS = async (req, res, next) => {
         const seller = await Seller.findById(req.userId);
 
         const buf = crypto.randomBytes(3).toString('hex');
-        const hashedCode = await bycript.hash(buf,12)
+        const hashedCode = await bycript.hash(buf, 12)
         seller.verficationCode = hashedCode;
-        seller.codeExpireDate =  Date.now()  + 3600000 ;
+        seller.codeExpireDate = Date.now() + 3600000;
 
-        const message       = `your verification code is ${buf}` ;
-        
+        const message = `your verification code is ${buf}`;
+
         //const {body,status} = await SMS.send(seller.tempCode + seller.tempMobile,message);
 
         await seller.save();
-     
+
         res.status(200).json({
-            state:1,
+            state: 1,
             //data:body,
-            code:buf,
-            message:'code sent'
+            code: buf,
+            message: 'code sent'
         });
 
     } catch (err) {
@@ -498,7 +504,7 @@ exports.postSendSMS = async (req, res, next) => {
 }
 
 exports.postCheckCode = async (req, res, next) => {
-    const code = req.body.code ;
+    const code = req.body.code;
 
     const errors = validationResult(req);
 
@@ -511,31 +517,31 @@ exports.postCheckCode = async (req, res, next) => {
         }
         const seller = await Seller.findById(req.userId).select('verficationCode codeExpireDate tempMobile mobile tempCode code');
 
-        const isEqual = bycript.compare(code,seller.verficationCode);
+        const isEqual = bycript.compare(code, seller.verficationCode);
 
-        if(!isEqual){
+        if (!isEqual) {
             const error = new Error('wrong code!!');
-            error.statusCode = 403 ;
-            error.state = 36 ;
-            throw error ;
+            error.statusCode = 403;
+            error.state = 36;
+            throw error;
         }
-        if(seller.codeExpireDate <= Date.now()){
+        if (seller.codeExpireDate <= Date.now()) {
             const error = new Error('verfication code expired');
-            error.statusCode = 403 ;
-            error.state = 37 ;
-            throw error ;
+            error.statusCode = 403;
+            error.state = 37;
+            throw error;
         }
 
-        seller.mobile = seller.tempMobile ;
-        seller.code = seller.tempCode ;
+        seller.mobile = seller.tempMobile;
+        seller.code = seller.tempCode;
         const updatedClient = await seller.save();
 
         res.status(200).json({
-            state:1,
-            data:updatedClient.code  + updatedClient.mobile,
-            messaage:'mobile changed'
+            state: 1,
+            data: updatedClient.code + updatedClient.mobile,
+            messaage: 'mobile changed'
         });
-        
+
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;

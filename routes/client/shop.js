@@ -138,4 +138,11 @@ router.post('/offer/walletPay',[
     .not().isEmpty(),
 ],isAuth,shopController.walletPayment);
 
+//cancel coming order after pay
+router.post('/order/comming/cancel',[
+    body('orderId')
+    .not().isEmpty(),
+],isAuth,shopController.postCancelComingOrder);
+
+
 module.exports = router;

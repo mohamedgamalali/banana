@@ -64,8 +64,9 @@
     //pay from wallet
     39=>no enough mony in client wallet
     
-
-
-
+    //cancel coming order
+    40=>order not ended (no offer sellected)
+    41=>payment required client didn't pay 
+    42=>can't cancel order after deliver!!! 
 
 

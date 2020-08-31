@@ -21,7 +21,7 @@ const sellerSchema = new schema({
         type: String,
         required: true
     },
-    code:{
+    code: {
         type: String,
         required: true
     },
@@ -30,37 +30,40 @@ const sellerSchema = new schema({
         default: 1
     },
     category: [{
-        name: {
+        type: String,
+        enum: ['F-V', 'B', 'F-M', 'F'],
+        required: true,
+    }],
+    certificate: {
+        image: {
             type: String,
-            enum: ['F-V', 'B', 'F-M', 'F'],
-            required: true,
+        },
+        expiresAt: {
+            type: Number,
+        },
+        state: {
+            type: String,
+            enum: ['binding', 'approve', 'disapprove'],
         },
         activated: {
             type: Boolean,
-            default: false
         },
         review: {
             type: Boolean,
-            default: false
         },
-        certificate: {
-            image: {
-                type: String,
-                default: '0'
-            },
-            expiresAt: {
-                type: Number,
-                default: 0
-            },
-            state: {
-                type: String,
-                enum: ['binding', 'approve', 'disapprove'],
-                default: 'binding'
-            },
-            adminNote: String,
-        }
-
-    }],
+        StringAdress: {
+            type: String,
+        },
+        location: {
+            type: { type: String },
+            coordinates: [Number]
+        },
+        avilable:{
+            from:String,
+            to:String
+        },
+        adminNote: String,
+    },
     verfication: {
         type: Boolean,
         default: false
@@ -88,93 +91,66 @@ const sellerSchema = new schema({
         type: String,
         required: true
     },
-    verficationCode:String,
-    codeExpireDate:Date,
-    tempMobile:String,
-    tempCode:String
-}); 
+    verficationCode: String,
+    codeExpireDate: Date,
+    tempMobile: String,
+    tempCode: String
+});
 
-sellerSchema.methods.addSert = function (categoryId, imageUrl, expires) {
-    let cat = this.category;
+sellerSchema.index({ certificate: { location: "2dsphere" } });
 
-    cat.forEach(element => {
-        if (element._id == categoryId) {
 
-            if (element.certificate.image != '0') {
-                deleteFile.deleteFile(__dirname + '/../' + element.certificate.image)
-            }
-            element.certificate.image = imageUrl;
-            element.certificate.expiresAt = expires;
-            element.certificate.state = 'binding';
-            element.activated = false;
-            element.review = false;
+sellerSchema.methods.addSert = function (imageUrl, expires, long, lat, StringAdress,from,to) {
+
+    if (this.certificate.image != '0') {
+        deleteFile.deleteFile(__dirname + '/../' + this.certificate.image)
+    }
+
+    const cert = {
+        image: imageUrl,
+        expiresAt: expires,
+        state: 'binding',
+        activated: false,
+        review: false,
+        StringAdress: StringAdress,
+        location: {
+            type: "Point",
+            coordinates: [long, lat]
+        },
+        avilable:{
+            from:from,
+            to:to
         }
-    });
-    this.category = cat;
+    };
+
+    this.certificate = cert;
+
+    return this.save()
+}
+
+sellerSchema.methods.certApprove = function () {
+
+    this.certificate.state = 'approve';
+    this.certificate.activated = true;
+    this.certificate.review = true;
+
     return this.save();
 }
 
-sellerSchema.methods.certApprove = function (categoryId) {
-    let cat = this.category;
-    let found = false;
-    cat.forEach(element => {
-        if (element._id == categoryId) {
+sellerSchema.methods.certExpired = function () {
 
-            element.certificate.state = 'approve';
-            element.activated = true;
-            element.review = true;
-            found = true;
-        }
-    });
-    if (!found) {
-        const error = new Error('certificate not found');
-        error.statusCode = 404;
-        error.state = 9;
-        throw error;
-    }
-    this.category = cat;
+    this.certificate.activated = false;
+
     return this.save();
 }
 
-sellerSchema.methods.certExpired = function (categoryId) {
-    let cat = this.category;
-    let found = false;
-    cat.forEach(element => {
-        if (element._id == categoryId) {
-            element.activated = false;
-            found = true;
-        }
-    });
-    if (!found) {
-        const error = new Error('certificate not found');
-        error.statusCode = 404;
-        error.state = 9;
-        throw error;
-    }
-    this.category = cat;
-    return this.save();
-}
+sellerSchema.methods.certDisapprove = function (adminN) {
+    
+    this.certificate.state = 'disapprove';
+    this.certificate.activated = false;
+    this.certificate.review    = true;
+    this.certificate.adminNote = adminN;
 
-sellerSchema.methods.certDisapprove = function (categoryId, adminN) {
-    let cat = this.category;
-    let found = false;
-    cat.forEach(element => {
-        if (element._id == categoryId) {
-
-            element.certificate.state = 'disapprove';
-            element.activated = false;
-            element.review = true;
-            found = true;
-            element.certificate.adminNote = adminN;
-        }
-    });
-    if (!found) {
-        const error = new Error('certificate not found');
-        error.statusCode = 404;
-        error.state = 9;
-        throw error;
-    }
-    this.category = cat;
     return this.save();
 }
 
@@ -189,12 +165,13 @@ sellerSchema.methods.addCategory = function (name) {
         error.state = 30;
         throw error;
     }
-    temp.push({
-        name: name,
-        review: true
-    });
-    this.category = temp ;
-    return this.save()   ;
+    
+    this.category.push(name);
+    if(this.certificate){
+        this.certificate.activated = false ;
+    }
+
+    return this.save();
 }
 
 sellerSchema.methods.deleteCategory = function (categoryId) {
@@ -202,9 +179,9 @@ sellerSchema.methods.deleteCategory = function (categoryId) {
     const updatedCategory = temp.filter(f => {
         return f._id.toString() !== categoryId.toString();
     });
-    
-    this.category = updatedCategory ;
-    return this.save()   ;
+
+    this.category = updatedCategory;
+    return this.save();
 }
 
 

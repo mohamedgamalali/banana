@@ -54,11 +54,19 @@ router.post('/profile/edit/mobile/checkCode',[
     .not().isEmpty()
 ],isAuth,userController.postCheckCode);
 
-//certificate
+//certificate     // banana
 router.post('/profile/certificate',[
-    body('certificateId')
+    body('StringAdress')
     .not().isEmpty(),
     body('expiresAt')
+    .not().isEmpty(),
+    body('long1')
+    .not().isEmpty(),
+    body('lat1')
+    .not().isEmpty(),
+    body('openFrom')
+    .not().isEmpty(),
+    body('openTo')
     .not().isEmpty(),
 ],isAuth,userController.postAddCertificate)
 
