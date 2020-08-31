@@ -7,10 +7,6 @@ const scadSchema = new schema({
         type: schema.Types.ObjectId,
         ref: 'client'
     },
-    certId: {
-        type: String,
-        required: true
-    },
     expiresin:{
         type:Number,
         required:true

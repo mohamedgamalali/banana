@@ -49,15 +49,9 @@ router.get('/seller/single/Certificates/:sellerId',isAuth,shopController.getSing
 router.post('/seller/Certificates/approve',[
     body('sellerId')
     .not().isEmpty(),
-    body('CertificateId')
-    .not().isEmpty(),
 ],isAuth,shopController.postApproveCertificate);
 
-router.post('/seller/Certificates/disapprove',[
-    body('sellerId')
-    .not().isEmpty(),
-    body('CertificateId')
-    .not().isEmpty(),
+router.post('/seller/Certificates/disapprove',[ 
     body('adminNote')
     .not().isEmpty(),
 ],isAuth,shopController.postDisapproveCertificate);

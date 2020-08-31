@@ -248,12 +248,12 @@ exports.getCertificate = async (req, res, next) => {
     const productPerPage = 10;
 
     try {
-        const seller = await Seller.find({ certificate: { review:false} })
+        const seller = await Seller.find({ 'certificate.review' : false })
             .skip((page - 1) * productPerPage)
             .limit(productPerPage)
-            .select('name mobile email category');
+            .select('name mobile email category certificate');
 
-        const total = await Seller.find({ certificate: { review:false} }).countDocuments();
+        const total = await Seller.find({ 'certificate.review' : false }).countDocuments();
 
         res.status(200).json({
             state: 1,
@@ -276,7 +276,7 @@ exports.getSingleUserCertificates = async (req, res, next) => {
     try {
 
         const seller = await Seller.findById(sellerId)
-        .select('name mobile email category');
+        .select('name mobile email category certificate');
         if (!seller) {
             const error = new Error('seller not found');
             error.statusCode = 404;
@@ -303,8 +303,7 @@ exports.getSingleUserCertificates = async (req, res, next) => {
 exports.postApproveCertificate = async (req, res, next) => {
 
     const sellerId = req.body.sellerId;
-    const certificateId = req.body.CertificateId;
-    let scadTime ;
+  
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
@@ -313,26 +312,23 @@ exports.postApproveCertificate = async (req, res, next) => {
             throw error;
         }
         
-        const seller = await Seller.findById(sellerId).select('category');
+        const seller = await Seller.findById(sellerId).select('category certificate');
         if(!seller){
             const error = new Error('seller not found');
             error.statusCode = 404;
             throw error;
         }
-        const updatedSeller = await seller.certApprove(certificateId);
-        updatedSeller.category.forEach(i=>{
-            if(i._id == certificateId){
-                scadTime = i.certificate.expiresAt ;
-            }
-        })
-        schedule.scheduleJob(new Date(scadTime).getTime(),async(fireDate)=>{
-            await updatedSeller.certExpired(certificateId) ; 
+        const updatedSeller = await seller.certApprove();
+        
+        schedule.scheduleJob(new Date(updatedSeller.certificate.expiresAt).getTime(),async(fireDate)=>{
+            await updatedSeller.certExpired() ; 
         });
+
+        await Scad.deleteOne({seller:seller._id});
 
         const newSchedule = new Scad({
             seller:updatedSeller._id,
-            certId:certificateId,
-            expiresin:scadTime
+            expiresin:updatedSeller.certificate.expiresAt
         });
         await newSchedule.save();
 
@@ -353,7 +349,6 @@ exports.postApproveCertificate = async (req, res, next) => {
 exports.postDisapproveCertificate = async (req, res, next) => {
 
     const sellerId = req.body.sellerId;
-    const certificateId = req.body.CertificateId;
     const adminNote = req.body.adminNote;
 
     const errors = validationResult(req);
@@ -364,13 +359,13 @@ exports.postDisapproveCertificate = async (req, res, next) => {
             throw error;
         }
         
-        const seller = await Seller.findById(sellerId).select('category');
+        const seller = await Seller.findById(sellerId).select('category certificate');
         if(!seller){
             const error = new Error('seller not found');
             error.statusCode = 404;
             throw error;
         }
-        const updatedSeller = await seller.certDisapprove(certificateId,adminNote);
+        const updatedSeller = await seller.certDisapprove(adminNote);
         
         
         res.status(200).json({
