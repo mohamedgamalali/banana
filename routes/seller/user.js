@@ -76,7 +76,7 @@ router.post('/profile/category/add',[
 ],isAuth,userController.postAddCCategory)
 
 router.post('/profile/category/delete',[
-    body('categoryId')
+    body('name')
     .not().isEmpty(),
 ],isAuth,userController.postDeleteCategory)
 

@@ -358,7 +358,8 @@ exports.postAddCCategory = async (req, res, next) => {
 }
 
 exports.postDeleteCategory = async (req, res, next) => {
-    const categoryId = req.body.categoryId;
+    
+    const name = req.body.name;
 
     const errors = validationResult(req);
     try {
@@ -372,7 +373,7 @@ exports.postDeleteCategory = async (req, res, next) => {
 
         const seller = await Seller.findById(req.userId).select('category');
 
-        const updatedseller = await seller.deleteCategory(categoryId);
+        const updatedseller = await seller.deleteCategory(name);
 
         res.status(201).json({
             state: 1,

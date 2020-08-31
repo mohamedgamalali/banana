@@ -177,7 +177,7 @@ sellerSchema.methods.addCategory = function (name) {
 sellerSchema.methods.deleteCategory = function (categoryId) {
     let temp = this.category;
     const updatedCategory = temp.filter(f => {
-        return f._id.toString() !== categoryId.toString();
+        return f !== categoryId;
     });
 
     this.category = updatedCategory;
