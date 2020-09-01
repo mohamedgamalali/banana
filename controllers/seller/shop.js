@@ -303,7 +303,7 @@ exports.postOrderArrived = async (req, res, next) => {
         });
 
         const s = await newScad.save() ;
-        schedule.scheduleJob(s._id,new Date().getTime() + 259200000 ,async(fireDate)=>{
+        schedule.scheduleJob(s._id.toString(),new Date().getTime() + 259200000 ,async function(){
             const seller = await Seller.findById(req.userId).select('wallet bindingWallet') ;
             if(seller.bindingWallet>=s.price){
                 seller.bindingWallet = seller.bindingWallet - s.price ;
