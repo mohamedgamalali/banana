@@ -91,6 +91,14 @@ const sellerSchema = new schema({
         type: Number,
         default: 0
     },
+    totalRate:{
+        type: Number,
+        default: 0
+    },
+    userRatre:{
+        type: Number,
+        default: 0
+    },
     updated: {
         type: String,
         required: true

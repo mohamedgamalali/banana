@@ -197,6 +197,7 @@ exports.putOffer = async (req, res, next) => {
                 equals: equals
             });
         });
+        const seller = await Seller.findById(req.userId).select('rate');
 
         const offer = new Offer({
             order: order._id,
@@ -205,7 +206,8 @@ exports.putOffer = async (req, res, next) => {
             banana_delivery: banana_delivery,
             price: Number(price),
             offerProducts: offerProducts,
-            location: req.sellerCert.location
+            location: req.sellerCert.location,
+            sellerRate:seller.rate
         });
 
         await offer.save();

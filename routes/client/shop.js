@@ -145,4 +145,13 @@ router.post('/order/comming/cancel',[
 ],isAuth,shopController.postCancelComingOrder);
 
 
+//rate
+
+router.post('/order/rating',[
+    body('orderId')
+    .not().isEmpty(),
+    body('rate')
+    .not().isEmpty(),
+],isAuth,shopController.postRate);
+
 module.exports = router;

@@ -75,4 +75,8 @@
     45=>order allready deleverd
     46=>order canceld by the user 
 
+    //rate
+    47=>order didn't delever
+
+
 

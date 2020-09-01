@@ -10,6 +10,7 @@ const Location = require('../../models/location');
 const Offer = require('../../models/offer');
 const Pay = require('../../models/pay');
 const ClientWalet = require('../../models/clientWallet');
+const Seller = require('../../models/seller');
 
 const pay = require('../../helpers/pay');
 
@@ -639,7 +640,7 @@ exports.getOffers = async (req, res, next) => {
                         $maxDistance: 1000 * 100,
                         $geometry: {
                             type: "Point",
-                            coordinates: [1,1]                                              //should be edited
+                            coordinates: [1, 1]                                              //should be edited
                         }
                     }
                 }
@@ -659,23 +660,23 @@ exports.getOffers = async (req, res, next) => {
             totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
         }
         //filter for rating
-        // else if (filter == 2) {
-        //     offer = await Offer.find({ client: req.userId, status: 'started' })
-        //         .select('order seller banana_delivery price createdAt offerProducts')
-        //         .populate({
-        //             path: 'order', select: 'products',
-        //             populate: {
-        //                 path: 'products.product',
-        //                 select: 'name_en name_ar name',
-        //             }
-        //         })
-        //         .populate({ path: 'seller', select: 'rete' })
-        //         .sort({ price: 0})
-        //         .skip((page - 1) * offerPerPage)
-        //         .limit(offerPerPage);
+        else if (filter == 2) {
+            offer = await Offer.find({ client: req.userId, status: 'started' })
+                .select('order seller banana_delivery price createdAt offerProducts')
+                .populate({
+                    path: 'order', select: 'products',
+                    populate: {
+                        path: 'products.product',
+                        select: 'name_en name_ar name',
+                    }
+                })
+                .populate({ path: 'seller', select: 'rete' })
+                .sort({ sellerRate: -1})
+                .skip((page - 1) * offerPerPage)
+                .limit(offerPerPage);
 
-        //     totalOffer = await Offer.find({ client: req.userId }).countDocuments();
-        // }
+            totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
+        }
 
 
         res.status(200).json({
@@ -1046,9 +1047,9 @@ exports.postPayToWalletCheckPayment = async (req, res, next) => {
 
         const walletTransaction = new ClientWalet({
             client: req.userId,
-            action:'deposit',
-            amount:Number(body.amount),
-            method:'visa'
+            action: 'deposit',
+            amount: Number(body.amount),
+            method: 'visa'
         });
 
         await walletTransaction.save();
@@ -1162,9 +1163,9 @@ exports.walletPayment = async (req, res, next) => {
 
         const walletTransaction = new ClientWalet({
             client: req.userId,
-            action:'pay',
-            amount:offer.price,
-            method:'visa'
+            action: 'pay',
+            amount: offer.price,
+            method: 'visa'
         });
 
         await walletTransaction.save();
@@ -1290,6 +1291,108 @@ exports.postCancelComingOrder = async (req, res, next) => {
         res.status(200).json({
             state: 1,
             message: 'order cancled and refund sent'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+//rate 
+
+exports.postRate = async (req, res, next) => {
+
+    const orderId = req.body.orderId;
+    const rate = Number(req.body.rate);
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            const error = new Error(`order not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+
+        if (order.status !== 'ended') {
+            const error = new Error(`order not ended (no offer sellected or allready canceld )`);
+            error.statusCode = 409;
+            error.state = 40;
+            throw error;
+        }
+        if (order.pay === false) {
+            const error = new Error(`payment required you didn't pay for the order`);
+            error.statusCode = 400;
+            error.state = 41;
+            throw error;
+        }
+
+        if (order.client._id != req.userId) {
+            const error = new Error(`not the order owner`);
+            error.statusCode = 403;
+            error.state = 11;
+            throw error;
+        }
+
+
+        const offer = await Offer.findOne({ order: order._id, client: req.userId, selected: true });
+        if (!offer) {
+            const error = new Error(`offer not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+
+        if (offer.status !== 'ended') {
+            const error = new Error(`offer not ended `);
+            error.statusCode = 409;
+            error.state = 40;
+            throw error;
+        }
+
+        const pay = await Pay.findOne({ offer: offer._id, order: order._id, client: req.userId, });
+
+        if (!pay) {
+            const error = new Error(`payment required you didn't pay for the order..no payment information`);
+            error.statusCode = 400;
+            error.state = 41;
+            throw error;
+        }
+
+        if (pay.deliver == false) {
+            const error = new Error(`order didn't delever`);
+            error.statusCode = 409;
+            error.state = 47;
+            throw error;
+        }
+
+        order.reted = true;
+
+        const seller = await Seller.findById(offer.seller._id).select('totalRate userRatre rate');
+
+        seller.totalRate += rate;
+        seller.userRatre += 1;
+        seller.rate = seller.totalRate / seller.userRatre;
+
+
+        await order.save();
+        await seller.save();
+
+        res.status(201).json({
+            state: 1,
+            message: 'rete added'
         });
 
     } catch (err) {

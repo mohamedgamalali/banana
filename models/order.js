@@ -63,6 +63,10 @@ const orderSchema = new schema({
     pay: {
         type: Boolean,
         default: false
+    },
+    reted:{
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 
