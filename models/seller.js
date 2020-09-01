@@ -76,6 +76,10 @@ const sellerSchema = new schema({
         type: Number,
         default: 0
     },
+    bindingWallet:{
+        type: Number,
+        default: 0
+    },
     FCMJwt: [{
         type: String
     }],

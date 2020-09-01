@@ -3,6 +3,10 @@ const { validationResult } = require('express-validator');
 const Seller = require('../../models/seller');
 const Order = require('../../models/order');
 const Offer = require('../../models/offer');
+const Pay = require('../../models/pay');
+const ScadPay = require('../../models/seller-sccad-pay');
+
+const schedule = require('node-schedule');
 
 
 exports.getHome = async (req, res, next) => {
@@ -78,7 +82,7 @@ exports.getOrders = async (req, res, next) => {
                 .sort({ amount_count: -1 });
         }
         for (let element of orders) {
-            if (element.category.every(v => cat.includes(v))) {
+            if (element.category.every(v => req.sellerCat.includes(v))) {
                 const total_client_orders = await Order.find({ client: element.client._id }).countDocuments();
                 const ended_client_orders = await Order.find({ client: element.client._id, status: 'ended' }).countDocuments();
                 finalOrders.push({
@@ -135,8 +139,8 @@ exports.putOffer = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        
-        
+
+
 
         if (!req.sellerCert.image) {
             const error = new Error(`you should provide certificate for order category`);
@@ -151,7 +155,7 @@ exports.putOffer = async (req, res, next) => {
             throw error;
         }
         if ((req.sellerCert.expiresAt != 0 && req.sellerCert.state == 'approve' && req.sellerCert.activated == false)
-         || new Date(req.sellerCert.expiresAt).getTime() < new Date().getTime() ) {
+            || new Date(req.sellerCert.expiresAt).getTime() < new Date().getTime()) {
             const error = new Error(`certificate expired`);
             error.statusCode = 403;
             error.state = 29;
@@ -200,7 +204,8 @@ exports.putOffer = async (req, res, next) => {
             seller: req.userId,
             banana_delivery: banana_delivery,
             price: Number(price),
-            offerProducts: offerProducts
+            offerProducts: offerProducts,
+            location: req.sellerCert.location
         });
 
         await offer.save();
@@ -211,7 +216,119 @@ exports.putOffer = async (req, res, next) => {
         });
 
     } catch (err) {
-        console.log(err);
+   
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+
+}
+
+
+//order arrive
+
+exports.postOrderArrived = async (req, res, next) => {
+    const orderId = req.body.orderId;
+
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            const error = new Error(`order not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+        if (order.status != 'ended') {
+            const error = new Error(`order canceld or client haven't sellect yet `);
+            error.statusCode = 403;
+            error.state = 43;
+            throw error;
+        }
+        const offer = await Offer.findOne({ seller: req.userId, order: order._id, selected: true });
+
+        if (!offer) {
+            const error = new Error(`no offer founded for the seller`);
+            error.statusCode = 403;
+            error.state = 44;
+            throw error;
+        }
+        const pay = await Pay.findOne({ offer: offer._id, order: order._id, seller: req.userId })
+
+        if (!pay) {
+            const error = new Error(`payment required client didn't pay`);
+            error.statusCode = 400;
+            error.state = 41;
+            throw error;
+        }
+        if (pay.deliver == true) {
+            const error = new Error(`order allready deleverd`);
+            error.statusCode = 409;
+            error.state = 45;
+            throw error;
+        }
+        if (pay.cancel == true) {
+            const error = new Error(`order canceld by the user`);
+            error.statusCode = 409;
+            error.state = 46;
+            throw error;
+        }
+
+        pay.deliver = true;
+        pay.arriveIn = Date.now();
+
+        if (pay.method != 'cash') {
+            const seller = await Seller.findById(req.userId).select('bindingWallet');
+            const minus = (offer.price * 5) / 100;
+
+            seller.bindingWallet += (offer.price - minus);
+
+            await seller.save() ;
+
+        
+        const newScad = new ScadPay({
+            seller: req.userId ,
+            fireIn: new Date().getTime() + 259200000 ,
+            order:  order._id,
+            price:offer.price - ((offer.price * 5) / 100)
+        });
+
+        const s = await newScad.save() ;
+        schedule.scheduleJob(s._id,new Date().getTime() + 259200000 ,async(fireDate)=>{
+            const seller = await Seller.findById(req.userId).select('wallet bindingWallet') ;
+            if(seller.bindingWallet>=s.price){
+                seller.bindingWallet = seller.bindingWallet - s.price ;
+                seller.wallet       += s.price ;
+                await seller.save() ;
+                const sss  = await ScadPay.findById(s._id)
+                sss.delever = true ; 
+                await sss.save();
+            }
+            
+        });
+
+    }
+
+        //saving
+
+        await pay.save() ;
+
+        res.status(201).json({
+            state: 1,
+            message: 'order arrived mony will be in wallet after 3 days'
+        });
+
+    } catch (err) {
+
         if (!err.statusCode) {
             err.statusCode = 500;
         }

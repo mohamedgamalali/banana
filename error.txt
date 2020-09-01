@@ -69,4 +69,10 @@
     41=>payment required client didn't pay 
     42=>can't cancel order after deliver!!! 
 
+    //seller delever order 
+    43=>order canceld or client haven't sellect yet 
+    44=>no offer found for the seller 
+    45=>order allready deleverd
+    46=>order canceld by the user 
+
 

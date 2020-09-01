@@ -11,6 +11,6 @@ const scadSchema = new schema({
         type:Number,
         required:true
     }
-});
+}); 
 
 module.exports = mongoose.model('scheduleCert', scadSchema);

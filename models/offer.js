@@ -29,7 +29,7 @@ const offerSchema = new schema({
         enum:['started','ended','cancel']
     },
     selected:{
-        type:Boolean,
+        type:Boolean, 
         default:false
     },
     offerProducts: [{
@@ -50,8 +50,16 @@ const offerSchema = new schema({
             type:Boolean,
             required:true
         }
-    }]
+    }],
+    location: {
+        type: { type: String },
+        coordinates: [Number]
+    },
 }, { timestamps: true });
+
+
+offerSchema.index({ location: "2dsphere" });
+
 
 offerSchema.methods.cancel = function () {
     this.status  =  'cancel'

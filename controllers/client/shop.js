@@ -631,6 +631,31 @@ exports.getOffers = async (req, res, next) => {
                 .limit(offerPerPage);
 
             totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
+        } else if (filter == 4) {
+            offer = await Offer.find({
+                client: req.userId, status: 'started', location: {
+                    $near: {
+                        $maxDistance: 1000 * 100,
+                        $geometry: {
+                            type: "Point",
+                            coordinates: [1,1]                                              //should be edited
+                        }
+                    }
+                }
+            })
+                .select('order seller banana_delivery price createdAt offerProducts')
+                .populate({
+                    path: 'order', select: 'products',
+                    populate: {
+                        path: 'products.product',
+                        select: 'name_en name_ar name',
+                    }
+                })
+                .populate({ path: 'seller', select: 'rete' })
+                .skip((page - 1) * offerPerPage)
+                .limit(offerPerPage);
+
+            totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
         }
         //filter for rating
         // else if (filter == 2) {
@@ -1223,30 +1248,30 @@ exports.postCancelComingOrder = async (req, res, next) => {
         }
 
         if (pay.method != 'cash') {
-            const client = await Client.findById(req.userId).select('wallet') ;
-            
-            if(new Date(pay.createdAt).getTime() + 600000 < Date.now()){
-                const minus  =  (offer.price*5)/100 ;
+            const client = await Client.findById(req.userId).select('wallet');
 
-                client.wallet += (offer.price - minus ) ;
-    
-                await client.save() ;
-            }else{
+            if (new Date(pay.createdAt).getTime() + 600000 < Date.now()) {
+                const minus = (offer.price * 5) / 100;
 
-                client.wallet += offer.price  ;
-    
-                await client.save() ;
+                client.wallet += (offer.price - minus);
+
+                await client.save();
+            } else {
+
+                client.wallet += offer.price;
+
+                await client.save();
             }
         }
 
-        pay.cancel = true ;
-        
+        pay.cancel = true;
+
         await pay.save();
         await order.cancelOrder();
 
         res.status(200).json({
-            state:1,
-            message:'order cancled and refund sent'
+            state: 1,
+            message: 'order cancled and refund sent'
         });
 
     } catch (err) {

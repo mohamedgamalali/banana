@@ -27,5 +27,11 @@ router.put('/offer',[
 ],isAuth,shopController.putOffer);
 
 
+router.post('/order/delevered',[
+    body('orderId')
+    .not().isEmpty(),
+],isAuth,shopController.postOrderArrived);
+
+
 
 module.exports = router;

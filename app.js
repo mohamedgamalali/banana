@@ -90,7 +90,7 @@ mongoose
             schedule.scheduleJob(new Date(task.expiresin).getTime(),async(fireDate)=>{
                 console.log('scadual');
                 const seller = await Seller.findById(task.seller._id).select('category')
-                await seller.certExpired(task.certId) ; 
+                await seller.certExpired() ; 
             });
         })
         return Scad.deleteMany({expiresin:{$lt:new Date().getTime()}})
