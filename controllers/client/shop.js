@@ -580,7 +580,7 @@ exports.getSingleOrder = async (req, res, next) => {
 exports.getOffers = async (req, res, next) => {
 
     const page = req.query.page || 0;
-    const filter = req.query.filter || 1;
+    const filter = req.query.filter || 0;
     const offerPerPage = 10;
     let offer;
     let totalOffer;
@@ -660,7 +660,7 @@ exports.getOffers = async (req, res, next) => {
             totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
         }
         //filter for rating
-        else if (filter == 2) {
+        else if (filter == 3) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
                 .select('order seller banana_delivery price createdAt offerProducts')
                 .populate({
