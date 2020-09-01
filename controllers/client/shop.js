@@ -9,6 +9,7 @@ const Order = require('../../models/order');
 const Location = require('../../models/location');
 const Offer = require('../../models/offer');
 const Pay = require('../../models/pay');
+const ClientWalet = require('../../models/clientWallet');
 
 const pay = require('../../helpers/pay');
 
@@ -1043,6 +1044,14 @@ exports.postPayToWalletCheckPayment = async (req, res, next) => {
 
         client.wallet += Number(body.amount);
 
+        const walletTransaction = new ClientWalet({
+            client: req.userId,
+            action:'deposit',
+            amount:Number(body.amount),
+            method:'visa'
+        });
+
+        await walletTransaction.save();
         const updatedClient = await client.save();
 
         res.status(201).json({
@@ -1150,6 +1159,15 @@ exports.walletPayment = async (req, res, next) => {
         });
 
         order.arriveDate = arriveIn.toString();
+
+        const walletTransaction = new ClientWalet({
+            client: req.userId,
+            action:'pay',
+            amount:offer.price,
+            method:'visa'
+        });
+
+        await walletTransaction.save();
 
         //saving
         await order.endOrder();

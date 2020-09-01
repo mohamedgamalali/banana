@@ -10,8 +10,11 @@ const Products = require('../../models/products');
 const Locations = require('../../models/location');
 const Notfications = require('../../models/notfications');
 const Pay = require('../../models/pay');
+const ClientWallet = require('../../models/clientWallet');
 
 const SMS = require('../../helpers/sms');
+const clientWallet = require('../../models/clientWallet');
+const { countDocuments } = require('../../models/order');
 
 // const not = new Notfications({
 //     user:'5f36fd4c7f02aa0004fd247d',
@@ -595,6 +598,39 @@ exports.postManageSendNotfication = async (req, res, next) => {
         res.status(200).json({
             state: 1,
             message: `notfication action ${updatedClient.sendNotfication}`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+exports.getWallet = async (req, res, next) => {
+    const page = req.query.page || 1;
+    const itemPerPage = 10;
+    try {
+        const data = await clientWallet.find({ client: req.userId })
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * itemPerPage)
+            .limit(itemPerPage);
+
+        const total = await clientWallet.find({ client: req.userId })
+            .countDocuments();
+        
+        const client = await Client.findById(req.userId)
+        .select('wallet');
+
+        
+        res.status(200).json({
+            state:1,
+            data:data,
+            total:total,
+            wallet:client.wallet,
+            message:'client wallet transactions'
         });
 
     } catch (err) {

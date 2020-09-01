@@ -94,4 +94,7 @@ router.post('/profile/delete/location',[
 
 router.get('/notfication',isAuth,userController.getNotfications);
 
+//wallet get
+router.get('/wallet',isAuth,userController.getWallet);
+
 module.exports = router;

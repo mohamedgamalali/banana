@@ -80,23 +80,47 @@ mongoose
         })
         //run scadual stuff
         const Scad = mongoose.model('scheduleCert');
-        return Scad.find({expiresin:{$gt:new Date().getTime()}})
+        return Scad.find({ expiresin: { $gt: new Date().getTime() } })
     })
-    .then(s=>{
+    .then(s => {
         //console.log(s);
         const Scad = mongoose.model('scheduleCert');
-        s.forEach(task=>{
-        const Seller = mongoose.model('seller');
-            schedule.scheduleJob(new Date(task.expiresin).getTime(),async(fireDate)=>{
+        s.forEach(task => {
+            const Seller = mongoose.model('seller');
+            schedule.scheduleJob(new Date(task.expiresin).getTime(), async (fireDate) => {
                 console.log('scadual');
                 const seller = await Seller.findById(task.seller._id).select('category')
-                await seller.certExpired() ; 
+                await seller.certExpired();
             });
         })
-        return Scad.deleteMany({expiresin:{$lt:new Date().getTime()}})
+        return Scad.deleteMany({ expiresin: { $lt: new Date().getTime() } })
 
     })
-    .then(done=>{
+    .then(result => {
+        const SccadPay = mongoose.model('ScadPay');
+        return SccadPay.find({ fireIn: { $gt: new Date().getTime() } })
+    })
+    .then(er => {
+        const Seller = mongoose.model('seller');
+        const SccadPay = mongoose.model('ScadPay');
+        er.forEach(item => {
+
+
+            schedule.scheduleJob(item._id.toString(), new Date(item.fireIn).getTime(), async function () {
+                const seller = await Seller.findById(item.seller._id).select('wallet bindingWallet');
+                if (seller.bindingWallet >= item.price) {
+                    seller.bindingWallet = seller.bindingWallet - item.price;
+                    seller.wallet += item.price;
+                    await seller.save();
+                    const sss = await SccadPay.findById(s._id)
+                    sss.delever = true;
+                    await sss.save();
+                }
+            });
+        })
+        return SccadPay.deleteMany({ fireIn: { $lt: new Date().getTime() } })
+    })
+    .then(done => {
         console.log('schedule activated');
     })
     .catch(err => {

@@ -5,7 +5,7 @@ const schema = mongoose.Schema;
 const scadPaySchema = new schema({
     seller: {
         type: schema.Types.ObjectId,
-        ref: 'client'
+        ref: 'seller'
     },
     fireIn:{
         type:Number,
