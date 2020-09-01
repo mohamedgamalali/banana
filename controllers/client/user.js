@@ -9,8 +9,9 @@ const Order = require('../../models/order');
 const Products = require('../../models/products');
 const Locations = require('../../models/location');
 const Notfications = require('../../models/notfications');
+const Pay = require('../../models/pay');
 
-const SMS    = require('../../helpers/sms');
+const SMS = require('../../helpers/sms');
 
 // const not = new Notfications({
 //     user:'5f36fd4c7f02aa0004fd247d',
@@ -38,14 +39,46 @@ exports.getOrders = async (req, res, next) => {
     const page = req.query.page || 1;
     const productPerPage = 10;
     const filter = req.query.filter || 'started';
+    let orders;
+    let total;
     try {
-        const total = await Order.find({ client: req.userId, status: filter }).countDocuments();
-        const orders = await Order.find({ client: req.userId, status: filter })
-            .select('location stringAdress arriveDate products locationDetails')
-            .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
-            .sort({ createdAt: -1 })
-            .skip((page - 1) * productPerPage)
-            .limit(productPerPage);
+        if (filter == 'started' || filter == 'cancel') {
+            total = await Order.find({ client: req.userId, status: filter }).countDocuments();
+            orders = await Order.find({ client: req.userId, status: filter })
+                .select('location stringAdress arriveDate products locationDetails pay')
+                .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage);
+        } else if (filter == 'comming') {
+            const pay = await Pay.find({ client: req.userId, cancel: false, deliver: false }).select('order offer');
+            let orderIdS = [];
+            pay.forEach(item => {
+                orderIdS.push(item.order._id);
+            });
+            total = await Order.find({ client: req.userId, _id: { $in: orderIdS } }).countDocuments();
+            orders = await Order.find({ client: req.userId, _id: { $in: orderIdS } })
+                .select('location stringAdress arriveDate products locationDetails pay')
+                .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage);
+
+        } else if (filter == 'ended') {
+            const pay = await Pay.find({ client: req.userId, cancel: false, deliver: true }).select('order offer');
+            let orderIdS = [];
+            pay.forEach(item => {
+                orderIdS.push(item.order._id);
+            });
+            total = await Order.find({ client: req.userId, _id: { $in: orderIdS } }).countDocuments();
+            orders = await Order.find({ client: req.userId, _id: { $in: orderIdS } })
+                .select('location stringAdress arriveDate products locationDetails pay')
+                .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage);
+        }
+
 
         res.status(200).json({
             state: 1,
@@ -72,7 +105,7 @@ exports.postCancelOrder = async (req, res, next) => {
             error.statusCode = 422;
             error.state = 5;
             throw error;
-        } 
+        }
         const order = await Order.findById(orderId);
         if (!order) {
             const error = new Error(`order not found`);
@@ -165,7 +198,7 @@ exports.getMyfevProducts = async (req, res, next) => {
 }
 
 exports.postEditName = async (req, res, next) => {
-    const name       = req.body.name;
+    const name = req.body.name;
     const image = req.body.imageIndex;
 
     const errors = validationResult(req);
@@ -179,9 +212,9 @@ exports.postEditName = async (req, res, next) => {
 
         const client = await Client.findById(req.userId).select('name');
 
-        client.name = name; 
-        if(image){
-            client.image = image ;
+        client.name = name;
+        if (image) {
+            client.image = image;
         }
 
         const updatedClient = await client.save();
@@ -282,7 +315,7 @@ exports.postEditPassword = async (req, res, next) => {
 
 //mobile
 exports.postEditMobile = async (req, res, next) => {
- 
+
     const mobile = req.body.mobile;
     const code = req.body.code;
 
@@ -295,7 +328,7 @@ exports.postEditMobile = async (req, res, next) => {
             throw error;
         }
 
-        const client      = await Client.findById(req.userId).select('mobile tempMobile tempCode');
+        const client = await Client.findById(req.userId).select('mobile tempMobile tempCode');
         const checkClient = await Client.findOne({ mobile: mobile });
 
         if (checkClient) {
@@ -318,7 +351,7 @@ exports.postEditMobile = async (req, res, next) => {
 
         res.status(200).json({
             state: 1,
-            data:updatedClient.tempCode + updatedClient.tempMobile,
+            data: updatedClient.tempCode + updatedClient.tempMobile,
             message: 'mobile changed'
         });
 
@@ -336,21 +369,21 @@ exports.postSendSMS = async (req, res, next) => {
         const client = await Client.findById(req.userId);
 
         const buf = crypto.randomBytes(3).toString('hex');
-        const hashedCode = await bycript.hash(buf,12)
+        const hashedCode = await bycript.hash(buf, 12)
         client.verficationCode = hashedCode;
-        client.codeExpireDate =  Date.now()  + 3600000 ;
+        client.codeExpireDate = Date.now() + 3600000;
 
-        const message       = `your verification code is ${buf}` ;
-        
+        const message = `your verification code is ${buf}`;
+
         //const {body,status} = await SMS.send(client.tempCode + client.tempMobile,message);
 
         await client.save();
-     
+
         res.status(200).json({
-            state:1,
+            state: 1,
             //data:body,
-            code:buf,
-            message:'code sent'
+            code: buf,
+            message: 'code sent'
         });
 
     } catch (err) {
@@ -362,7 +395,7 @@ exports.postSendSMS = async (req, res, next) => {
 }
 
 exports.postCheckCode = async (req, res, next) => {
-    const code = req.body.code ;
+    const code = req.body.code;
 
     const errors = validationResult(req);
 
@@ -375,31 +408,31 @@ exports.postCheckCode = async (req, res, next) => {
         }
         const client = await Client.findById(req.userId).select('verficationCode codeExpireDate tempMobile mobile tempCode code');
 
-        const isEqual = bycript.compare(code,client.verficationCode);
+        const isEqual = bycript.compare(code, client.verficationCode);
 
-        if(!isEqual){
+        if (!isEqual) {
             const error = new Error('wrong code!!');
-            error.statusCode = 403 ;
-            error.state = 36 ;
-            throw error ;
+            error.statusCode = 403;
+            error.state = 36;
+            throw error;
         }
-        if(client.codeExpireDate <= Date.now()){
+        if (client.codeExpireDate <= Date.now()) {
             const error = new Error('verfication code expired');
-            error.statusCode = 403 ;
-            error.state = 37 ;
-            throw error ;
+            error.statusCode = 403;
+            error.state = 37;
+            throw error;
         }
 
-        client.mobile = client.tempMobile ;
-        client.code = client.tempCode ;
+        client.mobile = client.tempMobile;
+        client.code = client.tempCode;
         const updatedClient = await client.save();
 
         res.status(200).json({
-            state:1,
-            data:updatedClient.code  + updatedClient.mobile,
-            messaage:'mobile changed'
+            state: 1,
+            data: updatedClient.code + updatedClient.mobile,
+            messaage: 'mobile changed'
         });
-        
+
     } catch (err) {
         if (!err.statusCode) {
             err.statusCode = 500;
@@ -520,7 +553,7 @@ exports.getNotfications = async (req, res, next) => {
     try {
         const total = await Notfications.find({}).countDocuments();
         const notfications = await Notfications.find({})
-        .select('data notification date createdAt')
+            .select('data notification date createdAt')
             .sort({ createdAt: -1 })
             .skip((page - 1) * productPerPage)
             .limit(productPerPage);
@@ -542,7 +575,7 @@ exports.getNotfications = async (req, res, next) => {
 
 
 exports.postManageSendNotfication = async (req, res, next) => {
-    const action = req.body.action ;
+    const action = req.body.action;
 
     const errors = validationResult(req);
     try {
@@ -553,15 +586,15 @@ exports.postManageSendNotfication = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        const client = await Client.findById(req.userId).select('sendNotfication') ;
+        const client = await Client.findById(req.userId).select('sendNotfication');
 
-        client.sendNotfication = action ;
+        client.sendNotfication = action;
 
-        const updatedClient  = await client.save() ;
+        const updatedClient = await client.save();
 
         res.status(200).json({
-            state:1,
-            message:`notfication action ${updatedClient.sendNotfication}`
+            state: 1,
+            message: `notfication action ${updatedClient.sendNotfication}`
         });
 
     } catch (err) {

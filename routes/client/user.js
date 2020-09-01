@@ -8,7 +8,7 @@ const userController = require('../../controllers/client/user');
 const router  = express.Router();
 
 //orders
-router.get('/myOrders',isAuth,userController.getOrders);
+router.get('/myOrders',isAuth,userController.getOrders); 
 
 router.post('/order/cancel',[
     body('orderId')
