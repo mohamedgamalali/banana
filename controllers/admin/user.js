@@ -3,9 +3,12 @@ const schedule = require('node-schedule');
 const path = require("path");
 
 const Seller = require("../../models/seller");
+const Client = require("../../models/client");
 const Offer = require("../../models/offer");
+const Order = require("../../models/order");
 const Pay = require("../../models/pay");
 const Scad = require("../../models/cert-expire");
+const ClientWallet = require("../../models/clientWallet");
 
 //seller
 exports.getSellers = async (req, res, next) => {
@@ -20,35 +23,35 @@ exports.getSellers = async (req, res, next) => {
             seller = await Seller.find({})
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('name mobile email category blocked verfication');
+                .select('name mobile email category blocked verfication code');
 
             total = await Seller.find({}).countDocuments();
         } else if (filter == 1) {
             seller = await Seller.find({ blocked: true })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('name mobile email category blocked verfication');
+                .select('name mobile email category blocked verfication code');
 
             total = await Seller.find({ blocked: true }).countDocuments();
         } else if (filter == 2) {
             seller = await Seller.find({ blocked: false })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('name mobile email category blocked verfication');
+                .select('name mobile email category blocked verfication code');
 
             total = await Seller.find({ blocked: false }).countDocuments();
         } else if (filter == 3) {
             seller = await Seller.find({ verfication: true })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('name mobile email category blocked verfication');
+                .select('name mobile email category blocked verfication code');
 
             total = await Seller.find({ verfication: true }).countDocuments();
         } else if (filter == 4) {
             seller = await Seller.find({ verfication: false })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('name mobile email category blocked verfication');
+                .select('name mobile email category blocked verfication code');
 
             total = await Seller.find({ verfication: false }).countDocuments();
         }
@@ -58,7 +61,7 @@ exports.getSellers = async (req, res, next) => {
             state: 1,
             data: seller,
             total: total,
-            message: 'Certificates need approve'
+            message: 'sellers'
         });
     } catch (err) {
         if (!err.statusCode) {
@@ -129,21 +132,21 @@ exports.getSingleSeller = async (req, res, next) => {
 
         const arrivedOffers = await Offer.find({ seller: seller._id, _id: { $in: offerIds }, status: 'ended', selected: true })
             .select('order client banana_delivery price offerProducts')
-            .populate({ 
-                path: 'order', 
-                select:'category products location locationDetails',
-                populate:{
-                    path:'products.product',
-                    select:'category name_en name_ar productType'
+            .populate({
+                path: 'order',
+                select: 'category products location locationDetails',
+                populate: {
+                    path: 'products.product',
+                    select: 'category name_en name_ar productType'
                 }
             });
 
         res.status(200).json({
-            state:1,
-            seller:seller,
-            arrivedOffers:arrivedOffers,
-            payMethods:payArrived,
-            message:'all seller data'
+            state: 1,
+            seller: seller,
+            arrivedOffers: arrivedOffers,
+            payMethods: payArrived,
+            message: 'all seller data'
         });
 
 
@@ -287,6 +290,159 @@ exports.postDisapproveCertificate = async (req, res, next) => {
             state: 1,
             message: `certificate disapproved`,
         });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
+//client
+exports.getClients = async (req, res, next) => {
+
+    const page = req.query.page || 1;
+    const productPerPage = 10;
+    const filter = req.query.filter || 0;  //0=>no filter // 1=>blocked // 2=>not blocked // 3=>verfied // 4=> not verfied
+    let seller;
+    let total;
+    try {
+        if (filter == 0) {
+            seller = await Client.find({})
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage)
+                .select('name mobile email blocked verfication code');
+
+            total = await Client.find({}).countDocuments();
+        } else if (filter == 1) {
+            seller = await Client.find({ blocked: true })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage)
+                .select('name mobile email blocked verfication code');
+
+            total = await Client.find({ blocked: true }).countDocuments();
+        } else if (filter == 2) {
+            seller = await Client.find({ blocked: false })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage)
+                .select('name mobile email blocked verfication code');
+
+            total = await Client.find({ blocked: false }).countDocuments();
+        } else if (filter == 3) {
+            seller = await Client.find({ verfication: true })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage)
+                .select('name mobile email blocked verfication code');
+
+            total = await Client.find({ verfication: true }).countDocuments();
+        } else if (filter == 4) {
+            seller = await Client.find({ verfication: false })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage)
+                .select('name mobile email blocked verfication code');
+
+            total = await Client.find({ verfication: false }).countDocuments();
+        }
+
+
+        res.status(200).json({
+            state: 1,
+            data: seller,
+            total: total,
+            message: 'clients'
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+exports.postBlockClients = async (req, res, next) => {
+
+    const clientId = req.body.clientId;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+
+        const client = await Client.findById(clientId).select('blocked');
+        if (!client) {
+            const error = new Error('client not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        client.blocked = (!client.blocked);
+
+        await client.save();
+
+        res.status(200).json({
+            state: 1,
+            message: 'client blocked/unblocked'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
+//get single seller
+exports.getSingleClient = async (req, res, next) => {
+
+    const clientId = req.params.id;
+    try {
+
+        const client = await Client.findById(clientId)
+            .select('name mobile email code image verfication blocked wallet');
+        if (!client) {
+            const error = new Error('seller not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        const clientWallet = await ClientWallet.find({ client: client._id });
+
+        const commingPay = await Pay.find({ client: client._id, cancel: false, deliver: false }).select('order offer');
+        let ComOrderIdS = [];
+        commingPay.forEach(item => {
+            ComOrderIdS.push(item.order._id);
+        });
+        
+        const ComOrders = await Offer.find({ client: client._id, order: { $in: ComOrderIdS },selected:true })
+            .select('order seller banana_delivery price offerProducts location')
+            .populate({ 
+                path: 'order',
+                select: 'location stringAdress arriveDate products locationDetails pay',
+                populate:{
+                    path: 'products.product', 
+                    select: 'name name_en name_ar imageUrl' 
+                }
+            })
+            .populate({
+                path:'seller',
+                select:'name'
+            })
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            state: 1,
+            client:client,
+            clientWalletTransActions:clientWallet,
+            CommingOrders:ComOrders,
+            message: 'all client data'
+        });
+
 
     } catch (err) {
         if (!err.statusCode) {

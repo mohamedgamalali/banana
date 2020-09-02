@@ -33,4 +33,17 @@ router.post('/seller/Certificates/disapprove',[
     .not().isEmpty(),
 ],isAuth,userController.postDisapproveCertificate);
 
+
+
+
+//client
+router.get('/clients',isAuth,userController.getClients);
+
+router.post('/client/block/unblock',[
+    body('clientId')
+    .not().isEmpty(),
+],isAuth,userController.postBlockClients);
+
+router.get('/client/single/:id',isAuth,userController.getSingleClient);
+
 module.exports = router;
