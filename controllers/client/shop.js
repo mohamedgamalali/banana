@@ -1049,7 +1049,8 @@ exports.postPayToWalletCheckPayment = async (req, res, next) => {
             client: req.userId,
             action: 'deposit',
             amount: Number(body.amount),
-            method: 'visa'
+            method: 'visa',
+            time:new Date().getTime().toString()
         });
 
         await walletTransaction.save();
@@ -1165,7 +1166,8 @@ exports.walletPayment = async (req, res, next) => {
             client: req.userId,
             action: 'pay',
             amount: offer.price,
-            method: 'visa'
+            method: 'visa',
+            time:new Date().getTime().toString()
         });
 
         await walletTransaction.save();

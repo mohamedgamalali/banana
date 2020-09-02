@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const schema = mongoose.Schema;
 
 const ClientWallet = new schema({
-
     client: {
         type: schema.Types.ObjectId,
         ref: 'client'
@@ -21,8 +20,11 @@ const ClientWallet = new schema({
         type:String,
         required:true,
         enum:['visa']
+    },
+    time:{
+        type:String,
+        required:true,
     }
-
 }, { timestamps: true });
 
 module.exports = mongoose.model('ClientWallet', ClientWallet);
