@@ -142,7 +142,7 @@ exports.putOffer = async (req, res, next) => {
 
 
 
-        if (!req.sellerCert.image) {
+        if ((!req.sellerCert.image)||(req.sellerCert.image.length==0)) {
             const error = new Error(`you should provide certificate for order category`);
             error.statusCode = 403;
             error.state = 27;

@@ -35,9 +35,9 @@ const sellerSchema = new schema({
         required: true,
     }],
     certificate: {
-        image: {
+        image: [{
             type: String,
-        },
+        }],
         expiresAt: {
             type: Number,
         },
@@ -58,9 +58,9 @@ const sellerSchema = new schema({
             type: { type: String },
             coordinates: [Number]
         },
-        avilable:{
-            from:String,
-            to:String
+        avilable: {
+            from: String,
+            to: String
         },
         adminNote: String,
     },
@@ -76,7 +76,7 @@ const sellerSchema = new schema({
         type: Number,
         default: 0
     },
-    bindingWallet:{
+    bindingWallet: {
         type: Number,
         default: 0
     },
@@ -91,11 +91,11 @@ const sellerSchema = new schema({
         type: Number,
         default: 0
     },
-    totalRate:{
+    totalRate: {
         type: Number,
         default: 0
     },
-    userRatre:{
+    userRatre: {
         type: Number,
         default: 0
     },
@@ -112,10 +112,12 @@ const sellerSchema = new schema({
 sellerSchema.index({ certificate: { location: "2dsphere" } });
 
 
-sellerSchema.methods.addSert = function (imageUrl, expires, long, lat, StringAdress,from,to) {
+sellerSchema.methods.addSert = function (imageUrl, expires, long, lat, StringAdress, from, to) {
 
-    if (this.certificate.image != '0') {
-        deleteFile.deleteFile(__dirname + '/../' + this.certificate.image)
+    if (this.certificate.image.length > 0) {
+        this.certificate.image.forEach(element => {
+            deleteFile.deleteFile(__dirname + '/../' + element)
+        });
     }
 
     const cert = {
@@ -129,9 +131,9 @@ sellerSchema.methods.addSert = function (imageUrl, expires, long, lat, StringAdr
             type: "Point",
             coordinates: [long, lat]
         },
-        avilable:{
-            from:from,
-            to:to
+        avilable: {
+            from: from,
+            to: to
         }
     };
 
@@ -157,10 +159,10 @@ sellerSchema.methods.certExpired = function () {
 }
 
 sellerSchema.methods.certDisapprove = function (adminN) {
-    
+
     this.certificate.state = 'disapprove';
     this.certificate.activated = false;
-    this.certificate.review    = true;
+    this.certificate.review = true;
     this.certificate.adminNote = adminN;
 
     return this.save();
@@ -177,10 +179,10 @@ sellerSchema.methods.addCategory = function (name) {
         error.state = 30;
         throw error;
     }
-    
+
     this.category.push(name);
-    if(this.certificate){
-        this.certificate.activated = false ;
+    if (this.certificate) {
+        this.certificate.activated = false;
     }
 
     return this.save();

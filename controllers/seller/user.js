@@ -301,9 +301,14 @@ exports.postAddCertificate = async (req, res, next) => {
             throw error;
         }
 
+        let imageUrl = [] ;
+        image.forEach(i=>{
+            imageUrl.push(i.path)
+        })
+
         const seller = await Seller.findById(req.userId).select('category certificate');
 
-        const updatedseller = await seller.addSert(image[0].path, expiresAt, long, lat, StringAdress, openFrom, openTo);
+        const updatedseller = await seller.addSert(imageUrl, expiresAt, long, lat, StringAdress, openFrom, openTo);
 
         res.status(201).json({
             state: 1,

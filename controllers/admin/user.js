@@ -3,21 +3,172 @@ const schedule = require('node-schedule');
 const path = require("path");
 
 const Seller = require("../../models/seller");
+const Offer = require("../../models/offer");
+const Pay = require("../../models/pay");
 const Scad = require("../../models/cert-expire");
 
+//seller
+exports.getSellers = async (req, res, next) => {
 
+    const page = req.query.page || 1;
+    const productPerPage = 10;
+    const filter = req.query.filter || 0;  //0=>no filter // 1=>blocked // 2=>not blocked // 3=>verfied // 4=> not verfied
+    let seller;
+    let total;
+    try {
+        if (filter == 0) {
+            seller = await Seller.find({})
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage)
+                .select('name mobile email category blocked verfication');
+
+            total = await Seller.find({}).countDocuments();
+        } else if (filter == 1) {
+            seller = await Seller.find({ blocked: true })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage)
+                .select('name mobile email category blocked verfication');
+
+            total = await Seller.find({ blocked: true }).countDocuments();
+        } else if (filter == 2) {
+            seller = await Seller.find({ blocked: false })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage)
+                .select('name mobile email category blocked verfication');
+
+            total = await Seller.find({ blocked: false }).countDocuments();
+        } else if (filter == 3) {
+            seller = await Seller.find({ verfication: true })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage)
+                .select('name mobile email category blocked verfication');
+
+            total = await Seller.find({ verfication: true }).countDocuments();
+        } else if (filter == 4) {
+            seller = await Seller.find({ verfication: false })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage)
+                .select('name mobile email category blocked verfication');
+
+            total = await Seller.find({ verfication: false }).countDocuments();
+        }
+
+
+        res.status(200).json({
+            state: 1,
+            data: seller,
+            total: total,
+            message: 'Certificates need approve'
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+exports.postBlock = async (req, res, next) => {
+
+    const sellerId = req.body.sellerId;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+
+        const seller = await Seller.findById(sellerId).select('blocked');
+        if (!seller) {
+            const error = new Error('seller not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        seller.blocked = (!seller.blocked);
+
+        await seller.save();
+
+        res.status(200).json({
+            state: 1,
+            message: 'seller blocked/unblocked'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
+//get single seller
+exports.getSingleSeller = async (req, res, next) => {
+
+    const sellerId = req.params.id;
+    let offerIds = [];
+    try {
+
+        const seller = await Seller.findById(sellerId)
+            .select('name mobile email code image category certificate verfication blocked wallet bindingWallet rate');
+        if (!seller) {
+            const error = new Error('seller not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        const payArrived = await Pay.find({ seller: seller._id, deliver: true })
+            .select('offer method')
+            .sort({ createdAt: -1 });
+
+        payArrived.forEach(item => {
+            offerIds.push(item.offer._id)
+        });
+
+        const arrivedOffers = await Offer.find({ seller: seller._id, _id: { $in: offerIds }, status: 'ended', selected: true })
+            .select('order client banana_delivery price offerProducts')
+            .populate({ 
+                path: 'order', 
+                select:'category products location locationDetails',
+                populate:{
+                    path:'products.product',
+                    select:'category name_en name_ar productType'
+                }
+            });
+
+        res.status(200).json({
+            state:1,
+            seller:seller,
+            arrivedOffers:arrivedOffers,
+            payMethods:payArrived,
+            message:'all seller data'
+        });
+
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
+//seller certificates
 exports.getCertificate = async (req, res, next) => {
 
     const page = req.query.page || 1;
     const productPerPage = 10;
 
     try {
-        const seller = await Seller.find({ 'certificate.review' : false })
+        const seller = await Seller.find({ 'certificate.review': false })
             .skip((page - 1) * productPerPage)
             .limit(productPerPage)
             .select('name mobile email category certificate');
 
-        const total = await Seller.find({ 'certificate.review' : false }).countDocuments();
+        const total = await Seller.find({ 'certificate.review': false }).countDocuments();
 
         res.status(200).json({
             state: 1,
@@ -40,7 +191,7 @@ exports.getSingleUserCertificates = async (req, res, next) => {
     try {
 
         const seller = await Seller.findById(sellerId)
-        .select('name mobile email category certificate');
+            .select('name mobile email category certificate');
         if (!seller) {
             const error = new Error('seller not found');
             error.statusCode = 404;
@@ -48,9 +199,9 @@ exports.getSingleUserCertificates = async (req, res, next) => {
         }
 
         res.status(200).json({
-            state:1,
-            data:seller,
-            message:'all seller certificates'
+            state: 1,
+            data: seller,
+            message: 'all seller certificates'
         })
 
 
@@ -67,7 +218,7 @@ exports.getSingleUserCertificates = async (req, res, next) => {
 exports.postApproveCertificate = async (req, res, next) => {
 
     const sellerId = req.body.sellerId;
-  
+
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
@@ -75,24 +226,24 @@ exports.postApproveCertificate = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
-        
+
         const seller = await Seller.findById(sellerId).select('category certificate');
-        if(!seller){
+        if (!seller) {
             const error = new Error('seller not found');
             error.statusCode = 404;
             throw error;
         }
         const updatedSeller = await seller.certApprove();
-        
-        schedule.scheduleJob(new Date(updatedSeller.certificate.expiresAt).getTime(),async(fireDate)=>{
-            await updatedSeller.certExpired() ; 
+
+        schedule.scheduleJob(new Date(updatedSeller.certificate.expiresAt).getTime(), async (fireDate) => {
+            await updatedSeller.certExpired();
         });
 
-        await Scad.deleteOne({seller:seller._id});
+        await Scad.deleteOne({ seller: seller._id });
 
         const newSchedule = new Scad({
-            seller:updatedSeller._id,
-            expiresin:updatedSeller.certificate.expiresAt
+            seller: updatedSeller._id,
+            expiresin: updatedSeller.certificate.expiresAt
         });
         await newSchedule.save();
 
@@ -122,16 +273,16 @@ exports.postDisapproveCertificate = async (req, res, next) => {
             error.statusCode = 422;
             throw error;
         }
-        
+
         const seller = await Seller.findById(sellerId).select('category certificate');
-        if(!seller){
+        if (!seller) {
             const error = new Error('seller not found');
             error.statusCode = 404;
             throw error;
         }
         const updatedSeller = await seller.certDisapprove(adminNote);
-        
-        
+
+
         res.status(200).json({
             state: 1,
             message: `certificate disapproved`,

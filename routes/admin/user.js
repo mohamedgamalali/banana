@@ -7,6 +7,17 @@ const isAuth         = require('../../meddlewere/admin/isAuth');
 
 const router  = express.Router();
 
+//seller
+router.get('/sellers',isAuth,userController.getSellers);
+
+router.post('/seller/block/unblock',[
+    body('sellerId')
+    .not().isEmpty(),
+],isAuth,userController.postBlock);
+
+router.get('/seller/single/:id',isAuth,userController.getSingleSeller);
+
+
 //seller Certificates
 router.get('/seller/Certificates',isAuth,userController.getCertificate);
 
