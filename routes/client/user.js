@@ -97,4 +97,8 @@ router.get('/notfication',isAuth,userController.getNotfications);
 //wallet get
 router.get('/wallet',isAuth,userController.getWallet);
 
+//single offer for selected order
+router.get('/order/single/offer/:orderId',isAuth,userController.getSingleOrderOffer);
+
+
 module.exports = router;

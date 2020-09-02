@@ -10,11 +10,12 @@ const Products = require('../../models/products');
 const Locations = require('../../models/location');
 const Notfications = require('../../models/notfications');
 const Pay = require('../../models/pay');
-const ClientWallet = require('../../models/clientWallet');
+const clientWallet = require('../../models/clientWallet');
+const Offer = require('../../models/offer');
+
 
 const SMS = require('../../helpers/sms');
-const clientWallet = require('../../models/clientWallet');
-const { countDocuments } = require('../../models/order');
+const order = require('../../models/order');
 
 // const not = new Notfications({
 //     user:'5f36fd4c7f02aa0004fd247d',
@@ -640,3 +641,28 @@ exports.getWallet = async (req, res, next) => {
         next(err);
     }
 }
+
+exports.getSingleOrderOffer = async (req, res, next) => {
+    
+    const orderId = req.params.orderId ;
+
+    try {
+        const offer = await Offer.findOne({order:orderId,client:req.userId,status:'ended',selected:true})
+        .select('location status seller banana_delivery price offerProducts')
+        .populate({path:'seller',select:'name mobile code rate'});
+
+        
+        res.status(200).json({
+            state:1,
+            data:offer,
+            message:`offer with orderId = ${orderId}  (if no offfer then the order status!=ended)`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
