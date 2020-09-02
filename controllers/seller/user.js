@@ -279,8 +279,8 @@ exports.postAddCertificate = async (req, res, next) => {
 
     const expiresAt = Number(req.body.expiresAt);
     const StringAdress = req.body.StringAdress;
-    const long = req.body.long1;
-    const lat = req.body.lat1;
+    const long = Number(req.body.long1);
+    const lat = Number(req.body.lat1);
     const openFrom = req.body.openFrom;
     const openTo = req.body.openTo;
 
