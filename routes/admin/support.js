@@ -27,4 +27,22 @@ router.post('/support/conditions',[
     .not().isEmpty()
 ], isAuth,supportController.postConditions);
 
+//support messages
+router.get('/support/supportMessages', isAuth,supportController.getSupportMessages);
+
+
+//issues
+router.get('/support/issues', isAuth,supportController.getIssues);
+
+router.post('/support/issues/reasons',[
+    body('EN')
+    .not().isEmpty(),
+    body('AR')
+    .not().isEmpty()
+] ,isAuth,supportController.postIssueReasons);
+
+router.get('/support/issues/reasons' ,isAuth,supportController.getIssueReasons);
+
+
+
 module.exports = router;

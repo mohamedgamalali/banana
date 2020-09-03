@@ -68,7 +68,7 @@ exports.getIssues = async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip((page - 1) * issuePerPage)
             .limit(issuePerPage)
-            .select('order offer')
+            .select('order offer reason')
             .populate({
                 path: 'order',
                 select: 'products',
@@ -79,7 +79,11 @@ exports.getIssues = async (req, res, next) => {
             })
             .populate({
                 path: 'offer',
-                select: 'banana_delivery price selected'
+                select: 'banana_delivery price selected offerProducts'
+            })
+            .populate({
+                path: 'reason',
+                select: 'banana_delivery price selected reason_ar reason_en'
             });
 
         res.status(200).json({

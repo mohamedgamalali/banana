@@ -32,6 +32,7 @@ router.post('/order/delevered',[
     .not().isEmpty(),
 ],isAuth,shopController.postOrderArrived);
 
+router.get('/order/single/:id',isAuth,shopController.getSingleOrder);
 
 
 module.exports = router;

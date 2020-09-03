@@ -24,6 +24,6 @@ const supportMessagesSchema = new schema({
         required:true,
         enum:['client','seller']
     }
-});
+},{timestamps:true});
 
 module.exports = mongoose.model('supportMessages', supportMessagesSchema);

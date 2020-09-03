@@ -338,3 +338,28 @@ exports.postOrderArrived = async (req, res, next) => {
     }
 
 }
+
+//single order
+exports.getSingleOrder = async (req, res, next) => {
+
+    const orderId = req.params.id ;
+
+    try {
+
+        const order = await Order.findById(orderId)
+        .select('products location locationDetails')
+        .populate({ path: 'products.product', select: 'category name name_en name_ar' });
+
+        res.status(200).json({
+            state:1,
+            data:order
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+
+}
