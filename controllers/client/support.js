@@ -8,6 +8,20 @@ const SupportMessage = require('../../models/supportMessages');
 const Policy = require('../../models/policy');
 const Conditions               = require('../../models/conditions');
 
+
+// const newI = new IssueResons({
+//     reason_ar:'سسس',
+//     reason_en:'rr'
+// });
+
+// newI.save()
+// .then(i=>{
+//     console.log(i);
+// })
+// .catch(err=>{
+//     console.log(err);
+// })
+
 const deleteFile = require("../../helpers/file");
 
 exports.postIssue = async (req, res, next) => {
