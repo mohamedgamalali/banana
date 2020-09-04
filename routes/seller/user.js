@@ -87,4 +87,9 @@ router.post('/notfication/send',[
     .not().isEmpty()
     .isBoolean()
 ],isAuth,userController.postManageSendNotfication);
+
+//wallet
+router.get('/wallet',isAuth,userController.getWallet);
+
+
 module.exports = router;

@@ -2,6 +2,7 @@ const Offer = require('../../models/offer');
 const Pay = require('../../models/pay');
 const Seller = require('../../models/seller');
 const crypto = require('crypto');
+const SellerWallet = require('../../models/sellerWallet');
 
 const bycript = require('bcryptjs');
 const { validationResult } = require('express-validator');
@@ -604,6 +605,41 @@ exports.postCheckCode = async (req, res, next) => {
             state: 1,
             data: updatedClient.code + updatedClient.mobile,
             messaage: 'mobile changed'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+exports.getWallet = async (req, res, next) => {
+
+    const page = req.query.page || 1;
+    const itemPerPage = 10;
+    try {
+        const data = await SellerWallet.find({ seller: req.userId })
+            .populate({path:'client',select:'name'})
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * itemPerPage)
+            .limit(itemPerPage);
+
+        const total = await SellerWallet.find({ seller: req.userId })
+            .countDocuments();
+        
+        const client = await Seller.findById(req.userId)
+        .select('wallet bindingWallet');
+
+        
+        res.status(200).json({
+            state:1,
+            data:data,
+            total:total,
+            wallet:client,
+            message:'seller wallet transactions'
         });
 
     } catch (err) {

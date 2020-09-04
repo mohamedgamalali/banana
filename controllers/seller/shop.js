@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 
 const Seller = require('../../models/seller');
+const SellerWallet = require('../../models/sellerWallet');
 const Order = require('../../models/order');
 const Offer = require('../../models/offer');
 const Pay = require('../../models/pay');
@@ -308,6 +309,19 @@ exports.postOrderArrived = async (req, res, next) => {
         });
 
         const s = await newScad.save() ;
+
+        const trans = new SellerWallet({
+            seller: req.userId,
+            action:'deposit',
+            amount:offer.price - ((offer.price * 5) / 100),
+            method:visa,
+            time: new Date().getTime().toString(),
+            client:order.client._id
+
+        });
+
+        await trans.save() ;
+
         schedule.scheduleJob(s._id.toString(),new Date().getTime() + 259200000 ,async function(){
             const seller = await Seller.findById(req.userId).select('wallet bindingWallet') ;
             if(seller.bindingWallet>=s.price){
