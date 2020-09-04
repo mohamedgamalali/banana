@@ -194,7 +194,10 @@ exports.putOffer = async (req, res, next) => {
                 cartItem: element.cartItem,
                 amount: element.amount,
                 unit: f.unit,
-                equals: equals
+                equals: equals,
+                product:'',
+                product:f.product._id,
+                path:f.path
             });
         });
         const seller = await Seller.findById(req.userId).select('rate');
@@ -209,7 +212,7 @@ exports.putOffer = async (req, res, next) => {
             location: req.sellerCert.location,
             sellerRate:seller.rate
         });
-
+ 
         await offer.save();
 
         res.status(201).json({

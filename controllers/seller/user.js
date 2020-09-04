@@ -10,32 +10,90 @@ const jwt = require('jsonwebtoken');
 
 exports.getMyOrders = async (req, res, next) => {
     const page = req.query.page || 1;
-    const filter = Number(req.query.filter) || 0;
+    const filter = req.query.filter || 'started';  //filter = started for binging //filter = comming for must be dlever //ended for delevered //cancel for canceld 
     let orderIdS = [];
     const offerPerPage = 10;
+    let total ;
+    let offers ;
 
     try {
-        const pay = await Pay.find({ seller: req.userId, deliver: Boolean(filter), cancel: false });
-        console.log(pay);
-        pay.forEach(i => {
-            orderIdS.push(i.order._id);
-        });
 
-        console.log(orderIdS);
+        if(filter == 'started'){
+    
+            total  = await Offer.find({ seller: req.userId, status:'started' }).countDocuments();
+    
+            offers = await Offer.find({ seller: req.userId, status:'started' })
+                .select('offerProducts order seller banana_delivery price createdAt')
+                .populate({
+                    path: 'order', select: 'locationDetails.stringAdress arriveDate'
+                })
+                .populate({
+                    path: 'offerProducts.product', select: 'name_en name_ar name'
+                })
+                .skip((page - 1) * offerPerPage)
+                .limit(offerPerPage);
+        }else if(filter == 'comming'){
+            const pay = await Pay.find({ seller: req.userId, deliver: false, cancel: false });
+ 
+            pay.forEach(i => {
+                orderIdS.push(i.order._id);
+            });
+    
+            
+            total  = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } }).countDocuments();
+    
+            offers = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } })
+                .select('offerProducts order seller banana_delivery price createdAt')
+                .populate({
+                    path: 'order', select: 'locationDetails.stringAdress arriveDate'
+                })
+                .populate({
+                    path: 'offerProducts.product', select: 'name_en name_ar name'
+                })
+                .skip((page - 1) * offerPerPage)
+                .limit(offerPerPage);
+        }else if(filter == 'ended'){
+            const pay = await Pay.find({ seller: req.userId, deliver: true, cancel: false });
 
-        const total = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } }).countDocuments();
-
-        const offers = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } })
-            .select('order seller banana_delivery price createdAt')
-            .populate({
-                path: 'order', select: 'products locationDetails.stringAdress arriveDate',
-                populate: {
-                    path: 'products.product',
-                    select: 'name_en name_ar name',
-                }
-            })
-            .skip((page - 1) * offerPerPage)
-            .limit(offerPerPage);
+            pay.forEach(i => {
+                orderIdS.push(i.order._id);
+            });
+    
+            
+            total = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } }).countDocuments();
+    
+            offers = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } })
+                .select('offerProducts order seller banana_delivery price createdAt')
+                .populate({
+                    path: 'order', select: 'locationDetails.stringAdress arriveDate'
+                })
+                .populate({
+                    path: 'offerProducts.product', select: 'name_en name_ar name'
+                })
+                .skip((page - 1) * offerPerPage)
+                .limit(offerPerPage);
+        }else if(filter == 'cancel'){
+            const pay = await Pay.find({ seller: req.userId, deliver: false, cancel: true });
+          
+            pay.forEach(i => {
+                orderIdS.push(i.order._id);
+            });
+    
+            
+            total = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } }).countDocuments();
+    
+            offers = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } })
+                .select('offerProducts order seller banana_delivery price createdAt')
+                .populate({
+                    path: 'order', select: 'locationDetails.stringAdress arriveDate'
+                })
+                .populate({
+                    path: 'offerProducts.product', select: 'name_en name_ar name'
+                })
+                .skip((page - 1) * offerPerPage)
+                .limit(offerPerPage);
+        }
+        
 
         res.status(200).json({
             state: 1,

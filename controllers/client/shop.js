@@ -588,15 +588,11 @@ exports.getOffers = async (req, res, next) => {
     try {
         if (filter == 1) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
-                .select('order seller banana_delivery price createdAt offerProducts')
-                .populate({
-                    path: 'order', select: 'products',
-                    populate: {
-                        path: 'products.product',
-                        select: 'name_en name_ar name',
-                    }
-                })
+                .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rete' })
+                .populate({
+                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                })
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
@@ -604,15 +600,11 @@ exports.getOffers = async (req, res, next) => {
             totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
         } else if (filter == 2) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
-                .select('order seller banana_delivery price createdAt offerProducts')
-                .populate({
-                    path: 'order', select: 'products',
-                    populate: {
-                        path: 'products.product',
-                        select: 'name_en name_ar name',
-                    }
-                })
+                .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rete' })
+                .populate({
+                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                })
                 .sort({ price: 0 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
@@ -620,15 +612,11 @@ exports.getOffers = async (req, res, next) => {
             totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
         } else if (filter == 0) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
-                .select('order seller banana_delivery price createdAt offerProducts')
-                .populate({
-                    path: 'order', select: 'products',
-                    populate: {
-                        path: 'products.product',
-                        select: 'name_en name_ar name',
-                    }
-                })
+                .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rete' })
+                .populate({
+                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
@@ -645,15 +633,11 @@ exports.getOffers = async (req, res, next) => {
                     }
                 }
             })
-                .select('order seller banana_delivery price createdAt offerProducts')
-                .populate({
-                    path: 'order', select: 'products',
-                    populate: {
-                        path: 'products.product',
-                        select: 'name_en name_ar name',
-                    }
-                })
+                .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rete' })
+                .populate({
+                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
@@ -662,16 +646,12 @@ exports.getOffers = async (req, res, next) => {
         //filter for rating
         else if (filter == 3) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
-                .select('order seller banana_delivery price createdAt offerProducts')
-                .populate({
-                    path: 'order', select: 'products',
-                    populate: {
-                        path: 'products.product',
-                        select: 'name_en name_ar name',
-                    }
-                })
+                .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rete' })
-                .sort({ sellerRate: -1})
+                .populate({
+                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                })
+                .sort({ sellerRate: -1 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
@@ -1050,7 +1030,7 @@ exports.postPayToWalletCheckPayment = async (req, res, next) => {
             action: 'deposit',
             amount: Number(body.amount),
             method: 'visa',
-            time:new Date().getTime().toString()
+            time: new Date().getTime().toString()
         });
 
         await walletTransaction.save();
@@ -1167,7 +1147,7 @@ exports.walletPayment = async (req, res, next) => {
             action: 'pay',
             amount: offer.price,
             method: 'visa',
-            time:new Date().getTime().toString()
+            time: new Date().getTime().toString()
         });
 
         await walletTransaction.save();
@@ -1288,6 +1268,7 @@ exports.postCancelComingOrder = async (req, res, next) => {
         pay.cancel = true;
 
         await pay.save();
+        await Offer.updateMany({ order: order._id }, { status: 'ended' });
         await order.cancelOrder();
 
         res.status(200).json({

@@ -130,6 +130,8 @@ exports.postCancelOrder = async (req, res, next) => {
             throw error;
         }
         await order.cancelOrder();
+        await Offer.updateMany({ order: order._id }, { status: 'ended' });
+
 
         res.status(200).json({
             state: 1,

@@ -49,6 +49,14 @@ const offerSchema = new schema({
         equals:{
             type:Boolean,
             required:true
+        },
+        product: {
+            type: schema.Types.Mixed,
+            refPath: 'offerProducts.path'
+        },
+        path: {
+            type: String,
+            default: 'product'
         }
     }],
     location: {
