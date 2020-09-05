@@ -14,7 +14,7 @@ exports.getMyOrders = async (req, res, next) => {
     const filter = req.query.filter || 'started';  //filter = started for binging //filter = comming for must be dlever //ended for delevered //cancel for canceld 
     let orderIdS = [];
     const offerPerPage = 10;
-    let total ;
+    let total ; 
     let offers ;
 
     try {
