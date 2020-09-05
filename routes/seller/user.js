@@ -12,7 +12,6 @@ router.get('/myOrders',isAuth,userController.getMyOrders);
 
 router.get('/single/order/details/:offer',isAuth,userController.getSingleOrderDetails);
 
-router.get('/myOffers',isAuth,userController.getMyOffers);
 
 router.post('/profile/edit/name',
     body('name')

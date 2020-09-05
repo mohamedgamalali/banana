@@ -172,60 +172,7 @@ exports.getSingleOrderDetails = async (req, res, next) => {
 }
 
 
-exports.getMyOffers = async (req, res, next) => {
-    const page = req.query.page || 1;
-    const offerPerPage = 10;
-    const filter = req.query.filter || 'started';
-    let offer;
-    let total;
-    try {
-        if (filter != 'ended') {
-            offer = await Offer.find({ seller: req.userId, status: filter })
-                .select('order banana_delivery price createdAt status')
-                .sort({ createdAt: -1 })
-                .populate({
-                    path: 'order', select: 'products',
-                    populate: {
-                        path: 'products.product',
-                        select: 'name_en name_ar name',
-                    }
-                })
-                .skip((page - 1) * offerPerPage)
-                .limit(offerPerPage);
-            total = await Offer.find({ seller: req.userId, status: filter }).countDocuments();
 
-        } else {
-            offer = await Offer.find({ seller: req.userId, status: filter, selected: true })
-                .select('order banana_delivery price createdAt status')
-                .sort({ createdAt: -1 })
-                .populate({
-                    path: 'order', select: 'products',
-                    populate: {
-                        path: 'products.product',
-                        select: 'name_en name_ar name',
-                    }
-                })
-                .skip((page - 1) * offerPerPage)
-                .limit(offerPerPage);
-            total = await Offer.find({ seller: req.userId, status: filter, selected: true }).countDocuments();
-        }
-
-        res.status(200).json({
-            state: 1,
-            data: offer,
-            total: total,
-            message: `offers in page ${page} and filter ${filter}`
-        });
-
-
-    } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
-    }
-
-}
 
 exports.postEditName = async (req, res, next) => {
     const name = req.body.name;

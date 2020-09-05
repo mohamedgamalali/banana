@@ -1255,21 +1255,42 @@ exports.postCancelComingOrder = async (req, res, next) => {
                 const minus = (offer.price * 5) / 100;
 
                 client.wallet += (offer.price - minus);
+                
+                const walletTransaction = new ClientWalet({
+                    client: client._id,
+                    action: 'refund',
+                    amount: (offer.price - minus),
+                    method: 'visa',
+                    time:new Date().getTime().toString()
+                });
+                await walletTransaction.save();
 
                 await client.save();
             } else {
 
                 client.wallet += offer.price;
 
+                const walletTransaction = new ClientWalet({
+                    client: client._id,
+                    action: 'refund',
+                    amount: offer.price,
+                    method: 'visa',
+                    time:new Date().getTime().toString()
+                });
+                await walletTransaction.save();
+
                 await client.save();
             }
         }
 
         pay.cancel = true;
+        
+        
 
         await pay.save();
         await Offer.updateMany({ order: order._id }, { status: 'ended' });
         await order.cancelOrder();
+        
 
         res.status(200).json({
             state: 1,
