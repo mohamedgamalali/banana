@@ -314,7 +314,7 @@ exports.postOrderArrived = async (req, res, next) => {
             seller: req.userId,
             action:'deposit',
             amount:offer.price - ((offer.price * 5) / 100),
-            method:visa,
+            method:'visa',
             time: new Date().getTime().toString(),
             client:order.client._id
 
