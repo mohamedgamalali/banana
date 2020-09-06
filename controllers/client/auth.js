@@ -161,7 +161,7 @@ exports.postSendSms = async (req, res, next) => {
         const buf = crypto.randomBytes(3).toString('hex');
         const hashedCode = await bycript.hash(buf, 12)
         client.verficationCode = hashedCode;
-        client.codeExpireDate = Date.now() + 3600000;
+        client.codeExpireDate = Date.now() + 900000;
 
         const message = `your verification code is ${buf}`;
 
@@ -298,7 +298,7 @@ exports.postForgetPassword = async (req, res, next) => {
         const buf = crypto.randomBytes(3).toString('hex');
         const hashedCode = await bycript.hash(buf, 12)
         client.verficationCode = hashedCode;
-        client.codeExpireDate = Date.now() + 3600000;
+        client.codeExpireDate = Date.now() + 900000;
 
         const message = `your verification code is ${buf}`;
 

@@ -3,6 +3,7 @@ const Pay = require('../../models/pay');
 const Seller = require('../../models/seller');
 const crypto = require('crypto');
 const SellerWallet = require('../../models/sellerWallet');
+const Notfications = require('../../models/notfications');
 
 const bycript = require('bcryptjs');
 const { validationResult } = require('express-validator');
@@ -120,11 +121,11 @@ exports.getSingleOrderDetails = async (req, res, next) => {
             .select('order client')
             .populate({
                 path: 'order',
-                select: 'locationDetails location'
+                select: 'locationDetails location arriveDate'
             })
             .populate({
                 path: 'client',
-                select: 'mobile'
+                select: 'name'
             });
         if (!offer) {
             const error = new Error(`offer not found`);
@@ -139,23 +140,14 @@ exports.getSingleOrderDetails = async (req, res, next) => {
             throw error;
         }
 
-        const pay = await Pay.findOne({ offer: offer._id, seller: req.userId, order: offer.order._id })
-            .select('mobile adressString name');
-
-        if (!pay) {
-            const error = new Error(`some thing happend in client payment`);
-            error.statusCode = 402;
-            error.state = 22;
-            throw error;
-        }
-
         res.status(200).json({
             state: 1,
             deta: {
-                mobile: [pay.mobile, offer.order.locationDetails.mobile2, offer.client.mobile],
-                adress: [pay.adressString, offer.order.locationDetails.stringAdress],
-                name: pay.name,
-                location: offer.order.location
+                mobile: offer.order.locationDetails.mobile2,
+                adress: offer.order.locationDetails.stringAdress,
+                name: offer.client.name,
+                location: offer.order.location,
+                date:offer.order.arriveDate
             },
             message: 'client details for delever order'
         })
@@ -489,10 +481,10 @@ exports.postSendSMS = async (req, res, next) => {
     try {
         const seller = await Seller.findById(req.userId);
 
-        const buf = crypto.randomBytes(3).toString('hex');
+        const buf = crypto.randomBytes(2).toString('hex');
         const hashedCode = await bycript.hash(buf, 12)
         seller.verficationCode = hashedCode;
-        seller.codeExpireDate = Date.now() + 3600000;
+        seller.codeExpireDate = Date.now() + 900000;
 
         const message = `your verification code is ${buf}`;
 
@@ -587,6 +579,36 @@ exports.getWallet = async (req, res, next) => {
             total:total,
             wallet:client,
             message:'seller wallet transactions'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+
+
+//get notfications
+
+exports.getNotfications = async (req, res, next) => {
+    const page = req.query.page || 1;
+    const productPerPage = 10;
+
+    try {
+        const total        = await Notfications.find({}).countDocuments();
+        const notfications = await Notfications.find({})
+            .select('data notification date createdAt')
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * productPerPage)
+            .limit(productPerPage);
+
+        res.status(200).json({
+            state: 1,
+            data: notfications,
+            total: total,
+            message: `Notification in page ${page}`
         });
 
     } catch (err) {

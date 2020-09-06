@@ -1,26 +1,32 @@
 const mongoose = require('mongoose');
 
-const schema   = mongoose.Schema;
+const schema = mongoose.Schema;
 
 const notficationSchema = new schema({
-    user:{
-        type:schema.Types.ObjectId,
-        ref:'client'
-    },
-    data:{
-        id:String,
-        key:String,
-    },
-    notification:{
-        title_ar:String,
-        body_ar:String,
-        title_en:String,
-        body_en:String
-    },
-    date:{
+    path:{
         type:String,
-        required:true
+        required:true,
+        default:'client',
+        enum:['client','seller']
+    },
+    user: {
+        type: schema.Types.Mixed,
+        refPath: 'path'
+    },
+    data: {
+        id: String,
+        key: String,
+    },
+    notification: {
+        title_ar: String,
+        body_ar: String,
+        title_en: String,
+        body_en: String
+    },
+    date: {
+        type: String,
+        required: true
     }
-},{timestamps:true});
+}, { timestamps: true });
 
-module.exports = mongoose.model('notfication',notficationSchema);
+module.exports = mongoose.model('notfication', notficationSchema);

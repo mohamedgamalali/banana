@@ -462,7 +462,7 @@ exports.postDeleteFevList = async (req, res, next) => {
 //orders
 exports.postAddOrder = async (req, res, next) => {
     const locationId = req.body.locationId;
-    const arriveDate = req.body.arriveDate || 0;
+    const arriveDate = req.body.arriveIn || 0; 
     let category = [];
     let cart = [];
     let amount_count = 0;
@@ -790,7 +790,6 @@ exports.postCheckPayment = async (req, res, next) => {
     const name = req.body.name;
     const mobile = req.body.mobile;
     const adressString = req.body.adressString;
-    const arriveIn = req.body.arriveIn;
 
     const errors = validationResult(req);
     try {
@@ -846,7 +845,6 @@ exports.postCheckPayment = async (req, res, next) => {
             payId: body.id,
         });
 
-        order.arriveDate = arriveIn.toString();
 
         //saving
         await order.endOrder();
@@ -873,7 +871,6 @@ exports.cashPayment = async (req, res, next) => {
     const name = req.body.name;
     const mobile = req.body.mobile;
     const adressString = req.body.adressString;
-    const arriveIn = req.body.arriveIn;
 
     const errors = validationResult(req);
     try {
@@ -943,7 +940,6 @@ exports.cashPayment = async (req, res, next) => {
             method: 'cash'
         });
 
-        order.arriveDate = arriveIn.toString();
 
         //saving
         await order.endOrder();
@@ -1060,7 +1056,6 @@ exports.walletPayment = async (req, res, next) => {
     const name = req.body.name;
     const mobile = req.body.mobile;
     const adressString = req.body.adressString;
-    const arriveIn = req.body.arriveIn;
 
     const errors = validationResult(req);
     try {
@@ -1140,7 +1135,6 @@ exports.walletPayment = async (req, res, next) => {
             method: 'wallet'
         });
 
-        order.arriveDate = arriveIn.toString();
 
         const walletTransaction = new ClientWalet({
             client: req.userId,

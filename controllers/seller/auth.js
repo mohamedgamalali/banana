@@ -189,10 +189,10 @@ exports.postForgetPassword = async (req, res, next) => {
             throw error;
         }
 
-        const buf = crypto.randomBytes(3).toString('hex');
+        const buf = crypto.randomBytes(2).toString('hex');
         const hashedCode = await bycript.hash(buf, 12)
         seller.verficationCode = hashedCode;
-        seller.codeExpireDate = Date.now() + 3600000;
+        seller.codeExpireDate = Date.now() + 900000;
 
         const message = `your verification code is ${buf}`;
 
@@ -359,10 +359,10 @@ exports.postSendSms = async (req, res, next) => {
 
         const seller = await Seller.findById(req.userId);
 
-        const buf = crypto.randomBytes(3).toString('hex');
+        const buf = crypto.randomBytes(2).toString('hex');
         const hashedCode = await bycript.hash(buf, 12)
         seller.verficationCode = hashedCode;
-        seller.codeExpireDate = Date.now() + 3600000;
+        seller.codeExpireDate = Date.now() + 900000;
 
         const message = `your verification code is ${buf}`;
 

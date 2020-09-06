@@ -90,5 +90,10 @@ router.post('/notfication/send',[
 //wallet
 router.get('/wallet',isAuth,userController.getWallet);
 
+//notfications
+router.get('/notfication',isAuth,userController.getNotfications);
+
+
+
 
 module.exports = router;

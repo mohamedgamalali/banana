@@ -16,28 +16,30 @@ const Offer = require('../../models/offer');
 
 const SMS = require('../../helpers/sms');
 const order = require('../../models/order');
+// for (var i=0;i<10;i++){
+//     const not = new Notfications({
+//         user:'5f36fd4c7f02aa0004fd247d',
+//         data:{
+//             id:'5',
+//             key:'String',
+//         },
+//         notification:{
+//             title_ar:'عنوان',
+//             body_ar:'مش عنوان',
+//             title_en:'title',
+//             body_en:'not title'
+//         },
+//         date:new Date().getTime().toString()
+//     });
+    
+//     not.save().then(i=>{
+//         console.log(i);
+//     })
+//     .catch(err=>{
+//         console.log(err);
+//     })
+// }
 
-// const not = new Notfications({
-//     user:'5f36fd4c7f02aa0004fd247d',
-//     data:{
-//         id:'5',
-//         key:'String',
-//     },
-//     notification:{
-//         title_ar:'عنوان',
-//         body_ar:'مش عنوان',
-//         title_en:'title',
-//         body_en:'not title'
-//     },
-//     date:new Date().getTime().toString()
-// });
-
-// not.save().then(i=>{
-//     console.log(i);
-// })
-// .catch(err=>{
-//     console.log(err);
-// })
 
 exports.getOrders = async (req, res, next) => {
     const page = req.query.page || 1;
@@ -377,7 +379,7 @@ exports.postSendSMS = async (req, res, next) => {
         const buf = crypto.randomBytes(3).toString('hex');
         const hashedCode = await bycript.hash(buf, 12)
         client.verficationCode = hashedCode;
-        client.codeExpireDate = Date.now() + 3600000;
+        client.codeExpireDate = Date.now() + 900000;
 
         const message = `your verification code is ${buf}`;
 

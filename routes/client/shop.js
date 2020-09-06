@@ -65,6 +65,8 @@ router.post('/fev/list/delete',[
 router.post('/order',[
     body('locationId')
     .not().isEmpty(),
+    body('arriveIn')
+    .not().isEmpty(),
 ],isAuth,shopController.postAddOrder);
 
 router.get('/order/single/:id',isAuth,shopController.getSingleOrder);
@@ -93,8 +95,6 @@ router.post('/offers/checkPayment',[
     .not().isEmpty(),
     body('adressString')
     .not().isEmpty(),
-    body('arriveIn')
-    .not().isEmpty(),
     body('offerId')
     .not().isEmpty(),
 ],isAuth,shopController.postCheckPayment);
@@ -106,8 +106,6 @@ router.post('/offers/cashPay',[
     body('mobile')
     .not().isEmpty(),
     body('adressString')
-    .not().isEmpty(),
-    body('arriveIn')
     .not().isEmpty(),
     body('offerId')
     .not().isEmpty(),
@@ -133,8 +131,6 @@ router.post('/offer/walletPay',[
     body('mobile')
     .not().isEmpty(),
     body('adressString')
-    .not().isEmpty(),
-    body('arriveIn')
     .not().isEmpty(),
 ],isAuth,shopController.walletPayment);
 

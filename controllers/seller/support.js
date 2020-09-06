@@ -62,29 +62,13 @@ exports.getIssues = async (req, res, next) => {
     const filter = req.query.filter || 'binding';
     const issuePerPage = 10;
     try {
-
+ 
         const total = await Issue.find({ seller: req.userId, state: filter }).countDocuments()
         const issues = await Issue.find({ seller: req.userId, state: filter })
             .sort({ createdAt: -1 })
             .skip((page - 1) * issuePerPage)
             .limit(issuePerPage)
-            .select('order offer reason')
-            .populate({
-                path: 'order',
-                select: 'products',
-                populate: {
-                    path: 'products.product',
-                    select: 'name_ar name_en name'
-                }
-            })
-            .populate({
-                path: 'offer',
-                select: 'banana_delivery price selected offerProducts'
-            })
-            .populate({
-                path: 'reason',
-                select: 'banana_delivery price selected reason_ar reason_en'
-            });
+            .select('imageUrl demands');
 
         res.status(200).json({
             state: 1,
@@ -169,48 +153,48 @@ exports.postIssueAccept = async (req, res, next) => {
             throw error;
         }
 
-        const scadPay = await ScadPay.findOne({ seller: req.userId, order: issues.order._id });
+        // const scadPay = await ScadPay.findOne({ seller: req.userId, order: issues.order._id });
 
-        if (!scadPay) {
-            const error = new Error(`can't refund mony after 3 dayes..1`);
-            error.statusCode = 409;
-            error.state = 48;
-            throw error;
-        }
-        if (new Date(scadPay.fireIn).getTime() < new Date().getTime()) {
-            const error = new Error(`can't refund mony after 3 dayes..2`);
-            error.statusCode = 409;
-            error.state = 48;
-            throw error;
-        }
-        if (scadPay.delever == true) {
-            const error = new Error(`can't refund mony after 3 dayes..3`);
-            error.statusCode = 409;
-            error.state = 48;
-            throw error;
-        }
+        // if (!scadPay) {
+        //     const error = new Error(`can't refund mony after 3 dayes..1`);
+        //     error.statusCode = 409;
+        //     error.state = 48;
+        //     throw error;
+        // }
+        // if (new Date(scadPay.fireIn).getTime() < new Date().getTime()) {
+        //     const error = new Error(`can't refund mony after 3 dayes..2`);
+        //     error.statusCode = 409;
+        //     error.state = 48;
+        //     throw error;
+        // }
+        // if (scadPay.delever == true) {
+        //     const error = new Error(`can't refund mony after 3 dayes..3`);
+        //     error.statusCode = 409;
+        //     error.state = 48;
+        //     throw error;
+        // }
 
-        //cancel scadual
-        const my_job = schedule.scheduledJobs[scadPay._id.toString()];
-        my_job.cancel();
+        // //cancel scadual
+        // const my_job = schedule.scheduledJobs[scadPay._id.toString()];
+        // my_job.cancel();
 
-        const client = await Client.findById(pay.client._id).select('wallet');
+        // const client = await Client.findById(pay.client._id).select('wallet');
 
-        const seller = await Seller.findById(pay.seller._id).select('bindingWallet');
+        // const seller = await Seller.findById(pay.seller._id).select('bindingWallet');
 
-        //client action
-        client.wallet += scadPay.price ;
+        // //client action
+        // client.wallet += scadPay.price ;
 
-        const walletTransaction = new ClientWalet({
-            client: client._id,
-            action: 'refund',
-            amount: scadPay.price,
-            method: 'visa',
-            time:new Date().getTime().toString()
-        });
+        // const walletTransaction = new ClientWalet({
+        //     client: client._id,
+        //     action: 'refund',
+        //     amount: scadPay.price,
+        //     method: 'visa',
+        //     time:new Date().getTime().toString()
+        // });
 
-        //seller wallet
-        seller.bindingWallet = seller.bindingWallet - scadPay.price ;
+        // //seller wallet
+        // seller.bindingWallet = seller.bindingWallet - scadPay.price ;
 
         //issue
         issues.state = 'ok' ;
@@ -218,16 +202,16 @@ exports.postIssueAccept = async (req, res, next) => {
 
         //savein
 
-        await client.save();
-        await walletTransaction.save();
-        await seller.save();
+        // await client.save();
+        // await walletTransaction.save();
+        // await seller.save();
         await issues.save();
-        await ScadPay.deleteOne({_id:scadPay._id}) ;
+        // await ScadPay.deleteOne({_id:scadPay._id}) ;
         
 
         res.status(200).json({
             state:1,
-            message:'issue accepted and refund sent'
+            message:'issue accepted'
         });
 
     } catch (err) {
