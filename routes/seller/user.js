@@ -13,10 +13,12 @@ router.get('/myOrders',isAuth,userController.getMyOrders);
 router.get('/single/order/details/:offer',isAuth,userController.getSingleOrderDetails);
 
 
-router.post('/profile/edit/name',
+router.post('/profile/edit/name',[
     body('name')
+    .not().isEmpty(),
+    body('imagePath')
     .not().isEmpty()
-,isAuth,userController.postEditName);
+],isAuth,userController.postEditName);
 
 router.post('/profile/edit/password',[
     body('oldPassword','enter a password with only number and text and at least 5 characters.')

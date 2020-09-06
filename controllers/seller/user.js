@@ -168,6 +168,8 @@ exports.getSingleOrderDetails = async (req, res, next) => {
 
 exports.postEditName = async (req, res, next) => {
     const name = req.body.name;
+    const imagePath = Number(req.body.imagePath);
+    
 
     const errors = validationResult(req);
     try {
@@ -178,16 +180,20 @@ exports.postEditName = async (req, res, next) => {
             throw error;
         }
 
-        const seller = await Seller.findById(req.userId).select('name');
+        const seller = await Seller.findById(req.userId).select('name image');
 
+        seller.image = imagePath;
         seller.name = name;
 
         const updatedSeller = await seller.save();
 
         res.status(200).json({
             state: 1,
-            data: updatedSeller.name,
-            message: 'seller name changed'
+            data: {
+                name:updatedSeller.name,
+                image:updatedSeller.image,
+            },
+            message: 'seller profile changed'
         });
 
     } catch (err) {
