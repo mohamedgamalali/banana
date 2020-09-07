@@ -3,18 +3,6 @@ const mongoose = require('mongoose');
 const schema = mongoose.Schema;
 
 const paySchema = new schema({
-    name: {
-        type:String,
-        required:true
-    },
-    mobile: {
-        type:String,
-        required:true
-    },
-    adressString: {
-        type:String,
-        required:true
-    },
     arriveIn: {
         type: Number,
         default: 0

@@ -787,9 +787,6 @@ exports.postCheckPayment = async (req, res, next) => {
 
     const checkoutId = req.body.checkoutId;
     const offerId = req.body.offerId;
-    const name = req.body.name;
-    const mobile = req.body.mobile;
-    const adressString = req.body.adressString;
 
     const errors = validationResult(req);
     try {
@@ -835,9 +832,6 @@ exports.postCheckPayment = async (req, res, next) => {
         await Offer.updateMany({ order: order._id }, { status: 'ended' });
         order.pay = true;
         const p = new Pay({
-            name: name,
-            mobile: mobile,
-            adressString: adressString,
             offer: offer._id,
             order: order._id,
             client: req.userId,
@@ -868,9 +862,6 @@ exports.postCheckPayment = async (req, res, next) => {
 exports.cashPayment = async (req, res, next) => {
 
     const offerId = req.body.offerId;
-    const name = req.body.name;
-    const mobile = req.body.mobile;
-    const adressString = req.body.adressString;
 
     const errors = validationResult(req);
     try {
@@ -929,9 +920,6 @@ exports.cashPayment = async (req, res, next) => {
         await Offer.updateMany({ order: order._id }, { status: 'ended' });
         order.pay = true;
         const p = new Pay({
-            name: name,
-            mobile: mobile,
-            adressString: adressString,
             offer: offer._id,
             order: order._id,
             client: req.userId,
@@ -1053,9 +1041,6 @@ exports.postPayToWalletCheckPayment = async (req, res, next) => {
 exports.walletPayment = async (req, res, next) => {
 
     const offerId = req.body.offerId;
-    const name = req.body.name;
-    const mobile = req.body.mobile;
-    const adressString = req.body.adressString;
 
     const errors = validationResult(req);
     try {
@@ -1124,9 +1109,6 @@ exports.walletPayment = async (req, res, next) => {
         await Offer.updateMany({ order: order._id }, { status: 'ended' });
         order.pay = true;
         const p = new Pay({
-            name: name,
-            mobile: mobile,
-            adressString: adressString,
             offer: offer._id,
             order: order._id,
             client: req.userId,

@@ -89,24 +89,12 @@ router.post('/offers/CreateCheckOut',[
 router.post('/offers/checkPayment',[
     body('checkoutId')
     .not().isEmpty(),
-    body('name')
-    .not().isEmpty(),
-    body('mobile')
-    .not().isEmpty(),
-    body('adressString')
-    .not().isEmpty(),
     body('offerId')
     .not().isEmpty(),
 ],isAuth,shopController.postCheckPayment);
 
 //cash
 router.post('/offers/cashPay',[
-    body('name')
-    .not().isEmpty(),
-    body('mobile')
-    .not().isEmpty(),
-    body('adressString')
-    .not().isEmpty(),
     body('offerId')
     .not().isEmpty(),
 ],isAuth,shopController.cashPayment);
@@ -125,13 +113,7 @@ router.post('/wallet/checkPayment',[
 //pay from wallet
 router.post('/offer/walletPay',[
     body('offerId')
-    .not().isEmpty(),
-    body('name')
-    .not().isEmpty(),
-    body('mobile')
-    .not().isEmpty(),
-    body('adressString')
-    .not().isEmpty(),
+    .not().isEmpty()
 ],isAuth,shopController.walletPayment);
 
 //cancel coming order after pay
