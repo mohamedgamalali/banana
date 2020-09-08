@@ -68,7 +68,8 @@ exports.getIssues = async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip((page - 1) * issuePerPage)
             .limit(issuePerPage)
-            .select('imageUrl demands');
+            .select('imageUrl demands reason')
+            .populate({path:'reason'});
 
         res.status(200).json({
             state: 1,

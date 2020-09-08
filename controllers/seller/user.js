@@ -142,7 +142,7 @@ exports.getSingleOrderDetails = async (req, res, next) => {
 
         res.status(200).json({
             state: 1,
-            deta: {
+            data: {
                 mobile: offer.order.locationDetails.mobile2,
                 adress: offer.order.locationDetails.stringAdress,
                 name: offer.client.name,
