@@ -77,7 +77,3 @@
 
     //rate
     47=>order didn't delever
-
-    //seller accept issue
-    48=>can't refund mony after 3 dayes
-    49=>can't refund mony after 3 dayes
