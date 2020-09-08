@@ -376,7 +376,7 @@ exports.postSendSMS = async (req, res, next) => {
     try {
         const client = await Client.findById(req.userId);
 
-        const buf = crypto.randomBytes(3).toString('hex');
+        const buf = crypto.randomBytes(2).toString('hex');
         const hashedCode = await bycript.hash(buf, 12)
         client.verficationCode = hashedCode;
         client.codeExpireDate = Date.now() + 900000;
