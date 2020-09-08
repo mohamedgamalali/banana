@@ -62,15 +62,15 @@ exports.getOrders = async (req, res, next) => {
                         }
                     }
                 }
-            })
-                .select('location category client products amount_count stringAdress')
+            }) 
+                .select('location category client products amount_count stringAdress arriveDate')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
         } else if (filter == 0) {
             orders = await Order.find({
                 category: { $in: req.sellerCat },
                 status: 'started'
             })
-                .select('location category client products amount_count stringAdress')
+                .select('location category client products amount_count stringAdress arriveDate')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ createdAt: -1 });
         } else if (filter == 1) {
@@ -78,7 +78,7 @@ exports.getOrders = async (req, res, next) => {
                 category: { $in: req.sellerCat },
                 status: 'started'
             })
-                .select('location category client products amount_count stringAdress')
+                .select('location category client products amount_count stringAdress arriveDate')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ amount_count: -1 });
         }

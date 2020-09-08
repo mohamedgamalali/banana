@@ -40,7 +40,8 @@ router.post('/product/delete',[
 
 router.get('/product/single/:id',isAuth,shopController.getSingleProduct);
 
-
+//orders
+router.get('/orders',isAuth,shopController.getOrders);
 
 
 module.exports = router;

@@ -115,7 +115,7 @@ exports.getSingleSeller = async (req, res, next) => {
     try {
 
         const seller = await Seller.findById(sellerId)
-            .select('name mobile email code image category certificate verfication blocked wallet bindingWallet rate');
+            .select('name mobile email code category certificate verfication blocked wallet bindingWallet rate');
         if (!seller) {
             const error = new Error('seller not found');
             error.statusCode = 404;
@@ -404,7 +404,7 @@ exports.getSingleClient = async (req, res, next) => {
     try {
 
         const client = await Client.findById(clientId)
-            .select('name mobile email code image verfication blocked wallet');
+            .select('name mobile email code verfication blocked wallet');
         if (!client) {
             const error = new Error('seller not found');
             error.statusCode = 404;

@@ -9,7 +9,8 @@ const router  = express.Router();
 //auth
 router.post('/login',[
     body('email')
-    .not().isEmpty(),
+    .not().isEmpty()
+    .trim(),
     body('password')
     .not().isEmpty()
   ],authController.postLogin);                                   

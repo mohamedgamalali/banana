@@ -589,7 +589,7 @@ exports.getOffers = async (req, res, next) => {
         if (filter == 1) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
                 .select('seller banana_delivery price createdAt offerProducts')
-                .populate({ path: 'seller', select: 'rete certificate.avilable' })
+                .populate({ path: 'seller', select: 'rate certificate.avilable' }) 
                 .populate({
                     path: 'offerProducts.product', select: 'name_en name_ar name',
                 })
@@ -601,7 +601,7 @@ exports.getOffers = async (req, res, next) => {
         } else if (filter == 2) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
                 .select('seller banana_delivery price createdAt offerProducts')
-                .populate({ path: 'seller', select: 'rete certificate.avilable' })
+                .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
                     path: 'offerProducts.product', select: 'name_en name_ar name',
                 })
@@ -613,7 +613,7 @@ exports.getOffers = async (req, res, next) => {
         } else if (filter == 0) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
                 .select('seller banana_delivery price createdAt offerProducts')
-                .populate({ path: 'seller', select: 'rete certificate.avilable' })
+                .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
                     path: 'offerProducts.product', select: 'name_en name_ar name',
                 })
@@ -634,7 +634,7 @@ exports.getOffers = async (req, res, next) => {
                 }
             }) 
                 .select('seller banana_delivery price createdAt offerProducts')
-                .populate({ path: 'seller', select: 'rete certificate.avilable' })
+                .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
                     path: 'offerProducts.product', select: 'name_en name_ar name',
                 })
@@ -647,7 +647,7 @@ exports.getOffers = async (req, res, next) => {
         else if (filter == 3) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
                 .select('seller banana_delivery price createdAt offerProducts')
-                .populate({ path: 'seller', select: 'rete certificate.avilable' })
+                .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
                     path: 'offerProducts.product', select: 'name_en name_ar name',
                 })

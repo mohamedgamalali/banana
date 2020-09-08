@@ -7,6 +7,7 @@ const Admin = require("../../models/admin");
 const Products = require("../../models/products");
 const Seller = require("../../models/seller");
 const Scad = require("../../models/cert-expire");
+const Order = require("../../models/order");
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;
@@ -242,3 +243,37 @@ exports.getSingleProduct = async (req, res, next) => {
     }
 };
 
+//orders
+
+exports.getOrders = async (req, res, next) => {
+
+    const page = req.query.page || 1;
+    const productPerPage = 10;
+    const filter = req.query.filter || 'started';
+
+
+    try {
+        const orders = await Order.find({ status: filter })
+            .select('client products amount_count arriveDate location pay')
+            .populate({ path: 'client', select: 'name mobile' })
+            .populate({ path: 'products.product', select: 'name name_en name_ar' })
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * productPerPage)
+            .limit(productPerPage);
+
+        const total = await Order.find({ status: filter }).countDocuments();
+
+        res.status(200).json({
+            state:1,
+            data:orders,
+            total:total,
+            message:`orders with filter ${filter}`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};

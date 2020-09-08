@@ -14,7 +14,7 @@ const issueSchema = new schema({
     seller:{
         type: schema.Types.ObjectId,
         ref: 'seller'
-    },
+    }, 
     offer:{
         type: schema.Types.ObjectId,
         ref: 'offer'
