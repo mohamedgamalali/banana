@@ -47,11 +47,11 @@ exports.getOrders = async (req, res, next) => {
     const filter = req.query.filter || 'started';
     let orders;
     let total;
-    try {
+    try { 
         if (filter == 'started' || filter == 'cancel') {
             total = await Order.find({ client: req.userId, status: filter }).countDocuments();
             orders = await Order.find({ client: req.userId, status: filter })
-                .select('location stringAdress arriveDate products locationDetails pay')
+                .select('location stringAdress arriveDate products locationDetails pay reted')
                 .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * productPerPage)
@@ -64,7 +64,7 @@ exports.getOrders = async (req, res, next) => {
             });
             total = await Order.find({ client: req.userId, _id: { $in: orderIdS } }).countDocuments();
             orders = await Order.find({ client: req.userId, _id: { $in: orderIdS } })
-                .select('location stringAdress arriveDate products locationDetails pay')
+                .select('location stringAdress arriveDate products locationDetails pay reted')
                 .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * productPerPage)
@@ -78,7 +78,7 @@ exports.getOrders = async (req, res, next) => {
             });
             total = await Order.find({ client: req.userId, _id: { $in: orderIdS } }).countDocuments();
             orders = await Order.find({ client: req.userId, _id: { $in: orderIdS } })
-                .select('location stringAdress arriveDate products locationDetails pay')
+                .select('location stringAdress arriveDate products locationDetails pay reted')
                 .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * productPerPage)
