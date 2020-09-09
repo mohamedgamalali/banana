@@ -43,5 +43,7 @@ router.get('/product/single/:id',isAuth,shopController.getSingleProduct);
 //orders
 router.get('/orders',isAuth,shopController.getOrders);
 
+router.get('/order/single/:id',isAuth,shopController.getSingleOrder);
+
 
 module.exports = router;

@@ -3,9 +3,9 @@ const schedule = require('node-schedule');
 const path = require("path");
 
 const deleteFile = require("../../helpers/file");
-const Admin = require("../../models/admin");
+const Pay = require("../../models/pay");
 const Products = require("../../models/products");
-const Seller = require("../../models/seller");
+const Offers = require("../../models/offer");
 const Scad = require("../../models/cert-expire");
 const Order = require("../../models/order");
 
@@ -250,25 +250,107 @@ exports.getOrders = async (req, res, next) => {
     const page = req.query.page || 1;
     const productPerPage = 10;
     const filter = req.query.filter || 'started';
-
+    const arrived = Boolean(Number(req.query.arrived)) || false;
+    const cancel = Boolean(Number(req.query.cancel)) || false;
+    const banana_delivery = Boolean(Number(req.query.bananaDelivery)) || false;
+    const payMethod = req.query.payMethod || false;
+    let orders;
+    let total;
+    let pay;
+    let offer;
 
     try {
-        const orders = await Order.find({ status: filter })
-            .select('client products amount_count arriveDate location pay')
-            .populate({ path: 'client', select: 'name mobile' })
-            .populate({ path: 'products.product', select: 'name name_en name_ar' })
-            .sort({ createdAt: -1 })
-            .skip((page - 1) * productPerPage)
-            .limit(productPerPage);
+        if (filter != 'ended') {
+            orders = await Order.find({ status: filter })
+                .select('client products amount_count arriveDate location pay')
+                .populate({ path: 'client', select: 'name mobile' })
+                .populate({ path: 'products.product', select: 'name name_en name_ar' })
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage);
 
-        const total = await Order.find({ status: filter }).countDocuments();
+            total = await Order.find({ status: filter }).countDocuments();
+        } else {
+            let tempId = [];
+            if (!payMethod) {
+                pay = await Pay.find({ deliver: arrived, cancel: cancel }).select('order');
+            } else {
+                pay = await Pay.find({ deliver: arrived, cancel: cancel, method:payMethod }).select('order');
+            }
+            
+            pay.forEach(i => {
+                tempId.push(i.order._id);
+            });
+
+            offer = await Offers.find({ order: { $in: tempId }, selected: true, banana_delivery: banana_delivery })
+                .select('order');
+
+            tempId = [];
+            offer.forEach(i => {
+                tempId.push(i.order._id);
+            });
+            orders = await Order.find({ _id: { $in: tempId } })
+                .select('client products amount_count arriveDate location pay')
+                .populate({ path: 'client', select: 'name mobile' })
+                .populate({ path: 'products.product', select: 'name name_en name_ar' })
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * productPerPage)
+                .limit(productPerPage);
+
+            total = await Order.find({ _id: { $in: tempId } }).countDocuments();
+        }
+
+
+        res.status(200).json({
+            state: 1,
+            data: orders,
+            total: total,
+            message: `orders with filter ${filter}`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
+exports.getSingleOrder = async (req, res, next) => {
+
+    const orderId = req.params.id ; 
+
+    try {
+        const order = await Order.findById(orderId)
+        .select('client category products arriveDate location locationDetails status pay reted')
+        .populate({path:'client',select:'name mobile'})
+        .populate({path:'products.product',select:'name name_en name_ar'});
+        
+        if(!order){
+            const error = new Error('order not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        const selectedOffer = await Offers.findOne({order:order._id,selected:true})
+        .select('seller banana_delivery price status offerProducts location')
+        .populate({path:'seller',select:'name mobile'})
+        .populate({path:'offerProducts.product',select:'name name_en name_ar'});
+
+        const payMent = await Pay.findOne({order:order})
+        .select('arriveIn client seller payId deliver method cancel')
+        .populate({path:'client',select:'name'})
+        .populate({path:'seller',select:'name'});
 
         res.status(200).json({
             state:1,
-            data:orders,
-            total:total,
-            message:`orders with filter ${filter}`
+            order:order,
+            selectedOffer:selectedOffer,
+            payMent:payMent,
+            message:'all order data'
         });
+
 
     } catch (err) {
         if (!err.statusCode) {
