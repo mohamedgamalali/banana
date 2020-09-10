@@ -3,4 +3,5 @@ module.exports = {
     shop : require('./shop.js'),
     support : require('./support.js'),
     user : require('./user.js'),
+    mony : require('./mony.js'),
 }
