@@ -92,6 +92,22 @@ router.post('/notfication/send',[
 //wallet
 router.get('/wallet',isAuth,userController.getWallet);
 
+//pull mony
+router.post('/pullMony',[
+    body('amount')
+    .not().isEmpty()
+    .isNumeric(),
+    body('fullName')
+    .not().isEmpty(),
+    body('banckAccount')
+    .not().isEmpty(),
+    body('IBAN')
+    .not().isEmpty(),
+    body('banckName')
+    .not().isEmpty(),
+],isAuth,userController.postPullMony);
+
+
 //notfications
 router.get('/notfication',isAuth,userController.getNotfications);
 

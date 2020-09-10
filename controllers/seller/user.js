@@ -4,6 +4,7 @@ const Seller = require('../../models/seller');
 const crypto = require('crypto');
 const SellerWallet = require('../../models/sellerWallet');
 const Notfications = require('../../models/notfications');
+const PullRequest = require('../../models/pullRequests');
 
 const bycript = require('bcryptjs');
 const { validationResult } = require('express-validator');
@@ -15,16 +16,16 @@ exports.getMyOrders = async (req, res, next) => {
     const filter = req.query.filter || 'started';  //filter = started for binging //filter = comming for must be dlever //ended for delevered //cancel for canceld 
     let orderIdS = [];
     const offerPerPage = 10;
-    let total ; 
-    let offers ;
+    let total;
+    let offers;
 
     try {
 
-        if(filter == 'started'){
-    
-            total  = await Offer.find({ seller: req.userId, status:'started' }).countDocuments();
-    
-            offers = await Offer.find({ seller: req.userId, status:'started' })
+        if (filter == 'started') {
+
+            total = await Offer.find({ seller: req.userId, status: 'started' }).countDocuments();
+
+            offers = await Offer.find({ seller: req.userId, status: 'started' })
                 .select('offerProducts order seller banana_delivery price createdAt')
                 .populate({
                     path: 'order', select: 'locationDetails.stringAdress arriveDate'
@@ -34,16 +35,16 @@ exports.getMyOrders = async (req, res, next) => {
                 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
-        }else if(filter == 'comming'){
+        } else if (filter == 'comming') {
             const pay = await Pay.find({ seller: req.userId, deliver: false, cancel: false });
- 
+
             pay.forEach(i => {
                 orderIdS.push(i.order._id);
             });
-    
-            
-            total  = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } }).countDocuments();
-    
+
+
+            total = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } }).countDocuments();
+
             offers = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } })
                 .select('offerProducts order seller banana_delivery price createdAt')
                 .populate({
@@ -54,16 +55,16 @@ exports.getMyOrders = async (req, res, next) => {
                 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
-        }else if(filter == 'ended'){
+        } else if (filter == 'ended') {
             const pay = await Pay.find({ seller: req.userId, deliver: true, cancel: false });
 
             pay.forEach(i => {
                 orderIdS.push(i.order._id);
             });
-    
-            
+
+
             total = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } }).countDocuments();
-    
+
             offers = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } })
                 .select('offerProducts order seller banana_delivery price createdAt')
                 .populate({
@@ -74,16 +75,16 @@ exports.getMyOrders = async (req, res, next) => {
                 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
-        }else if(filter == 'cancel'){
+        } else if (filter == 'cancel') {
             const pay = await Pay.find({ seller: req.userId, deliver: false, cancel: true });
-          
+
             pay.forEach(i => {
                 orderIdS.push(i.order._id);
             });
-    
-            
+
+
             total = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } }).countDocuments();
-    
+
             offers = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } })
                 .select('offerProducts order seller banana_delivery price createdAt')
                 .populate({
@@ -95,7 +96,7 @@ exports.getMyOrders = async (req, res, next) => {
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
         }
-        
+
 
         res.status(200).json({
             state: 1,
@@ -147,7 +148,7 @@ exports.getSingleOrderDetails = async (req, res, next) => {
                 adress: offer.order.locationDetails.stringAdress,
                 name: offer.client.name,
                 location: offer.order.location,
-                date:offer.order.arriveDate
+                date: offer.order.arriveDate
             },
             message: 'client details for delever order'
         })
@@ -169,7 +170,7 @@ exports.getSingleOrderDetails = async (req, res, next) => {
 exports.postEditName = async (req, res, next) => {
     const name = req.body.name;
     const imagePath = Number(req.body.imagePath);
-    
+
 
     const errors = validationResult(req);
     try {
@@ -190,8 +191,8 @@ exports.postEditName = async (req, res, next) => {
         res.status(200).json({
             state: 1,
             data: {
-                name:updatedSeller.name,
-                image:updatedSeller.image,
+                name: updatedSeller.name,
+                image: updatedSeller.image,
             },
             message: 'seller profile changed'
         });
@@ -305,8 +306,8 @@ exports.postAddCertificate = async (req, res, next) => {
             throw error;
         }
 
-        let imageUrl = [] ;
-        image.forEach(i=>{
+        let imageUrl = [];
+        image.forEach(i => {
             imageUrl.push(i.path)
         })
 
@@ -367,7 +368,7 @@ exports.postAddCCategory = async (req, res, next) => {
 }
 
 exports.postDeleteCategory = async (req, res, next) => {
-    
+
     const name = req.body.name;
 
     const errors = validationResult(req);
@@ -567,24 +568,24 @@ exports.getWallet = async (req, res, next) => {
     const itemPerPage = 10;
     try {
         const data = await SellerWallet.find({ seller: req.userId })
-            .populate({path:'client',select:'name'})
+            .populate({ path: 'client', select: 'name' })
             .sort({ createdAt: -1 })
             .skip((page - 1) * itemPerPage)
             .limit(itemPerPage);
 
         const total = await SellerWallet.find({ seller: req.userId })
             .countDocuments();
-        
-        const client = await Seller.findById(req.userId)
-        .select('wallet bindingWallet');
 
-        
+        const client = await Seller.findById(req.userId)
+            .select('wallet bindingWallet');
+
+
         res.status(200).json({
-            state:1,
-            data:data,
-            total:total,
-            wallet:client,
-            message:'seller wallet transactions'
+            state: 1,
+            data: data,
+            total: total,
+            wallet: client,
+            message: 'seller wallet transactions'
         });
 
     } catch (err) {
@@ -595,6 +596,57 @@ exports.getWallet = async (req, res, next) => {
     }
 }
 
+//pullMony
+
+
+exports.postPullMony = async (req, res, next) => {
+    const amount = Number(req.body.amount) ;
+    const fullName = req.body.fullName;
+    const banckAccount = req.body.banckAccount;
+    const IBAN = req.body.IBAN;
+    const banckName = req.body.banckName;
+
+    const errors = validationResult(req);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        const seller = await Seller.findById(req.userId).select('wallet');
+
+        if (seller.wallet < amount) {
+            const error = new Error(`amount is biggeer than seller wallet`);
+            error.statusCode = 409;
+            error.state = 48;
+            throw error;
+        }
+
+        const request = new PullRequest({
+            seller: seller._id,
+            amount:amount,
+            fullName:fullName,
+            banckAccount:banckAccount,
+            IBAN:IBAN,
+            banckName:banckName,
+        });
+
+        await request.save();
+
+        res.status(201).json({
+            state:1,
+            message:'pull request created'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
 
 //get notfications
 
@@ -603,7 +655,7 @@ exports.getNotfications = async (req, res, next) => {
     const productPerPage = 10;
 
     try {
-        const total        = await Notfications.find({}).countDocuments();
+        const total = await Notfications.find({}).countDocuments();
         const notfications = await Notfications.find({})
             .select('data notification date createdAt')
             .sort({ createdAt: -1 })
