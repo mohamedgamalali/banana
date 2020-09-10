@@ -23,4 +23,14 @@ router.post('/pull/requests/refuse', [
     .not().isEmpty(),
 ], isAuth, monyCountroller.postRefuse);
 
+
+//banana delivery
+
+router.get('/bananaDelivery', isAuth, monyCountroller.getBananaDeliveryPrice);
+
+router.post('/bananaDelivery/update',[
+    body('price')
+    .not().isEmpty(),
+], isAuth, monyCountroller.postEditBananaDelivery);
+
 module.exports = router;
