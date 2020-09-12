@@ -44,7 +44,7 @@ const paySchema = new schema({
         type:Boolean,
         default:false
     },
-
+    refund_amount:Number
 }, { timestamps: true });
 
 module.exports = mongoose.model('pay', paySchema);

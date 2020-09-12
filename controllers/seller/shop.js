@@ -14,6 +14,7 @@ const schedule = require('node-schedule');
 exports.getHome = async (req, res, next) => {
 
     try {
+        
         const seller = await Seller.findById(req.userId).select('category');
 
         res.status(200).json({

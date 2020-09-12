@@ -41,11 +41,15 @@ router.post('/support/issues/approve',[
     .not().isEmpty(),
 ], isAuth,supportController.postIssueApprove);
 
-router.post('/support/issues/approve',[
+router.post('/support/issues/Disapprove',[
     body('issueId')
+    .not().isEmpty(),
+    body('reason')
     .not().isEmpty(),
 ], isAuth,supportController.postIssueDisApprove);
 
+//single issue
+router.get('/support/issues/single/:id', isAuth,supportController.getSingleIssue);
 
 //reasons
 router.post('/support/issues/reasons',[

@@ -1233,7 +1233,7 @@ exports.postCancelComingOrder = async (req, res, next) => {
 
                 client.wallet    += (offer.price - minus);
                 pay.refund        = true;
-                pay.refund_amount = (offer.price - minus);
+                pay.refund_amount = (offer.price - minus); 
 
 
                 const walletTransaction = new ClientWalet({

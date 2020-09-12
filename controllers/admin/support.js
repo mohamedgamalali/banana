@@ -11,6 +11,7 @@ const Seller = require('../../models/seller');
 const ClientWalet = require('../../models/clientWallet');
 
 const schedule = require('node-schedule');
+const client = require("../../models/client");
 
 
 
@@ -141,17 +142,17 @@ exports.getSupportMessages = async (req, res, next) => {
 
     try {
         const total = await SupportMessages.find({}).countDocuments();
-        const messages    = await SupportMessages.find({})
-        .populate({path:'user',select:'name mobile email code'})
+        const messages = await SupportMessages.find({})
+            .populate({ path: 'user', select: 'name mobile email code' })
             .sort({ createdAt: -1 })
             .skip((page - 1) * productPerPage)
             .limit(productPerPage);
-        
+
         res.status(200).json({
-            state:1,
-            data:messages,
-            total:total,
-            message:`support messages in page ${page}`
+            state: 1,
+            data: messages,
+            total: total,
+            message: `support messages in page ${page}`
         });
 
     } catch (err) {
@@ -170,14 +171,14 @@ exports.getIssues = async (req, res, next) => {
 
     const filter = req.query.filter || 'binding';
     const issuePerPage = 10;
-    find = {} ;
+    find = {};
     try {
-        if(reason){
+        if (reason) {
             find = {
                 adminState: filter,
-                reason:reason
+                reason: reason
             };
-        }else{
+        } else {
             find = {
                 adminState: filter
             };
@@ -188,15 +189,15 @@ exports.getIssues = async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip((page - 1) * issuePerPage)
             .limit(issuePerPage)
-            .select('order offer reason state imageUrl demands') 
-            .populate({
-                path: 'order',
-                select: 'products',
-                populate: {
-                    path: 'products.product',
-                    select: 'name_ar name_en name'
-                }
-            })
+            .select('order offer reason state imageUrl demands adminNotes')
+            // .populate({
+            //     path: 'order',
+            //     select: 'products',
+            //     populate: {
+            //         path: 'products.product',
+            //         select: 'name_ar name_en name'
+            //     }
+            // })
             .populate({
                 path: 'offer',
                 select: 'banana_delivery price selected offerProducts'
@@ -222,13 +223,69 @@ exports.getIssues = async (req, res, next) => {
     }
 };
 
+//single issue
+exports.getSingleIssue = async (req, res, next) => {
+
+    const issueId = req.params.id ;
+    
+    try {
+
+        const issue = await Issue.findById(issueId)
+            .select('order offer reason state imageUrl demands adminNotes adminState seller client')
+            .populate({
+                path: 'order',
+                select: 'products',
+                populate: {
+                    path: 'products.product',
+                    select: 'name_ar name_en name'
+                }
+            })
+            .populate({
+                path: 'offer',
+                select: 'banana_delivery price selected offerProducts'
+            })
+            .populate({
+                path: 'seller',
+                select: 'name mobile code'
+            })
+            .populate({
+                path: 'client',
+                select: 'name mobile code'
+            })
+            .populate({
+                path: 'reason',
+                select: 'reason_ar reason_en'
+            });
+
+        const pay = await Pay.findOne({offer:issue.offer._id,order:issue.order._id,client:issue.client._id})
+        .select('payId arriveIn payId deliver method cancel refund refund_amount');
+
+        res.status(200).json({
+            state: 1,
+            data: {
+                issue:issue,
+                PaymentTransaction:pay
+            },
+            message: `issue ${issueId}`
+        });
+
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
 
 //approve and disapprove 
 exports.postIssueApprove = async (req, res, next) => {
 
-    const errors  = validationResult(req);
+    const errors = validationResult(req);
     const issueId = req.body.issueId;
-    const refund  = Number(req.body.refund);
+    const refund = Number(req.body.refund);
 
     try {
         if (!errors.isEmpty()) {
@@ -246,18 +303,18 @@ exports.postIssueApprove = async (req, res, next) => {
             throw error;
         }
 
-        if (issues.adminState!='binding') {
+        if (issues.adminState != 'binding') {
             const error = new Error(`issue already revued`);
             error.statusCode = 409;
             error.state = 51;
             throw error;
         }
 
-        const pay = await Pay.findOne({ order: issues.order._id, offer: issues.offer._id, seller: issues.seller._id})
-        .populate({path:'offer',select:'price'});
+        const pay = await Pay.findOne({ order: issues.order._id, offer: issues.offer._id, seller: issues.seller._id })
+            .populate({ path: 'offer', select: 'price' });
 
-        
-        
+
+
         if (!pay) {
             const error = new Error(`payment required client didn't pay`);
             error.statusCode = 400;
@@ -265,7 +322,7 @@ exports.postIssueApprove = async (req, res, next) => {
             throw error;
         }
 
-        if(refund > pay.offer.price || refund < 0){
+        if (refund > pay.offer.price || refund < 0) {
             const error = new Error(`invalid refund value "less than zero or more than offer price"`);
             error.statusCode = 400;
             error.state = 42;
@@ -279,14 +336,14 @@ exports.postIssueApprove = async (req, res, next) => {
             throw error;
         }
 
-        if ( pay.method == 'cash' ) {
+        if (pay.method == 'cash') {
             const error = new Error(`can't refund in cash pay`);
             error.statusCode = 400;
             error.state = 50;
             throw error;
         }
 
-        const scadPay = await ScadPay.findOne({ seller:issues.seller._id , order: issues.order._id });
+        const scadPay = await ScadPay.findOne({ seller: issues.seller._id, order: issues.order._id });
 
         if (!scadPay) {
             const error = new Error(`can't refund mony after 3 dayes..1`);
@@ -309,9 +366,9 @@ exports.postIssueApprove = async (req, res, next) => {
 
         //cancel scadual
         const my_job = schedule.scheduledJobs[scadPay._id.toString()];
-        try{
+        try {
             my_job.cancel();
-        }catch(ERRORRR){
+        } catch (ERRORRR) {
             console.log('scadual null');
         }
 
@@ -320,23 +377,23 @@ exports.postIssueApprove = async (req, res, next) => {
         const seller = await Seller.findById(pay.seller._id).select('bindingWallet');
 
         //client action
-        client.wallet += refund ;
+        client.wallet += refund;
 
         const walletTransaction = new ClientWalet({
             client: client._id,
             action: 'refund',
             amount: refund,
             method: 'visa',
-            time:new Date().getTime().toString()
+            time: new Date().getTime().toString()
         });
 
         //seller wallet
-        seller.bindingWallet = seller.bindingWallet - scadPay.price ;
+        seller.bindingWallet = seller.bindingWallet - scadPay.price;
 
         //issue
-        issues.adminState    = 'ok'  ;
-        pay.refund           = true  ;
-        pay.refund_amount    = refund;
+        issues.adminState = 'ok';
+        pay.refund = true;
+        pay.refund_amount = refund;
 
 
         //savein
@@ -346,15 +403,15 @@ exports.postIssueApprove = async (req, res, next) => {
         await seller.save();
         await issues.save();
         await pay.save();
-        await ScadPay.deleteOne({_id:scadPay._id}) ;
-        
+        await ScadPay.deleteOne({ _id: scadPay._id });
+
 
         res.status(200).json({
-            state:1,
-            message:'issue accepted'
+            state: 1,
+            message: 'issue accepted'
         });
 
-        
+
 
     } catch (err) {
         if (!err.statusCode) {
@@ -366,8 +423,9 @@ exports.postIssueApprove = async (req, res, next) => {
 
 exports.postIssueDisApprove = async (req, res, next) => {
 
-    const errors  = validationResult(req);
+    const errors = validationResult(req);
     const issueId = req.body.issueId;
+    const reason  = req.body.reason;
 
     try {
         if (!errors.isEmpty()) {
@@ -384,21 +442,22 @@ exports.postIssueDisApprove = async (req, res, next) => {
             error.state = 9;
             throw error;
         }
-        if (issues.adminState!='binding') {
+        if (issues.adminState != 'binding') {
             const error = new Error(`issue already revued`);
             error.statusCode = 409;
             error.state = 51;
             throw error;
         }
 
-        issues.adminState    = 'cancel'  ;
+        issues.adminState = 'cancel';
+        issues.adminNotes = reason  ;
 
-        await issues.save() ;
+        await issues.save();
 
 
         res.status(200).json({
-            state:1,
-            message:'canceld'
+            state: 1,
+            message: 'canceld'
         });
 
     } catch (err) {
@@ -424,16 +483,16 @@ exports.postIssueReasons = async (req, res, next) => {
         }
 
         const reason = new IssueRwasons({
-            reason_ar:AR,
-            reason_en:EN,
+            reason_ar: AR,
+            reason_en: EN,
         });
 
         const newIssueReason = await reason.save();
 
         res.status(201).json({
-            state:1,
-            data:newIssueReason,
-            message:'created'
+            state: 1,
+            data: newIssueReason,
+            message: 'created'
         });
 
     } catch (err) {
@@ -447,16 +506,16 @@ exports.postIssueReasons = async (req, res, next) => {
 
 exports.getIssueReasons = async (req, res, next) => {
 
-   
+
 
     try {
-        
+
         const resons = await IssueRwasons.find({});
 
         res.status(201).json({
-            state:1,
-            data:resons,
-            message:'created'
+            state: 1,
+            data: resons,
+            message: 'created'
         });
 
     } catch (err) {
