@@ -30,10 +30,24 @@ router.post('/support/conditions',[
 //support messages
 router.get('/support/supportMessages', isAuth,supportController.getSupportMessages);
 
-
 //issues
 router.get('/support/issues', isAuth,supportController.getIssues);
 
+//issue approve disapprove
+router.post('/support/issues/approve',[
+    body('issueId')
+    .not().isEmpty(),
+    body('refund')
+    .not().isEmpty(),
+], isAuth,supportController.postIssueApprove);
+
+router.post('/support/issues/approve',[
+    body('issueId')
+    .not().isEmpty(),
+], isAuth,supportController.postIssueDisApprove);
+
+
+//reasons
 router.post('/support/issues/reasons',[
     body('EN')
     .not().isEmpty(),

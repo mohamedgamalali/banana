@@ -47,6 +47,7 @@
 
     //client issue 
     24=>can't find selected offer for the order
+    49=>order didn't delever                                             <<<<<>>>>><<<<>>>><<<<>>>><<<<<<<<<<<< NEW 
     25=>issue allready creted
 
     //SMS

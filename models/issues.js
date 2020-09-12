@@ -34,7 +34,13 @@ const issueSchema = new schema({
         type:String,
         default:'binding',
         enum:['binding','ok','cancel']
-    }
+    },
+    adminState:{
+        type:String,
+        default:'binding',
+        enum:['binding','ok','cancel']
+    },
+    refund_amount:Number
 },{ timestamps: true });
 
 module.exports = mongoose.model('issue', issueSchema);

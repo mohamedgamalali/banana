@@ -4,6 +4,14 @@ const Conditions = require('../../models/conditions');
 const SupportMessages = require('../../models/supportMessages');
 const Issue = require('../../models/issues');
 const IssueRwasons = require('../../models/issue-reason');
+const Pay = require('../../models/pay');
+const ScadPay = require('../../models/seller-sccad-pay');
+const Client = require('../../models/client');
+const Seller = require('../../models/seller');
+
+const schedule = require('node-schedule');
+
+
 
 //policy
 exports.getPolicy = async (req, res, next) => {
@@ -165,12 +173,12 @@ exports.getIssues = async (req, res, next) => {
     try {
         if(reason){
             find = {
-                state: filter,
+                adminState: filter,
                 reason:reason
             };
         }else{
             find = {
-                state: filter
+                adminState: filter
             };
         }
 
@@ -179,7 +187,7 @@ exports.getIssues = async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip((page - 1) * issuePerPage)
             .limit(issuePerPage)
-            .select('order offer reason')
+            .select('order offer reason state imageUrl')
             .populate({
                 path: 'order',
                 select: 'products',
@@ -204,6 +212,189 @@ exports.getIssues = async (req, res, next) => {
             message: `issues in page ${page} and filter ${filter}`
         })
 
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
+//approve and disapprove 
+exports.postIssueApprove = async (req, res, next) => {
+
+    const errors  = validationResult(req);
+    const issueId = req.body.issueId;
+    const refund  = Number(req.body.refund);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild..${errors.array()[0].param} : ${errors.array()[0].msg}`);
+            error.statusCode = 422;
+            error.data = errors.array();
+            throw error;
+        }
+
+        const issues = await Issue.findById(issueId).select('client state order reason demands offer seller adminState');
+        if (!issues) {
+            const error = new Error(`issues not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+
+        if (issues.adminState!='binding') {
+            const error = new Error(`issue already revued`);
+            error.statusCode = 409;
+            error.state = 51;
+            throw error;
+        }
+
+        const pay = await Pay.findOne({ order: issues.order._id, offer: issues.offer._id, seller: issues.seller._id})
+        .populate({path:'offer',select:'price'});
+
+        
+        
+        if (!pay) {
+            const error = new Error(`payment required client didn't pay`);
+            error.statusCode = 400;
+            error.state = 41;
+            throw error;
+        }
+
+        if(refund > pay.offer.price || refund < 0){
+            const error = new Error(`invalid refund value "less than zero or more than offer price"`);
+            error.statusCode = 400;
+            error.state = 42;
+            throw error;
+        }
+
+        if (!pay.deliver) {
+            const error = new Error(`order didn't delever`);
+            error.statusCode = 409;
+            error.state = 49;
+            throw error;
+        }
+
+        if ( pay.method == 'cash' ) {
+            const error = new Error(`can't refund in cash pay`);
+            error.statusCode = 400;
+            error.state = 50;
+            throw error;
+        }
+
+        const scadPay = await ScadPay.findOne({ seller:issues.seller._id , order: issues.order._id });
+
+        if (!scadPay) {
+            const error = new Error(`can't refund mony after 3 dayes..1`);
+            error.statusCode = 409;
+            error.state = 48;
+            throw error;
+        }
+        if (new Date(scadPay.fireIn).getTime() < new Date().getTime()) {
+            const error = new Error(`can't refund mony after 3 dayes..2`);
+            error.statusCode = 409;
+            error.state = 48;
+            throw error;
+        }
+        if (scadPay.delever == true) {
+            const error = new Error(`can't refund mony after 3 dayes..3`);
+            error.statusCode = 409;
+            error.state = 48;
+            throw error;
+        }
+
+        //cancel scadual
+        const my_job = schedule.scheduledJobs[scadPay._id.toString()];
+        my_job.cancel();
+
+        const client = await Client.findById(pay.client._id).select('wallet');
+
+        const seller = await Seller.findById(pay.seller._id).select('bindingWallet');
+
+        //client action
+        client.wallet += refund ;
+
+        const walletTransaction = new ClientWalet({
+            client: client._id,
+            action: 'refund',
+            amount: refund,
+            method: 'visa',
+            time:new Date().getTime().toString()
+        });
+
+        //seller wallet
+        seller.bindingWallet = seller.bindingWallet - scadPay.price ;
+
+        //issue
+        issues.adminState    = 'ok'  ;
+        pay.refund           = true  ;
+        pay.refund_amount    = refund;
+
+
+        //savein
+
+        await client.save();
+        await walletTransaction.save();
+        await seller.save();
+        await issues.save();
+        await pay.save();
+        await ScadPay.deleteOne({_id:scadPay._id}) ;
+        
+
+        res.status(200).json({
+            state:1,
+            message:'issue accepted'
+        });
+
+        
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+exports.postIssueDisApprove = async (req, res, next) => {
+
+    const errors  = validationResult(req);
+    const issueId = req.body.issueId;
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild..${errors.array()[0].param} : ${errors.array()[0].msg}`);
+            error.statusCode = 422;
+            error.data = errors.array();
+            throw error;
+        }
+
+        const issues = await Issue.findById(issueId).select('client state order reason demands offer seller adminState');
+        if (!issues) {
+            const error = new Error(`issues not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+        if (issues.adminState!='binding') {
+            const error = new Error(`issue already revued`);
+            error.statusCode = 409;
+            error.state = 51;
+            throw error;
+        }
+
+        issues.adminState    = 'cancel'  ;
+
+        await issues.save() ;
+
+
+        res.status(200).json({
+            state:1,
+            message:'canceld'
+        });
 
     } catch (err) {
         if (!err.statusCode) {

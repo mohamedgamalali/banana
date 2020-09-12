@@ -44,7 +44,6 @@ const paySchema = new schema({
         type:Boolean,
         default:false
     },
-    refund_amount:Number
 
 }, { timestamps: true });
 

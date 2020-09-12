@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator');
 
 const Order = require('../../models/order');
 const Offer = require('../../models/offer');
+const Pay = require('../../models/pay');
 const Issue = require('../../models/issues');
 const IssueResons = require('../../models/issue-reason');
 const SupportMessage = require('../../models/supportMessages');
@@ -74,6 +75,22 @@ exports.postIssue = async (req, res, next) => {
             const error = new Error(`issue allready creted`);
             error.statusCode = 409;
             error.state = 25;
+            throw error;
+        }
+
+        const pay = await Pay.findOne({ order: issues.order._id, offer: issues.offer._id, seller: issues.seller._id});
+        
+        if (!pay) {
+            const error = new Error(`payment required client didn't pay`);
+            error.statusCode = 400;
+            error.state = 41;
+            throw error;
+        }
+
+        if (!pay.deliver) {
+            const error = new Error(`order didn't delever`);
+            error.statusCode = 409;
+            error.state = 49;
             throw error;
         }
 
