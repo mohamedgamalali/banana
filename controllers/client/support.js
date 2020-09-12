@@ -78,7 +78,7 @@ exports.postIssue = async (req, res, next) => {
             throw error;
         }
 
-        const pay = await Pay.findOne({ order: issues.order._id, offer: issues.offer._id, seller: issues.seller._id});
+        const pay = await Pay.findOne({ order: order._id, offer: offer._id, seller: offer.seller._id});
         
         if (!pay) {
             const error = new Error(`payment required client didn't pay`);
