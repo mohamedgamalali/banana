@@ -39,7 +39,12 @@ const paySchema = new schema({
     cancel:{
         type:Boolean,
         default:false
-    }
+    },
+    refund:{
+        type:Boolean,
+        default:false
+    },
+    refund_amount:Number
 
 }, { timestamps: true });
 

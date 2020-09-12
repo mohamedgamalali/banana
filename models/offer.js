@@ -23,6 +23,10 @@ const offerSchema = new schema({
         type: Number,
         required: true
     },
+    banana_delivery_price:{
+        type: Number,
+        required: true
+    },
     status:{
         type:String,
         default:'started',

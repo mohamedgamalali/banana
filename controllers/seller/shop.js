@@ -6,6 +6,7 @@ const Order = require('../../models/order');
 const Offer = require('../../models/offer');
 const Pay = require('../../models/pay');
 const ScadPay = require('../../models/seller-sccad-pay');
+const BananaDelevry = require('../../models/bananaDelivery');
 
 const schedule = require('node-schedule');
 
@@ -62,7 +63,7 @@ exports.getOrders = async (req, res, next) => {
                         }
                     }
                 }
-            }) 
+            })
                 .select('location category client products amount_count stringAdress arriveDate')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
         } else if (filter == 0) {
@@ -143,7 +144,7 @@ exports.putOffer = async (req, res, next) => {
 
 
 
-        if ((!req.sellerCert.image)||(req.sellerCert.image.length==0)) {
+        if ((!req.sellerCert.image) || (req.sellerCert.image.length == 0)) {
             const error = new Error(`you should provide certificate for order category`);
             error.statusCode = 403;
             error.state = 27;
@@ -196,12 +197,20 @@ exports.putOffer = async (req, res, next) => {
                 amount: element.amount,
                 unit: f.unit,
                 equals: equals,
-                product:'',
-                product:f.product._id,
-                path:f.path
+                product: '',
+                product: f.product._id,
+                path: f.path
             });
         });
         const seller = await Seller.findById(req.userId).select('rate');
+        let bananaPrice;
+
+        const d = await BananaDelevry.findOne({});
+        if (!d) {
+            bananaPrice = 0;
+        } else {
+            bananaPrice = (Number(price) * d.price) / 100;
+        }
 
         const offer = new Offer({
             order: order._id,
@@ -211,9 +220,10 @@ exports.putOffer = async (req, res, next) => {
             price: Number(price),
             offerProducts: offerProducts,
             location: req.sellerCert.location,
-            sellerRate:seller.rate
+            sellerRate: seller.rate,
+            banana_delivery_price: bananaPrice
         });
- 
+
         await offer.save();
 
         res.status(201).json({
@@ -222,7 +232,7 @@ exports.putOffer = async (req, res, next) => {
         });
 
     } catch (err) {
-   
+
         if (!err.statusCode) {
             err.statusCode = 500;
         }
@@ -295,51 +305,58 @@ exports.postOrderArrived = async (req, res, next) => {
         if (pay.method != 'cash') {
             const seller = await Seller.findById(req.userId).select('bindingWallet');
             const minus = (offer.price * 5) / 100;
+            let arrivePrice = 0 ;
 
-            seller.bindingWallet += (offer.price - minus);
+            if (offer.banana_delivery) {
+                seller.bindingWallet += (offer.price - (offer.banana_delivery_price + minus));
+                arrivePrice           = (offer.price - (offer.banana_delivery_price + minus)) ;
+            } else {
+                seller.bindingWallet += (offer.price - minus);
+                arrivePrice           = (offer.price - minus);
 
-            await seller.save() ;
-
-        
-        const newScad = new ScadPay({
-            seller: req.userId ,
-            fireIn: new Date().getTime() + 259200000 ,
-            order:  order._id,
-            price:offer.price - ((offer.price * 5) / 100)
-        });
-
-        const s = await newScad.save() ;
-
-        const trans = new SellerWallet({
-            seller: req.userId,
-            action:'deposit',
-            amount:offer.price - ((offer.price * 5) / 100),
-            method:'visa',
-            time: new Date().getTime().toString(),
-            client:order.client._id
-
-        });
-
-        await trans.save() ;
-
-        schedule.scheduleJob(s._id.toString(),new Date().getTime() + 259200000 ,async function(){
-            const seller = await Seller.findById(req.userId).select('wallet bindingWallet') ;
-            if(seller.bindingWallet>=s.price){
-                seller.bindingWallet = seller.bindingWallet - s.price ;
-                seller.wallet       += s.price ;
-                await seller.save() ;
-                const sss  = await ScadPay.findById(s._id)
-                sss.delever = true ; 
-                await sss.save();
             }
-            
-        });
 
-    }
+            await seller.save();
+
+
+            const newScad = new ScadPay({
+                seller: req.userId,
+                fireIn: new Date().getTime() + 259200000,
+                order: order._id,
+                price: arrivePrice
+            });
+
+            const s = await newScad.save();
+
+            const trans = new SellerWallet({
+                seller: req.userId,
+                action: 'deposit',
+                amount: arrivePrice,
+                method: 'visa',
+                time: new Date().getTime().toString(),
+                client: order.client._id
+            });
+
+            await trans.save();
+
+            schedule.scheduleJob(s._id.toString(), new Date().getTime() + 259200000, async function () {
+                const seller = await Seller.findById(req.userId).select('wallet bindingWallet');
+                if (seller.bindingWallet >= s.price) {
+                    seller.bindingWallet = seller.bindingWallet - s.price;
+                    seller.wallet += s.price;
+                    await seller.save();
+                    const sss = await ScadPay.findById(s._id)
+                    sss.delever = true;
+                    await sss.save();
+                }
+
+            });
+
+        }
 
         //saving
 
-        await pay.save() ;
+        await pay.save();
 
         res.status(201).json({
             state: 1,
@@ -359,17 +376,17 @@ exports.postOrderArrived = async (req, res, next) => {
 //single order
 exports.getSingleOrder = async (req, res, next) => {
 
-    const orderId = req.params.id ;
+    const orderId = req.params.id;
 
     try {
 
         const order = await Order.findById(orderId)
-        .select('products location locationDetails')
-        .populate({ path: 'products.product', select: 'category name name_en name_ar' });
+            .select('products location locationDetails')
+            .populate({ path: 'products.product', select: 'category name name_en name_ar' });
 
         res.status(200).json({
-            state:1,
-            data:order
+            state: 1,
+            data: order
         });
 
     } catch (err) {

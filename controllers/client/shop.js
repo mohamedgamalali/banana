@@ -462,7 +462,7 @@ exports.postDeleteFevList = async (req, res, next) => {
 //orders
 exports.postAddOrder = async (req, res, next) => {
     const locationId = req.body.locationId;
-    const arriveDate = req.body.arriveIn || 0; 
+    const arriveDate = req.body.arriveIn || 0;
     let category = [];
     let cart = [];
     let amount_count = 0;
@@ -589,7 +589,7 @@ exports.getOffers = async (req, res, next) => {
         if (filter == 1) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
                 .select('seller banana_delivery price createdAt offerProducts')
-                .populate({ path: 'seller', select: 'rate certificate.avilable' }) 
+                .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
                     path: 'offerProducts.product', select: 'name_en name_ar name',
                 })
@@ -632,7 +632,7 @@ exports.getOffers = async (req, res, next) => {
                         }
                     }
                 }
-            }) 
+            })
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
@@ -1228,30 +1228,36 @@ exports.postCancelComingOrder = async (req, res, next) => {
             const client = await Client.findById(req.userId).select('wallet');
 
             if (new Date(pay.createdAt).getTime() + 600000 < Date.now()) {
+
                 const minus = (offer.price * 5) / 100;
 
-                client.wallet += (offer.price - minus);
-                
+                client.wallet    += (offer.price - minus);
+                pay.refund        = true;
+                pay.refund_amount = (offer.price - minus);
+
+
                 const walletTransaction = new ClientWalet({
                     client: client._id,
                     action: 'refund',
                     amount: (offer.price - minus),
                     method: 'visa',
-                    time:new Date().getTime().toString()
+                    time: new Date().getTime().toString()
                 });
                 await walletTransaction.save();
 
                 await client.save();
             } else {
 
-                client.wallet += offer.price;
+                client.wallet    += offer.price;
+                pay.refund        = true;
+                pay.refund_amount = offer.price ;
 
                 const walletTransaction = new ClientWalet({
                     client: client._id,
                     action: 'refund',
                     amount: offer.price,
                     method: 'visa',
-                    time:new Date().getTime().toString()
+                    time: new Date().getTime().toString()
                 });
                 await walletTransaction.save();
 
@@ -1260,13 +1266,13 @@ exports.postCancelComingOrder = async (req, res, next) => {
         }
 
         pay.cancel = true;
-        
-        
+
+
 
         await pay.save();
         await Offer.updateMany({ order: order._id }, { status: 'ended' });
         await order.cancelOrder();
-        
+
 
         res.status(200).json({
             state: 1,
