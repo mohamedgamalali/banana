@@ -209,7 +209,16 @@ exports.putOffer = async (req, res, next) => {
         if (!d) {
             bananaPrice = 0;
         } else {
-            bananaPrice = (Number(price) * d.price) / 100;
+            if (banana_delivery) {
+                if (Number(price) <= d.price) {
+                    const error = new Error(`price less than panana dlivry price`);
+                    error.statusCode = 422;
+                    error.state = 51;
+                    throw error;
+                }
+            }
+
+            bananaPrice =  d.price ;
         }
 
         const offer = new Offer({
@@ -305,14 +314,14 @@ exports.postOrderArrived = async (req, res, next) => {
         if (pay.method != 'cash') {
             const seller = await Seller.findById(req.userId).select('bindingWallet');
             const minus = (offer.price * 5) / 100;
-            let arrivePrice = 0 ;
+            let arrivePrice = 0;
 
             if (offer.banana_delivery) {
                 seller.bindingWallet += (offer.price - (offer.banana_delivery_price + minus));
-                arrivePrice           = (offer.price - (offer.banana_delivery_price + minus)) ;
+                arrivePrice = (offer.price - (offer.banana_delivery_price + minus));
             } else {
                 seller.bindingWallet += (offer.price - minus);
-                arrivePrice           = (offer.price - minus);
+                arrivePrice = (offer.price - minus);
 
             }
 

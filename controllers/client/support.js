@@ -78,7 +78,7 @@ exports.postIssue = async (req, res, next) => {
             throw error;
         }
 
-        const pay = await Pay.findOne({ order: order._id, offer: offer._id, seller: offer.seller._id}).select('deliver');
+        const pay = await Pay.findOne({ order: order._id, offer: offer._id, seller: offer.seller._id}).select('deliver arriveIn');
         
         if (!pay) {
             const error = new Error(`payment required client didn't pay`);
@@ -89,6 +89,13 @@ exports.postIssue = async (req, res, next) => {
 
         if (!pay.deliver) {
             const error = new Error(`order didn't delever`);
+            error.statusCode = 409;
+            error.state = 49;
+            throw error;
+        }
+
+        if (new Date(pay.arriveIn).getTime + 259200000 < Date.now() ) {
+            const error = new Error(`can't but issue after 3 dayes`);
             error.statusCode = 409;
             error.state = 49;
             throw error;

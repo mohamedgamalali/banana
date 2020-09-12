@@ -8,6 +8,7 @@ const Pay = require('../../models/pay');
 const ScadPay = require('../../models/seller-sccad-pay');
 const Client = require('../../models/client');
 const Seller = require('../../models/seller');
+const ClientWalet = require('../../models/clientWallet');
 
 const schedule = require('node-schedule');
 
@@ -187,7 +188,7 @@ exports.getIssues = async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip((page - 1) * issuePerPage)
             .limit(issuePerPage)
-            .select('order offer reason state imageUrl')
+            .select('order offer reason state imageUrl demands') 
             .populate({
                 path: 'order',
                 select: 'products',
@@ -308,7 +309,11 @@ exports.postIssueApprove = async (req, res, next) => {
 
         //cancel scadual
         const my_job = schedule.scheduledJobs[scadPay._id.toString()];
-        my_job.cancel();
+        try{
+            my_job.cancel();
+        }catch(ERRORRR){
+            console.log('scadual null');
+        }
 
         const client = await Client.findById(pay.client._id).select('wallet');
 
