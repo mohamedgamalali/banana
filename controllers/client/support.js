@@ -41,7 +41,7 @@ exports.postIssue = async (req, res, next) => {
             throw error;
         }
         
-        const order = await Order.findById(orderId);
+        const order = await Order.findById(orderId).select('client status ');
         if (!order) {
             const error = new Error(`order not found`);
             error.statusCode = 404;
@@ -78,7 +78,7 @@ exports.postIssue = async (req, res, next) => {
             throw error;
         }
 
-        const pay = await Pay.findOne({ order: order._id, offer: offer._id, seller: offer.seller._id});
+        const pay = await Pay.findOne({ order: order._id, offer: offer._id, seller: offer.seller._id}).select('deliver');
         
         if (!pay) {
             const error = new Error(`payment required client didn't pay`);
