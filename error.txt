@@ -83,3 +83,6 @@
 
     //seller pull request
     48=>amount is biggeer than seller wallet
+
+    //seller guest
+    52=>you can't filter with location in guest

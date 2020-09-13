@@ -61,7 +61,7 @@ const erorrMeddlewere = require('./helpers/errors');
 
 app.use('/client', router.client.auth, router.client.shop, router.client.user, router.client.support);
 app.use('/client/guest', router.client.guest);
-app.use('/seller', router.seller.auth, router.seller.shop, router.seller.user, router.seller.support);
+app.use('/seller', router.seller.auth, router.seller.shop, router.seller.user, router.seller.support, router.seller.guest);
 app.use('/admin', router.admin.auth, router.admin.shop, router.admin.user,router.admin.support, router.admin.mony);
 
 //error handle meddlewere
@@ -109,11 +109,11 @@ mongoose
 
             schedule.scheduleJob(item._id.toString(), new Date(item.fireIn).getTime(), async function () {
                 const seller = await Seller.findById(item.seller._id).select('wallet bindingWallet');
-                if (seller.bindingWallet >= item.price) {
+                if (seller.bindingWallet >= item.price && item.delever==false) {
                     seller.bindingWallet = seller.bindingWallet - item.price;
                     seller.wallet += item.price;
                     await seller.save();
-                    const sss = await SccadPay.findById(s._id)
+                    const sss = await SccadPay.findById(item._id)
                     sss.delever = true;
                     await sss.save();
                 }
