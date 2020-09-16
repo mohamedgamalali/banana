@@ -559,8 +559,8 @@ exports.getNotfications = async (req, res, next) => {
     const productPerPage = 10;
 
     try {
-        const total = await Notfications.find({}).countDocuments();
-        const notfications = await Notfications.find({})
+        const total = await Notfications.find({path:'client',user:req.userId}).countDocuments();
+        const notfications = await Notfications.find({path:'client',user:req.userId})
             .select('data notification date createdAt')
             .sort({ createdAt: -1 })
             .skip((page - 1) * productPerPage)
