@@ -46,4 +46,19 @@ router.post('/client/block/unblock',[
 
 router.get('/client/single/:id',isAuth,userController.getSingleClient);
 
+
+router.post('/notfications/sendAll',[
+    body('path')
+    .not().isEmpty(),
+    body('title_ar')
+    .not().isEmpty(),
+    body('title_en')
+    .not().isEmpty(),
+    body('body_ar')
+    .not().isEmpty(),
+    body('body_en')
+    .not().isEmpty()
+
+],isAuth,userController.sendNotfication);
+
 module.exports = router;

@@ -83,6 +83,10 @@ const sellerSchema = new schema({
     FCMJwt: [{
         type: String
     }],
+    lang:{
+        type:String,
+        default:'en'
+    },
     sendNotfication: {
         type: Boolean,
         default: true

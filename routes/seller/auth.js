@@ -38,6 +38,8 @@ router.put('/signup',[
     .not().isEmpty()
     .trim(),
     body('FCM')
+    .not().isEmpty(),
+    body('lang')
     .not().isEmpty()
 ],authController.postSignup);
 

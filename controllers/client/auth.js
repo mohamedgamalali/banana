@@ -13,11 +13,18 @@ exports.postSignup = async (req, res, next) => {
     const mobile = req.body.mobile;
     const email = req.body.email;
     const code = req.body.code;
-    const FCM = req.body.FCM;
+    const FCM  = req.body.FCM;
+    const lang = req.body.lang;
 
     try {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        if(lang!='ar'&&lang!='en'){
+            const error = new Error(`validation faild for lang.. must be 'ar' or 'en`);
             error.statusCode = 422;
             error.state = 5;
             throw error;
@@ -48,7 +55,8 @@ exports.postSignup = async (req, res, next) => {
             password: hashedPass,
             fevProducts: [],
             updated: Date.now().toString(),
-            FCM: [FCM]
+            FCM: [FCM],
+            lang:lang
         });
 
         const client = await newClient.initFev();

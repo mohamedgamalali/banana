@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
 const schedule = require('node-schedule');
+const admin = require("firebase-admin");
 
 
 
@@ -41,6 +42,27 @@ const fileFilter = (req, file, cb) => {
 
 //meddleWere
 app.use(bodyParser.json());
+
+//FCM client app
+admin.initializeApp({
+    credential: admin.credential.cert({
+      clientEmail: process.env.FCM_CLINT_EMAIL,
+      privateKey:  process.env.FCM_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      projectId:   process.env.FCM_PROJ_ID ,
+  }),
+},'client');
+
+//FCM seller app
+admin.initializeApp({
+    credential: admin.credential.cert({
+      clientEmail: process.env.SELLER_FCM_CLINT_EMAIL,
+      privateKey:  process.env.SELLER_FCM_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      projectId:   process.env.SELLER_FCM_PROJ_ID ,
+  }),
+},'seller');
+
+//console.log(admin.apps[0]);
+
 
 //multer meddlewere
 app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).array('image'));

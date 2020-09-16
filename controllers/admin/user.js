@@ -10,6 +10,8 @@ const Pay = require("../../models/pay");
 const Scad = require("../../models/cert-expire");
 const ClientWallet = require("../../models/clientWallet");
 
+const sendNotfication = require('../../helpers/send-notfication');
+
 //seller
 exports.getSellers = async (req, res, next) => {
 
@@ -418,31 +420,79 @@ exports.getSingleClient = async (req, res, next) => {
         commingPay.forEach(item => {
             ComOrderIdS.push(item.order._id);
         });
-        
-        const ComOrders = await Offer.find({ client: client._id, order: { $in: ComOrderIdS },selected:true })
+
+        const ComOrders = await Offer.find({ client: client._id, order: { $in: ComOrderIdS }, selected: true })
             .select('order seller banana_delivery price offerProducts location')
-            .populate({ 
+            .populate({
                 path: 'order',
                 select: 'location stringAdress arriveDate products locationDetails pay',
-                populate:{
-                    path: 'products.product', 
-                    select: 'name name_en name_ar imageUrl' 
+                populate: {
+                    path: 'products.product',
+                    select: 'name name_en name_ar imageUrl'
                 }
             })
             .populate({
-                path:'seller',
-                select:'name'
+                path: 'seller',
+                select: 'name'
             })
             .sort({ createdAt: -1 });
 
         res.status(200).json({
             state: 1,
-            client:client,
-            clientWalletTransActions:clientWallet,
-            CommingOrders:ComOrders,
+            client: client,
+            clientWalletTransActions: clientWallet,
+            CommingOrders: ComOrders,
             message: 'all client data'
         });
 
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
+exports.sendNotfication = async (req, res, next) => {
+
+    const path = req.body.path;
+    const title_ar = req.body.title_ar;
+    const title_en = req.body.title_en;
+    const body_ar = req.body.body_ar;
+    const body_en = req.body.body_en;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+        if (path != 'client' && path != 'seller') {
+            const error = new Error(`validation faild for path.. must be "client" or "seller"`);
+            error.statusCode = 422;
+            throw error;
+        }
+        const notification = {
+            title_ar: title_ar,
+            body_ar: body_ar,
+            title_en: title_en,
+            body_en: body_en
+        };
+        const data = {
+            id: 'none',
+            key: '0',
+        };
+
+        sendNotfication.sendAll(data,notification,path);
+
+
+        res.status(200).json({
+            state: 1,
+            message: `notfication sent to ${path}`
+        });
 
     } catch (err) {
         if (!err.statusCode) {

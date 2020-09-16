@@ -1,65 +1,96 @@
 const admin = require("firebase-admin");
-const User = require("../models/user");
+
 const io = require("../socket.io/socket");
 
-const send = async (token, b, notfi, userId) => {
+const Notfication = require('../models/notfications');
+
+const Client = require('../models/client');
+
+const Seller = require('../models/seller');
+
+
+const send = async (data, notfi, user, path) => {
   try {
-    userId.forEach(async (u) => {
-      try {
-        const user = await User.findById(u);
-
-        user.notfications.push({
-          data: b,
-          notification: notfi,
-          date: new Date().getTime().toString(),
-        });
-
-        await user.save();
-        io.getIO().emit("notfication", {
-          action: "notfication",
-          userId: u,
-          notfications: {
-            data: b,
-            notification: notfi,
-          },
-        });
-      } catch (err) {
-        if (!err.statusCode) {
-          err.statusCode = 500;
-        }
-        throw err;
+    let index = -1;
+    admin.apps.forEach((app, ind) => {
+      if (app.name == path) {
+        index = ind;
       }
     });
-    if (token.length == 0) {
-      return "no token";
-    }
-    var message = {
-      notification: {
-        title: notfi.title,
-        body: notfi.body,
-      },
-      data: {
-        ...b,
-      },
-      android: {
-        notification: {
-          sound: "default",
+
+    user.forEach(async i => {
+      const notfication = new Notfication({
+        path: path,
+        user: i._id,
+        data: data,
+        notification: notfi,
+        date: new Date().getTime().toString()
+      });
+
+      await notfication.save();
+
+      io.getIO().emit("notfication", {
+        action: "notfication",
+        userId: i._id,
+        notfications: {
+          data: data,
+          notification: notfi,
         },
-      },
-      apns: {
-        payload: {
-          aps: {
-            sound: "default",
+      });
+      let message = {};
+      if (i.lang == 'ar') {
+        message = {
+          notification: {
+            title: notfi.title_ar,
+            body: notfi.body_ar,
           },
-        },
-      },
-      topic: "X",
-      tokens: token,
-    };
+          data: data,
+          android: {
+            notification: {
+              sound: "default",
+            },
+          },
+          apns: {
+            payload: {
+              aps: {
+                sound: "default",
+              },
+            },
+          },
+          topic: "X",
+          tokens: i.FCMJwt,
+        };
+      } else if (i.lang == 'en') {
+        message = {
+          notification: {
+            title: notfi.title_en,
+            body: notfi.body_en,
+          },
+          data: data,
+          android: {
+            notification: {
+              sound: "default",
+            },
+          },
+          apns: {
+            payload: {
+              aps: {
+                sound: "default",
+              },
+            },
+          },
+          topic: "X",
+          tokens: i.FCMJwt,
+        };
+      }
 
-    const messageRes = await admin.messaging().sendMulticast(message);
+      if(i.FCMJwt.length>0){
+        const messageRes = await admin.apps[index].messaging().sendMulticast(message);
+        console.log(messageRes);
+      }
 
-    return messageRes;
+    });
+
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -68,30 +99,20 @@ const send = async (token, b, notfi, userId) => {
   }
 };
 
-const sendAll = async (body, notfi) => {
+const sendAll = async (data, notfi, path) => {
   try {
-    
-    const users = await User.find({ email: { $ne: "guest@guest.com" } }).select('FCMJwt').lean();
-    
-    let result = [];
-    let id = [];
-    for (let u of users) {
-      if (u.FCMJwt.length > 0) {
-        result = result.concat(u.FCMJwt);
-        id = id.concat(u._id);
-      }
-      if (result.length >= 450) {
-        const R = result;
-        const I = id;
-        await send(R, body, notfi, I);
-        result.length = [];
-        id.length = [];
-      }
+
+    let users;
+    if (path == 'client') {
+      users = await Client.find({}).select('FCMJwt lang')
+
+    } else if (path == 'seller') {
+      users = await Seller.find({}).select('FCMJwt lang')
     }
 
-    const r = await send(result, body, notfi, id);
+    await send(data, notfi, users, path);
 
-    return r;
+    return 'done';
 
   } catch (err) {
     if (!err.statusCode) {
