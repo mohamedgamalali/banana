@@ -91,7 +91,8 @@ exports.postSignup = async (req, res, next) => {
                 sellerMobile: seller.mobile,
                 sellerId: seller._id,
                 sellerImage:seller.image,
-                sellerCatigory:seller.category
+                sellerCatigory:seller.category,
+                lang:seller.lang
             }
         });
 
@@ -171,7 +172,8 @@ exports.postLogin = async (req, res, next) => {
                 sellerMobile: seller.mobile,
                 sellerId: seller._id,
                 sellerImage:seller.image,
-                sellerCatigory:seller.category
+                sellerCatigory:seller.category,
+                lang:seller.lang
             }
         });
         
