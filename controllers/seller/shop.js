@@ -10,11 +10,13 @@ const BananaDelevry = require('../../models/bananaDelivery');
 
 const schedule = require('node-schedule');
 
+const distance = require('../../helpers/distance');
+
 
 exports.getHome = async (req, res, next) => {
 
     try {
-        
+
         const seller = await Seller.findById(req.userId).select('category');
 
         res.status(200).json({
@@ -41,6 +43,7 @@ exports.getOrders = async (req, res, next) => {
     let finalOrders = [];
     let orders;
     const cat = [];
+    let des = 0;
 
     try {
 
@@ -62,8 +65,9 @@ exports.getOrders = async (req, res, next) => {
                             type: "Point",
                             coordinates: req.sellerCert.location.coordinates
                         }
-                    }
-                }
+                    },
+
+                },
             })
                 .select('location category client products amount_count stringAdress arriveDate')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
@@ -84,16 +88,26 @@ exports.getOrders = async (req, res, next) => {
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ amount_count: -1 });
         }
+
+
         for (let element of orders) {
             if (element.category.every(v => req.sellerCat.includes(v))) {
                 const total_client_orders = await Order.find({ client: element.client._id }).countDocuments();
                 const ended_client_orders = await Order.find({ client: element.client._id, status: 'ended' }).countDocuments();
+
+                if (req.sellerCert.location.coordinates.length > 0) {
+                    des = await distance(req.sellerCert.location.coordinates[0],req.sellerCert.location.coordinates[1],element.location.coordinates[0],element.location.coordinates[1])
+                } else {
+                    des = 0 ;
+                }
+
                 finalOrders.push({
                     order: element,
                     client: {
                         total_client_orders: total_client_orders,
                         ended_client_orders: ended_client_orders
-                    }
+                    },
+                    distance:des
                 });
             }
         }
@@ -219,7 +233,7 @@ exports.putOffer = async (req, res, next) => {
                 }
             }
 
-            bananaPrice =  d.price ;
+            bananaPrice = d.price;
         }
 
         const offer = new Offer({

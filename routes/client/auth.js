@@ -28,7 +28,9 @@ router.put('/signup',[
     .trim().isMobilePhone(),
     body('code')
     .not().isEmpty()
-    .trim()
+    .trim(),
+    body('FCM')
+    .not().isEmpty()
 ],authController.postSignup);
 
 router.post('/login',[
@@ -38,6 +40,8 @@ router.post('/login',[
     body('password')
     .not().isEmpty()
     .trim(),
+    body('FCM')
+    .not().isEmpty()
 ],authController.postLogin);
 
 //verfication

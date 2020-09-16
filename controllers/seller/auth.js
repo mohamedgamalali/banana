@@ -14,6 +14,7 @@ exports.postSignup = async (req, res, next) => {
     const mobile = req.body.mobile;
     const category = req.body.category;
     const code = req.body.code;
+    const FCM = req.body.FCM;
 
     try {
         if (!errors.isEmpty()) {
@@ -57,7 +58,8 @@ exports.postSignup = async (req, res, next) => {
             password: hashedPass,
             category:category,
             code:code,
-            updated:Date.now().toString()
+            updated:Date.now().toString(),
+            FCMJwt:[FCM]
         });
 
         const seller = await newSeller.save();
@@ -97,6 +99,7 @@ exports.postLogin = async (req, res, next) => {
     const errors = validationResult(req);
     const emailOrPhone = req.body.mobile;
     const password = req.body.password;
+    const FCM = req.body.FCM;
 
     try {
         if (!errors.isEmpty()) {
@@ -133,6 +136,12 @@ exports.postLogin = async (req, res, next) => {
             error.statusCode = 403;
             error.state = 4;
             throw error;
+        }
+
+        const index = seller.FCMJwt.indexOf(FCM);
+        if (index == -1) {
+            seller.FCMJwt.push(FCM);
+            await seller.save();
         }
 
         const token = jwt.sign(

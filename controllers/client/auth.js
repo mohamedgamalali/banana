@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const SMS = require('../../helpers/sms');
 
 const Client = require('../../models/client');
- 
+
 exports.postSignup = async (req, res, next) => {
     const errors = validationResult(req);
     const name = req.body.name;
@@ -13,6 +13,7 @@ exports.postSignup = async (req, res, next) => {
     const mobile = req.body.mobile;
     const email = req.body.email;
     const code = req.body.code;
+    const FCM = req.body.FCM;
 
     try {
         if (!errors.isEmpty()) {
@@ -43,10 +44,11 @@ exports.postSignup = async (req, res, next) => {
             name: name,
             mobile: mobile,
             email: email,
-            code:code,
+            code: code,
             password: hashedPass,
             fevProducts: [],
-            updated: Date.now().toString()
+            updated: Date.now().toString(),
+            FCM: [FCM]
         });
 
         const client = await newClient.initFev();
@@ -84,6 +86,7 @@ exports.postLogin = async (req, res, next) => {
     const errors = validationResult(req);
     const emailOrPhone = req.body.mobile;
     const password = req.body.password;
+    const FCM = req.body.FCM;
 
 
     try {
@@ -121,6 +124,11 @@ exports.postLogin = async (req, res, next) => {
             error.statusCode = 403;
             error.state = 4;
             throw error;
+        }
+        const index = client.FCMJwt.indexOf(FCM);
+        if (index == -1) {
+            client.FCMJwt.push(FCM);
+            await client.save();
         }
 
         const token = jwt.sign(
@@ -254,9 +262,9 @@ exports.postChangeMobile = async (req, res, next) => {
             error.state = 6;
             throw error;
         }
-        
+
         client.mobile = mobile;
-        client.code   = code  ;
+        client.code = code;
 
         await client.save();
 
@@ -375,9 +383,9 @@ exports.postForgetPasswordVerfy = async (req, res, next) => {
 
 
 exports.postForgetPasswordChangePassword = async (req, res, next) => {
-    const mobile   = req.body.mobile;
-    const code     = req.body.VerCode;
-    const password = req.body.password ;
+    const mobile = req.body.mobile;
+    const code = req.body.VerCode;
+    const password = req.body.password;
     const errors = validationResult(req);
 
     try {
@@ -424,8 +432,8 @@ exports.postForgetPasswordChangePassword = async (req, res, next) => {
 
         client.password = hashedPass;
 
-        const updatedClient =  await client.save() ;
-        
+        const updatedClient = await client.save();
+
 
         const token = jwt.sign(
             {
