@@ -482,3 +482,36 @@ exports.postChangeMobile = async (req, res, next) => {
         next(err);
     }
 }
+
+exports.postLogout = async (req, res, next) => {
+    const FCM    = req.body.FCM;
+    const errors = validationResult(req);
+
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+
+        const seller = await Seller.findById(req.userId).select('FCMJwt');
+
+        let temp = seller.FCMJwt.filter(i=>{
+            return i.toString() !== FCM.toString() ;
+        });
+        seller.FCMJwt = temp ;
+        await seller.save();
+
+        res.status(200).json({
+            state:1,
+            message:'logout!'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}

@@ -3,6 +3,7 @@ const {body}       = require('express-validator');
 
 const authController = require('../../controllers/seller/auth');
 const isAuthVerfy         = require('../../meddlewere/seller/isAuthVerfy');
+const isAuth         = require('../../meddlewere/seller/isAuth');
 
 
 const router  = express.Router();
@@ -99,5 +100,10 @@ router.post('/signup/verfication/changeMobile',[
     .not().isEmpty()
     .trim()
 ],isAuthVerfy,authController.postChangeMobile);
+
+router.post('/logout',[
+    body('FCM')
+    .not().isEmpty(),
+],isAuth,authController.postLogout)
 
 module.exports = router;

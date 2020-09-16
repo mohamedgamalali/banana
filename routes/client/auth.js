@@ -3,6 +3,7 @@ const {body}       = require('express-validator');
 
 const authController = require('../../controllers/client/auth');
 const isAuthVerfy         = require('../../meddlewere/client/isAuthVerfy');
+const isAuth         = require('../../meddlewere/client/isAuth');
 
 
 const router  = express.Router();
@@ -92,6 +93,11 @@ router.post('/forgetPassword/changePassword',[
         return true ;
     })
 ],authController.postForgetPasswordChangePassword);
+
+router.post('/logout',[
+    body('FCM')
+    .not().isEmpty(),
+],isAuth,authController.postLogout)
 
 
 module.exports = router;
