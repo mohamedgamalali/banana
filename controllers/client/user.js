@@ -670,3 +670,40 @@ exports.getSingleOrderOffer = async (req, res, next) => {
     }
 }
 
+
+exports.postEditLang = async (req, res, next) => {
+    const lang = req.body.lang;
+
+    const errors = validationResult(req);
+    try {
+
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        if(lang!='ar'&&lang!='en'){
+            const error = new Error(`validation faild for lang.. must be 'ar' or 'en`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        const client = await Client.findById(req.userId).select('lang');
+
+        client.lang = lang;
+
+        const updatedClient = await client.save();
+
+        res.status(200).json({
+            state: 1,
+            message: `language ${updatedClient.lang}`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}

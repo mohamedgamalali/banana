@@ -100,5 +100,9 @@ router.get('/wallet',isAuth,userController.getWallet);
 //single offer for selected order
 router.get('/order/single/offer/:orderId',isAuth,userController.getSingleOrderOffer);
 
+router.post('/profile/edit/lang',[
+    body('lang')
+    .not().isEmpty()
+],isAuth,userController.postEditLang);
 
 module.exports = router;

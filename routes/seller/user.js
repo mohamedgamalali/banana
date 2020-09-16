@@ -111,7 +111,10 @@ router.post('/pullMony',[
 //notfications
 router.get('/notfication',isAuth,userController.getNotfications);
 
-
+router.post('/profile/edit/lang',[
+    body('lang')
+    .not().isEmpty()
+],isAuth,userController.postEditLang);
 
 
 module.exports = router;

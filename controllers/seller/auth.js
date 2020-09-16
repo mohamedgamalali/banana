@@ -15,6 +15,7 @@ exports.postSignup = async (req, res, next) => {
     const category = req.body.category;
     const code = req.body.code;
     const FCM = req.body.FCM;
+    const lang = req.body.lang;
 
     try {
         if (!errors.isEmpty()) {
@@ -32,6 +33,13 @@ exports.postSignup = async (req, res, next) => {
                 throw error;
             }
         });
+
+        if(lang!='ar'&&lang!='en'){
+            const error = new Error(`validation faild for lang.. must be 'ar' or 'en`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
 
         const checkSeller = await Seller.findOne({ mobile: mobile });
 
@@ -59,7 +67,8 @@ exports.postSignup = async (req, res, next) => {
             category:category,
             code:code,
             updated:Date.now().toString(),
-            FCMJwt:[FCM]
+            FCMJwt:[FCM],
+            lang:lang
         });
 
         const seller = await newSeller.save();
