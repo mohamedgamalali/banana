@@ -11,7 +11,7 @@ const Seller = require('../../models/seller');
 const ClientWalet = require('../../models/clientWallet');
 
 const schedule = require('node-schedule');
-const client = require("../../models/client");
+const sendNotfication = require('../../helpers/send-notfication');
 
 
 
@@ -311,7 +311,8 @@ exports.postIssueApprove = async (req, res, next) => {
         }
 
         const pay = await Pay.findOne({ order: issues.order._id, offer: issues.offer._id, seller: issues.seller._id })
-            .populate({ path: 'offer', select: 'price' });
+            .populate({ path: 'offer', select: 'price' })
+            .populate({ path: 'client', select: 'FCMJwt sendNotfication' });
 
 
 
@@ -405,6 +406,20 @@ exports.postIssueApprove = async (req, res, next) => {
         await pay.save();
         await ScadPay.deleteOne({ _id: scadPay._id });
 
+        if(pay.client.sendNotfication.all==true){
+            const notification = {
+                title_ar: 'قسم الشكاوي',
+                body_ar: "تم الرد على الشكوي المقدمة",
+                title_en: 'Complaints Department',
+                body_en: 'The submitted complaint has been answered'
+            };
+            const data = {
+                id: issues._id.toString(),
+                key: '2',
+            };
+
+            await sendNotfication.send(data,notification,[pay.client],'client');
+        }
 
         res.status(200).json({
             state: 1,

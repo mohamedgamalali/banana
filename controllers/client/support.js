@@ -8,20 +8,11 @@ const IssueResons = require('../../models/issue-reason');
 const SupportMessage = require('../../models/supportMessages');
 const Policy = require('../../models/policy');
 const Conditions               = require('../../models/conditions');
+const Client               = require('../../models/client');
 
 
-// const newI = new IssueResons({
-//     reason_ar:'سسس',
-//     reason_en:'rr'
-// });
+const sendNotfication = require('../../helpers/send-notfication');
 
-// newI.save()
-// .then(i=>{
-//     console.log(i);
-// })
-// .catch(err=>{
-//     console.log(err);
-// })
 
 const deleteFile = require("../../helpers/file");
 
@@ -135,6 +126,24 @@ exports.postIssue = async (req, res, next) => {
 
         const issue = new Issue(temp);
         const iii     = await issue.save();
+
+        const client = await Client.findById(req.userId).select('FCMJwt sendNotfication')
+
+        if(client.sendNotfication.all == true){
+            const notification = {
+                title_ar: 'قسم الشكاوي',
+                body_ar: "تم ارسال الشكوى بنجاح",
+                title_en: 'Complaints Department',
+                body_en: 'The complaint has been sent successfully'
+            };
+            const data = {
+                id: iii._id.toString(),
+                key: '2',
+            };
+    
+            await sendNotfication.send(data,notification,[client],'client');
+        }
+        
 
         res.status(201).json({
             state: 1,

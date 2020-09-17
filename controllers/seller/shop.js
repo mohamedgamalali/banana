@@ -299,7 +299,8 @@ exports.postOrderArrived = async (req, res, next) => {
             throw error;
         }
 
-        const order = await Order.findById(orderId);
+        const order = await Order.findById(orderId)
+        .populate({path:'client',select:'sendNotfication FCMJwt'});
         if (!order) {
             const error = new Error(`order not found`);
             error.statusCode = 404;
@@ -399,6 +400,21 @@ exports.postOrderArrived = async (req, res, next) => {
         //saving
 
         await pay.save();
+
+        if(order.client.sendNotfication.all == true){
+            const notification = {
+                title_ar: 'قم بتقييم الطلب',
+                body_ar: "قم بتقييم طلبك السابق",
+                title_en: 'Rate your order',
+                body_en: 'Rate your previous order'
+            };
+            const data = {
+                id: order._id.toString(),
+                key: '4',
+            };
+    
+            await sendNotfication.send(data,notification,[order.client],'client');
+        }
 
         res.status(201).json({
             state: 1,

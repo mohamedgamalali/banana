@@ -13,6 +13,7 @@ const ClientWalet = require('../../models/clientWallet');
 const Seller = require('../../models/seller');
 
 const pay = require('../../helpers/pay');
+const sendNotfication = require('../../helpers/send-notfication');
 
 
 exports.getProducts = async (req, res, next) => {
@@ -475,7 +476,7 @@ exports.postAddOrder = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        const client = await Client.findById(req.userId).select('cart').populate('cart.product');
+        const client = await Client.findById(req.userId).select('cart sendNotfication FCMJwt').populate('cart.product');
         if (!client) {
             const error = new Error(`client not found`);
             error.statusCode = 404;
@@ -526,11 +527,26 @@ exports.postAddOrder = async (req, res, next) => {
                 mobile2: location.mobile
             }
         });
-        await newOrder.save();
+        const ord = await newOrder.save();
 
         //clear client cart
         client.cart = [];
         await client.save();
+
+        if(client.sendNotfication.all == true){
+            const notification = {
+                title_ar: 'تم أضافة طلبك',
+                body_ar: "سوف تصلك العروض على طلبك في اسرع وقت ممكن",
+                title_en: 'Your order has been added',
+                body_en: 'You will receive offers on your order as soon as possible'
+            };
+            const data = {
+                id: ord._id.toString(),
+                key: '3',
+            };
+    
+            await sendNotfication.send(data,notification,[client],'client');
+        }
 
         res.status(201).json({
             state: 1,
