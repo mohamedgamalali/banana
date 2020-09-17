@@ -55,8 +55,10 @@ exports.postSignup = async (req, res, next) => {
             password: hashedPass,
             fevProducts: [],
             updated: Date.now().toString(),
-            FCM: [FCM],
-            lang:lang
+            FCMJwt: [{
+                token:FCM,
+                lang:lang
+            }]
         });
 
         const client = await newClient.initFev();
@@ -96,11 +98,18 @@ exports.postLogin = async (req, res, next) => {
     const emailOrPhone = req.body.mobile;
     const password = req.body.password;
     const FCM = req.body.FCM;
+    const lang = req.body.lang;
 
 
     try {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        if(lang!='ar'&&lang!='en'){
+            const error = new Error(`validation faild for lang.. must be 'ar' or 'en`);
             error.statusCode = 422;
             error.state = 5;
             throw error;
@@ -134,9 +143,25 @@ exports.postLogin = async (req, res, next) => {
             error.state = 4;
             throw error;
         }
-        const index = client.FCMJwt.indexOf(FCM);
+        
+        let index = -1 ;
+        client.FCMJwt.forEach((element,ind) => {
+            if(element.token==FCM){
+                index = ind
+            }
+        });
+
         if (index == -1) {
-            client.FCMJwt.push(FCM);
+            client.FCMJwt.push({
+                token:FCM,
+                lang:lang
+            });
+            await client.save();
+        }else{
+            client.FCMJwt[index] = {
+                token:FCM,
+                lang:lang
+            }
             await client.save();
         }
 
@@ -488,7 +513,7 @@ exports.postLogout = async (req, res, next) => {
 
         const client = await Client.findById(req.userId).select('FCMJwt');
         let temp = client.FCMJwt.filter(i=>{
-            return i.toString() !== FCM.toString() ;
+            return i.token.toString() !== FCM.toString() ;
         });
         client.FCMJwt = temp ;
         await client.save();

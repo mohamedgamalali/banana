@@ -113,6 +113,8 @@ router.get('/notfication',isAuth,userController.getNotfications);
 
 router.post('/profile/edit/lang',[
     body('lang')
+    .not().isEmpty(),
+    body('FCM')
     .not().isEmpty()
 ],isAuth,userController.postEditLang);
 

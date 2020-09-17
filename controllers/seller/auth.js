@@ -67,8 +67,10 @@ exports.postSignup = async (req, res, next) => {
             category:category,
             code:code,
             updated:Date.now().toString(),
-            FCMJwt:[FCM],
-            lang:lang
+            FCMJwt: [{
+                token:FCM,
+                lang:lang
+            }]
         });
 
         const seller = await newSeller.save();
@@ -110,10 +112,17 @@ exports.postLogin = async (req, res, next) => {
     const emailOrPhone = req.body.mobile;
     const password = req.body.password;
     const FCM = req.body.FCM;
+    const lang = req.body.lang;
 
     try {
         if (!errors.isEmpty()) {
             const error = new Error(`validation faild for ${errors.array()[0].param} '${errors.array()[0].msg}'`);
+            error.statusCode = 422;
+            error.state = 5;
+            throw error;
+        }
+        if(lang!='ar'&&lang!='en'){
+            const error = new Error(`validation faild for lang.. must be 'ar' or 'en`);
             error.statusCode = 422;
             error.state = 5;
             throw error;
@@ -148,9 +157,24 @@ exports.postLogin = async (req, res, next) => {
             throw error;
         }
 
-        const index = seller.FCMJwt.indexOf(FCM);
+        let index = -1 ;
+        seller.FCMJwt.forEach((element,ind) => {
+            if(element.token==FCM){
+                index = ind
+            }
+        });
+
         if (index == -1) {
-            seller.FCMJwt.push(FCM);
+            seller.FCMJwt.push({
+                token:FCM,
+                lang:lang
+            });
+            await seller.save();
+        }else{
+            seller.FCMJwt[index] = {
+                token:FCM,
+                lang:lang
+            }
             await seller.save();
         }
 
@@ -509,7 +533,7 @@ exports.postLogout = async (req, res, next) => {
         const seller = await Seller.findById(req.userId).select('FCMJwt');
 
         let temp = seller.FCMJwt.filter(i=>{
-            return i.toString() !== FCM.toString() ;
+            return i.token.toString() !== FCM.toString() ;
         });
         seller.FCMJwt = temp ;
         await seller.save();

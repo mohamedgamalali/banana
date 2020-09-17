@@ -673,6 +673,7 @@ exports.getSingleOrderOffer = async (req, res, next) => {
 
 exports.postEditLang = async (req, res, next) => {
     const lang = req.body.lang;
+    const FCM = req.body.FCM;
 
     const errors = validationResult(req);
     try {
@@ -689,15 +690,28 @@ exports.postEditLang = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        const client = await Client.findById(req.userId).select('lang');
+        const client = await Client.findById(req.userId).select('FCMJwt');
 
-        client.lang = lang;
+        let index = -1 ;
+        client.FCMJwt.forEach((element,ind) => {
+            if(element.token==FCM){
+                index = ind
+            }
+        });
+        if(index == -1){
+            const error = new Error(`FCM not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+
+        client.FCMJwt[index].lang = lang ;
 
         const updatedClient = await client.save();
 
         res.status(200).json({
             state: 1,
-            message: `language ${updatedClient.lang}`
+            message: `language ${updatedClient.FCMJwt[index].lang}`
         });
 
     } catch (err) {

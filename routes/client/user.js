@@ -102,6 +102,8 @@ router.get('/order/single/offer/:orderId',isAuth,userController.getSingleOrderOf
 
 router.post('/profile/edit/lang',[
     body('lang')
+    .not().isEmpty(),
+    body('FCM')
     .not().isEmpty()
 ],isAuth,userController.postEditLang);
 

@@ -81,7 +81,8 @@ const sellerSchema = new schema({
         default: 0
     },
     FCMJwt: [{
-        type: String
+        token: String,
+        lang:String
     }],
     lang:{
         type:String,

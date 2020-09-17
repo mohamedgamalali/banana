@@ -11,6 +11,9 @@ const Seller = require('../models/seller');
 
 const send = async (data, notfi, user, path) => {
   try {
+    let token_en =[];
+    let token_ar =[];
+
     let index = -1;
     admin.apps.forEach((app, ind) => {
       if (app.name == path) {
@@ -37,59 +40,68 @@ const send = async (data, notfi, user, path) => {
           notification: notfi,
         },
       });
-      let message = {};
-      if (i.lang == 'ar') {
-        message = {
-          notification: {
-            title: notfi.title_ar,
-            body: notfi.body_ar,
-          },
-          data: data,
-          android: {
-            notification: {
-              sound: "default",
-            },
-          },
-          apns: {
-            payload: {
-              aps: {
-                sound: "default",
-              },
-            },
-          },
-          topic: "X",
-          tokens: i.FCMJwt,
-        };
-      } else if (i.lang == 'en') {
-        message = {
-          notification: {
-            title: notfi.title_en,
-            body: notfi.body_en,
-          },
-          data: data,
-          android: {
-            notification: {
-              sound: "default",
-            },
-          },
-          apns: {
-            payload: {
-              aps: {
-                sound: "default",
-              },
-            },
-          },
-          topic: "X",
-          tokens: i.FCMJwt,
-        };
-      }
 
-      if(i.FCMJwt.length>0){
-        const messageRes = await admin.apps[index].messaging().sendMulticast(message);
-        console.log(messageRes);
-      }
+      i.FCMJwt.forEach(tok=>{
+          if(tok.lang=='ar'){
+            token_ar.push(tok.token);
+          }else if(tok.lang=='en'){
+            token_en.push(tok.token);
+          }
+      });
 
     });
+
+    const message_ar = {
+      notification: {
+        title: notfi.title_ar,
+        body: notfi.body_ar,
+      },
+      data: data,
+      android: {
+        notification: {
+          sound: "default",
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: "default",
+          },
+        },
+      },
+      topic: "X",
+      tokens: token_ar,
+    };
+    const message_en = {
+      notification: {
+        title: notfi.title_en,
+        body: notfi.body_en,
+      },
+      data: data,
+      android: {
+        notification: {
+          sound: "default",
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: "default",
+          },
+        },
+      },
+      topic: "X",
+      tokens: token_en,
+    };
+
+      if(message_en.tokens.length>0){
+        const messageRes = await admin.apps[index].messaging().sendMulticast(message_en);
+        console.log("en: "+messageRes);
+      }
+      if(message_ar.tokens.length>0){
+        const messageRes = await admin.apps[index].messaging().sendMulticast(message_ar);
+        console.log("ar: "+messageRes);
+      }
 
   } catch (err) {
     if (!err.statusCode) {
@@ -104,10 +116,10 @@ const sendAll = async (data, notfi, path) => {
 
     let users;
     if (path == 'client') {
-      users = await Client.find({}).select('FCMJwt lang')
+      users = await Client.find({}).select('FCMJwt')
 
     } else if (path == 'seller') {
-      users = await Seller.find({}).select('FCMJwt lang')
+      users = await Seller.find({}).select('FCMJwt')
     }
 
     await send(data, notfi, users, path);

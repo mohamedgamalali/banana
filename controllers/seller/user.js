@@ -679,6 +679,7 @@ exports.getNotfications = async (req, res, next) => {
 
 exports.postEditLang = async (req, res, next) => {
     const lang = req.body.lang;
+    const FCM = req.body.FCM;
 
     const errors = validationResult(req);
     try {
@@ -695,15 +696,28 @@ exports.postEditLang = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        const seller = await Seller.findById(req.userId).select('lang');
+        const seller = await Seller.findById(req.userId).select('FCMJwt');
 
-        seller.lang = lang;
+        let index = -1 ;
+        seller.FCMJwt.forEach((element,ind) => {
+            if(element.token==FCM){
+                index = ind
+            }
+        });
+        if(index == -1){
+            const error = new Error(`FCM not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+
+        seller.FCMJwt[index].lang = lang ;
 
         const updatedClient = await seller.save();
 
         res.status(200).json({
             state: 1,
-            message: `language ${updatedClient.lang}`
+            message: `language ${updatedClient.FCMJwt[index].lang}`
         });
 
     } catch (err) {
