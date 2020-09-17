@@ -486,7 +486,7 @@ exports.sendNotfication = async (req, res, next) => {
             key: '0',
         };
 
-        sendNotfication.sendAll(data,notification,path);
+        await sendNotfication.sendAll(data,notification,path);
 
 
         res.status(200).json({

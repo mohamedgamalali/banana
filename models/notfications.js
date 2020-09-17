@@ -6,7 +6,6 @@ const notficationSchema = new schema({
     path:{
         type:String,
         required:true,
-        default:'client',
         enum:['client','seller']
     },
     user: {

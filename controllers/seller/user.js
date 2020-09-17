@@ -9,6 +9,7 @@ const PullRequest = require('../../models/pullRequests');
 const bycript = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
+const  Mongoose  = require('mongoose');
 
 
 exports.getMyOrders = async (req, res, next) => {
@@ -655,12 +656,15 @@ exports.getNotfications = async (req, res, next) => {
     const productPerPage = 10;
 
     try {
-        const total = await Notfications.find({path:'seller',user:req.userId}).countDocuments();
-        const notfications = await Notfications.find({path:'seller',user:req.userId})
+        console.log(req.userId);
+        const total = await Notfications.find({path:'seller',user:Mongoose.Types.ObjectId(req.userId)}).countDocuments();
+        const notfications = await Notfications.find({path:'seller',user:Mongoose.Types.ObjectId(req.userId)})
             .select('data notification date createdAt')
             .sort({ createdAt: -1 })
             .skip((page - 1) * productPerPage)
-            .limit(productPerPage);
+            .limit(productPerPage)
+            .populate({path:'user'});
+            console.log(total);
 
         res.status(200).json({
             state: 1,

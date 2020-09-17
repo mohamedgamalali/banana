@@ -11,8 +11,9 @@ const Seller = require('../models/seller');
 
 const send = async (data, notfi, user, path) => {
   try {
-    let token_en =[];
-    let token_ar =[];
+    console.log(user)
+    let token_en = [];
+    let token_ar = [];
 
     let index = -1;
     admin.apps.forEach((app, ind) => {
@@ -41,12 +42,12 @@ const send = async (data, notfi, user, path) => {
         },
       });
 
-      i.FCMJwt.forEach(tok=>{
-          if(tok.lang=='ar'){
-            token_ar.push(tok.token);
-          }else if(tok.lang=='en'){
-            token_en.push(tok.token);
-          }
+      i.FCMJwt.forEach(tok => {
+        if (tok.lang == 'ar') {
+          token_ar.push(tok.token);
+        } else if (tok.lang == 'en') {
+          token_en.push(tok.token);
+        }
       });
 
     });
@@ -94,14 +95,14 @@ const send = async (data, notfi, user, path) => {
       tokens: token_en,
     };
 
-      if(message_en.tokens.length>0){
-        const messageRes = await admin.apps[index].messaging().sendMulticast(message_en);
-        console.log("en: "+messageRes);
-      }
-      if(message_ar.tokens.length>0){
-        const messageRes = await admin.apps[index].messaging().sendMulticast(message_ar);
-        console.log("ar: "+messageRes);
-      }
+    if (message_en.tokens.length > 0) {
+      const messageRes = await admin.apps[index].messaging().sendMulticast(message_en);
+      console.log("en: " + messageRes);
+    }
+    if (message_ar.tokens.length > 0) {
+      const messageRes = await admin.apps[index].messaging().sendMulticast(message_ar);
+      console.log("ar: " + messageRes);
+    }
 
   } catch (err) {
     if (!err.statusCode) {
@@ -113,16 +114,29 @@ const send = async (data, notfi, user, path) => {
 
 const sendAll = async (data, notfi, path) => {
   try {
-
+    const userPerOperation = 100;
     let users;
+  
     if (path == 'client') {
-      users = await Client.find({}).select('FCMJwt')
+      const total = await Client.find({}).countDocuments();
+      for (let i = 1; i <= Math.ceil(total / 100); i++) {
+        users = await Client.find({}).select('FCMJwt')
+          .skip((i - 1) * userPerOperation)
+          .limit(userPerOperation);
+          await send(data, notfi, users, path);
+
+      }
 
     } else if (path == 'seller') {
-      users = await Seller.find({}).select('FCMJwt')
-    }
+      const total = await Seller.find({}).countDocuments();
+      for (let i = 1; i <= Math.ceil(total / 100); i++) {
+        users = await Seller.find({}).select('FCMJwt')
+          .skip((i - 1) * userPerOperation)
+          .limit(userPerOperation);
+          await send(data, notfi, users, path);
 
-    await send(data, notfi, users, path);
+      }
+    }
 
     return 'done';
 
