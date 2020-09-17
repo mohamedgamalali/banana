@@ -584,7 +584,10 @@ exports.getNotfications = async (req, res, next) => {
 
 
 exports.postManageSendNotfication = async (req, res, next) => {
-    const action = req.body.action;
+    const all = Boolean(req.body.all) ;
+    const newOffer = Boolean(req.body.newOffer) ;
+    const offerStatus = Boolean(req.body.offerStatus) ;
+    const update =Boolean(req.body.update) ;
 
     const errors = validationResult(req);
     try {
@@ -597,7 +600,12 @@ exports.postManageSendNotfication = async (req, res, next) => {
         }
         const client = await Client.findById(req.userId).select('sendNotfication');
 
-        client.sendNotfication = action;
+        client.sendNotfication ={
+            all:all,
+            newOffer:newOffer,
+            offerStatus:offerStatus,
+            update:update
+        };
 
         const updatedClient = await client.save();
 
@@ -722,3 +730,5 @@ exports.postEditLang = async (req, res, next) => {
         next(err);
     }
 }
+
+

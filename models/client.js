@@ -78,8 +78,22 @@ const clientSchema = new schema({
         default:'en'
     },
     sendNotfication: {
-        type: Boolean,
-        default: true
+        all:{
+            type:Boolean,
+            default:true
+        },
+        newOffer:{
+            type:Boolean,
+            default:true
+        },
+        offerStatus:{
+            type:Boolean,
+            default:true
+        },
+        update:{
+            type:Boolean,
+            default:true
+        },
     },
     updated:{
         type:String,

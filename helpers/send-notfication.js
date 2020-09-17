@@ -11,7 +11,7 @@ const Seller = require('../models/seller');
 
 const send = async (data, notfi, user, path) => {
   try {
-    console.log(user)
+
     let token_en = [];
     let token_ar = [];
 
@@ -22,7 +22,7 @@ const send = async (data, notfi, user, path) => {
       }
     });
 
-    user.forEach(async i => {
+    for(i of user){
       const notfication = new Notfication({
         path: path,
         user: i._id,
@@ -50,7 +50,7 @@ const send = async (data, notfi, user, path) => {
         }
       });
 
-    });
+    }
 
     const message_ar = {
       notification: {
@@ -97,11 +97,11 @@ const send = async (data, notfi, user, path) => {
 
     if (message_en.tokens.length > 0) {
       const messageRes = await admin.apps[index].messaging().sendMulticast(message_en);
-      console.log("en: " + messageRes);
+      console.log( messageRes);
     }
     if (message_ar.tokens.length > 0) {
       const messageRes = await admin.apps[index].messaging().sendMulticast(message_ar);
-      console.log("ar: " + messageRes);
+      console.log(messageRes);
     }
 
   } catch (err) {

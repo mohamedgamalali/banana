@@ -12,6 +12,8 @@ const schedule = require('node-schedule');
 
 const distance = require('../../helpers/distance');
 
+const sendNotfication = require('../../helpers/send-notfication');
+
 
 exports.getHome = async (req, res, next) => {
 
@@ -143,7 +145,7 @@ exports.putOffer = async (req, res, next) => {
             throw error;
         }
 
-        const order = await Order.findById(orderId);
+        const order =  await Order.findById(orderId).populated({path:'client',select:'FCMJwt sendNotfication'});
         if (!order) {
             const error = new Error(`order not found`);
             error.statusCode = 404;
@@ -248,7 +250,23 @@ exports.putOffer = async (req, res, next) => {
             banana_delivery_price: bananaPrice
         });
 
-        await offer.save();
+        const newOffer = await offer.save();
+
+        if(order.client.sendNotfication.all==true && order.client.sendNotfication.newOffer==true ){
+            const notification = {
+                title_ar: 'عرض جديد',
+                body_ar: "قم بتفحص العروض الجديدة",
+                title_en: 'new offer',
+                body_en: 'Check out new offers'
+            };
+            const data = {
+                id: newOffer._id.toString(),
+                key: '1',
+            };
+    
+            await sendNotfication.send(data,notification,[order.client],'client');
+        }
+        
 
         res.status(201).json({
             state: 1,

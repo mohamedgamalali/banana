@@ -28,9 +28,18 @@ router.post('/profile/edit/name',[
 ],isAuth,userController.postEditName);
 
 router.post('/notfication/send',[
-    body('action')
+    body('all')
     .not().isEmpty()
-    .isBoolean()
+    .isBoolean(),
+    body('newOffer')
+    .not().isEmpty()
+    .isBoolean(),
+    body('offerStatus')
+    .not().isEmpty()
+    .isBoolean(),
+    body('update')
+    .not().isEmpty()
+    .isBoolean(),
 ],isAuth,userController.postManageSendNotfication);
  
 router.post('/profile/edit/password',[
