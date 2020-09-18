@@ -145,7 +145,7 @@ exports.putOffer = async (req, res, next) => {
             throw error;
         }
 
-        const order =  await Order.findById(orderId).populated({path:'client',select:'FCMJwt sendNotfication'});
+        const order =  await Order.findById(orderId).populate({path:'client',select:'FCMJwt sendNotfication'});
         if (!order) {
             const error = new Error(`order not found`);
             error.statusCode = 404;
