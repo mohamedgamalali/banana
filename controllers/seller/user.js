@@ -10,6 +10,7 @@ const bycript = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const  Mongoose  = require('mongoose');
+const seller = require('../../models/seller');
 
 
 exports.getMyOrders = async (req, res, next) => {
@@ -119,15 +120,15 @@ exports.getSingleOrderDetails = async (req, res, next) => {
     const offerId = req.params.offer;
     try {
 
-        const offer = await Offer.findOne({ _id: offerId, seller: req.userId })
+        let offer = await Offer.findOne({ _id: offerId, seller: req.userId })
             .select('order client')
             .populate({
                 path: 'order',
                 select: 'locationDetails location arriveDate'
             })
             .populate({
-                path: 'client',
-                select: 'name'
+                path:   'client',
+                select: 'name mobile image'
             });
         if (!offer) {
             const error = new Error(`offer not found`);
@@ -142,6 +143,9 @@ exports.getSingleOrderDetails = async (req, res, next) => {
             throw error;
         }
 
+        const pay = await Pay.findOne({offer:offer._id,seller:req.userId})
+        .select('method'); 
+
         res.status(200).json({
             state: 1,
             data: {
@@ -149,12 +153,13 @@ exports.getSingleOrderDetails = async (req, res, next) => {
                 adress: offer.order.locationDetails.stringAdress,
                 name: offer.client.name,
                 location: offer.order.location,
-                date: offer.order.arriveDate
+                date: offer.order.arriveDate,
+                payMathod:pay.method,
+                accountMobile:offer.client.mobile,
+                image:offer.client.image
             },
             message: 'client details for delever order'
-        })
-
-
+        });
 
     } catch (err) {
         if (!err.statusCode) {
@@ -402,7 +407,12 @@ exports.postDeleteCategory = async (req, res, next) => {
 
 //notfications
 exports.postManageSendNotfication = async (req, res, next) => {
-    const action = req.body.action;
+
+    const all = Boolean(req.body.all) ;
+    const nearOrders = Boolean(req.body.nearOrders) ;
+    const issues = Boolean(req.body.issues) ;
+    const orderStatus = Boolean(req.body.orderStatus) ;
+    const update = Boolean(req.body.update) ;
 
     const errors = validationResult(req);
     try {
@@ -415,13 +425,19 @@ exports.postManageSendNotfication = async (req, res, next) => {
         }
         const seller = await Seller.findById(req.userId).select('sendNotfication');
 
-        seller.sendNotfication = action;
+        seller.sendNotfication ={
+            all:all,
+            nearOrders:nearOrders,
+            issues:issues,
+            orderStatus:orderStatus,
+            update:update
+        };
 
-        const updatedSeller = await seller.save();
+        const updatedClient = await seller.save();
 
         res.status(200).json({
             state: 1,
-            message: `notfication action ${updatedSeller.sendNotfication}`
+            message: `notfication action ${updatedClient.sendNotfication}`
         });
 
     } catch (err) {
@@ -432,7 +448,27 @@ exports.postManageSendNotfication = async (req, res, next) => {
     }
 }
 
+exports.getNotficationSettings = async (req, res, next) => {
 
+    
+    try {
+
+        const seller = await Seller.findById(req.userId)
+        .select('sendNotfication');
+
+        res.status(200).json({
+            state:1,
+            datat:seller,
+            message:'notfications sittings'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
 
 //mobile
 exports.postEditMobile = async (req, res, next) => {

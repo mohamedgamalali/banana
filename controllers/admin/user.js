@@ -486,12 +486,119 @@ exports.sendNotfication = async (req, res, next) => {
             key: '0',
         };
 
-        await sendNotfication.sendAll(data,notification,path);
+        await sendNotfication.sendAll(data, notification, path);
 
 
         res.status(200).json({
             state: 1,
             message: `notfication sent to ${path}`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+exports.singleNotficationSeller = async (req, res, next) => {
+
+    const sellerId = req.body.sellerId;
+    const title_ar = req.body.title_ar;
+    const title_en = req.body.title_en;
+    const body_ar = req.body.body_ar;
+    const body_en = req.body.body_en;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+
+        const seller = await Seller.findById(sellerId).select('FCMJwt sendNotfication');
+        if (!seller) {
+            const error = new Error('seller not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        if (seller.sendNotfication.all == true) {
+            const notification = {
+                title_ar: title_ar,
+                body_ar: body_ar,
+                title_en: title_en,
+                body_en: body_en
+            };
+            const data = {
+                id: 'none',
+                key: '0',
+            };
+
+            await sendNotfication.send(data, notification, [seller], 'seller');
+        }
+
+
+
+        res.status(200).json({
+            state: 1,
+            message: `notfication sent to ${sellerId}`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+exports.singleNotficationClient = async (req, res, next) => {
+
+    const clientId = req.body.clientId;
+    const title_ar = req.body.title_ar;
+    const title_en = req.body.title_en;
+    const body_ar = req.body.body_ar;
+    const body_en = req.body.body_en;
+
+    const errors = validationResult(req);
+    try {
+        if (!errors.isEmpty()) {
+            const error = new Error(`validation faild for ${errors.array()[0].param} in ${errors.array()[0].location}`);
+            error.statusCode = 422;
+            throw error;
+        }
+
+        const client = await Client.findById(clientId).select('FCMJwt sendNotfication');
+        if (!client) {
+            const error = new Error('client not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+
+        if (client.sendNotfication.all == true) {
+
+            const notification = {
+                title_ar: title_ar,
+                body_ar: body_ar,
+                title_en: title_en,
+                body_en: body_en
+            };
+            const data = {
+                id: 'none',
+                key: '0',
+            };
+            await sendNotfication.send(data, notification, [client], 'client');
+
+        }
+
+
+
+        res.status(200).json({
+            state: 1,
+            message: `notfication sent to ${clientId}`
         });
 
     } catch (err) {

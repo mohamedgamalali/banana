@@ -533,7 +533,7 @@ exports.postAddOrder = async (req, res, next) => {
         client.cart = [];
         await client.save();
 
-        if(client.sendNotfication.all == true){
+        if (client.sendNotfication.all == true) {
             const notification = {
                 title_ar: 'تم أضافة طلبك',
                 body_ar: "سوف تصلك العروض على طلبك في اسرع وقت ممكن",
@@ -544,8 +544,8 @@ exports.postAddOrder = async (req, res, next) => {
                 id: ord._id.toString(),
                 key: '3',
             };
-    
-            await sendNotfication.send(data,notification,[client],'client');
+
+            await sendNotfication.send(data, notification, [client], 'client');
         }
 
         res.status(201).json({
@@ -829,7 +829,8 @@ exports.postCheckPayment = async (req, res, next) => {
             throw error;
         }
 
-        const offer = await Offer.findById(offerId);
+        const offer = await Offer.findById(offerId)
+            .populate({ path: 'seller', select: 'FCMJwt sendNotfication' });
         if (!offer) {
             const error = new Error(`offer not found`);
             error.statusCode = 404;
@@ -861,6 +862,23 @@ exports.postCheckPayment = async (req, res, next) => {
         await offer.save();
         await p.save();
 
+
+        if(offer.seller.sendNotfication.all == true && offer.seller.sendNotfication.orderStatus == true ){
+            const notification = {
+                title_ar: 'تم الموافقة',
+                body_ar: "وافق العميل على طلبك",
+                title_en: 'Been approved',
+                body_en: 'The customer accepted your offer'
+            };
+            const data = {
+                id: offer._id.toString(),
+                key: '1',
+            };
+    
+            await sendNotfication.send(data, notification, [offer.seller], 'seller');
+        }
+        
+
         res.status(200).json({
             state: 1,
             message: 'message payment created',
@@ -890,6 +908,7 @@ exports.cashPayment = async (req, res, next) => {
 
 
         const offer = await Offer.findById(offerId)
+            .populate({ path: 'seller', select: 'FCMJwt sendNotfication' })
             .select('order status price seller')
             .populate({ path: 'order', select: 'status pay client' });
 
@@ -949,6 +968,23 @@ exports.cashPayment = async (req, res, next) => {
         await order.endOrder();
         await offer.save();
         await p.save();
+
+        
+
+        if(offer.seller.sendNotfication.all == true && offer.seller.sendNotfication.orderStatus == true ){
+            const notification = {
+                title_ar: 'تم الموافقة',
+                body_ar: "وافق العميل على طلبك",
+                title_en: 'Been approved',
+                body_en: 'The customer accepted your offer'
+            };
+            const data = {
+                id: offer._id.toString(),
+                key: '1',
+            };
+    
+            await sendNotfication.send(data, notification, [offer.seller], 'seller');
+        }
 
         res.status(200).json({
             state: 1,
@@ -1069,6 +1105,7 @@ exports.walletPayment = async (req, res, next) => {
 
 
         const offer = await Offer.findById(offerId)
+            .populate({ path: 'seller', select: 'FCMJwt sendNotfication' })
             .select('order status price seller')
             .populate({ path: 'order', select: 'status pay client' });
 
@@ -1149,6 +1186,21 @@ exports.walletPayment = async (req, res, next) => {
         await offer.save();
         await p.save();
         await client.save();
+
+        if(offer.seller.sendNotfication.all == true && offer.seller.sendNotfication.orderStatus == true ){
+            const notification = {
+                title_ar: 'تم الموافقة',
+                body_ar: "وافق العميل على طلبك",
+                title_en: 'Been approved',
+                body_en: 'The customer accepted your offer'
+            };
+            const data = {
+                id: offer._id.toString(),
+                key: '1',
+            };
+    
+            await sendNotfication.send(data, notification, [offer.seller], 'seller');
+        }
 
         res.status(200).json({
             state: 1,
@@ -1247,9 +1299,9 @@ exports.postCancelComingOrder = async (req, res, next) => {
 
                 const minus = (offer.price * 5) / 100;
 
-                client.wallet    += (offer.price - minus);
-                pay.refund        = true;
-                pay.refund_amount = (offer.price - minus); 
+                client.wallet += (offer.price - minus);
+                pay.refund = true;
+                pay.refund_amount = (offer.price - minus);
 
 
                 const walletTransaction = new ClientWalet({
@@ -1264,9 +1316,9 @@ exports.postCancelComingOrder = async (req, res, next) => {
                 await client.save();
             } else {
 
-                client.wallet    += offer.price;
-                pay.refund        = true;
-                pay.refund_amount = offer.price ;
+                client.wallet += offer.price;
+                pay.refund = true;
+                pay.refund_amount = offer.price;
 
                 const walletTransaction = new ClientWalet({
                     client: client._id,

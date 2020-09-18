@@ -69,7 +69,9 @@ exports.postIssue = async (req, res, next) => {
             throw error;
         }
 
-        const pay = await Pay.findOne({ order: order._id, offer: offer._id, seller: offer.seller._id}).select('deliver arriveIn');
+        const pay = await Pay.findOne({ order: order._id, offer: offer._id, seller: offer.seller._id})
+        .select('deliver arriveIn seller')
+        .populate({path:'seller',select:'FCMJwt sendNotfication'});
         
         if (!pay) {
             const error = new Error(`payment required client didn't pay`);
@@ -143,6 +145,22 @@ exports.postIssue = async (req, res, next) => {
     
             await sendNotfication.send(data,notification,[client],'client');
         }
+
+        if(pay.seller.sendNotfication.all == true && pay.seller.sendNotfication.issues == true ){
+            const notification2 = {
+                title_ar: 'قسم الشكاوي',
+                body_ar: "هنالك شكوى جديدة",
+                title_en: 'Complaints Department',
+                body_en: 'There is a new complaint'
+            };
+            const data2 = {
+                id: iii._id.toString(),
+                key: '2',
+            };
+    
+            await sendNotfication.send(data2, notification2, [pay.seller], 'seller');
+        }
+        
         
 
         res.status(201).json({

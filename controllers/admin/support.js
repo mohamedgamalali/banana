@@ -312,7 +312,8 @@ exports.postIssueApprove = async (req, res, next) => {
 
         const pay = await Pay.findOne({ order: issues.order._id, offer: issues.offer._id, seller: issues.seller._id })
             .populate({ path: 'offer', select: 'price' })
-            .populate({ path: 'client', select: 'FCMJwt sendNotfication' });
+            .populate({ path: 'client', select: 'FCMJwt sendNotfication' })
+            .populate({ path: 'seller', select: 'FCMJwt sendNotfication' });
 
 
 
@@ -419,6 +420,24 @@ exports.postIssueApprove = async (req, res, next) => {
             };
 
             await sendNotfication.send(data,notification,[pay.client],'client');
+        }
+
+        
+
+        if(pay.seller.sendNotfication.all == true && pay.seller.sendNotfication.issues == true ){
+            
+            const notification2 = {
+                title_ar: 'قسم الشكاوي',
+                body_ar: "تم الرد على الشكوى",
+                title_en: 'Complaints Department',
+                body_en: 'The complaint has been answered'
+            };
+            const data2 = {
+                id: issues._id.toString(),
+                key: '2',
+            };
+    
+            await sendNotfication.send(data2,notification2,[pay.seller],'seller');
         }
 
         res.status(200).json({

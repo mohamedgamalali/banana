@@ -19,3 +19,8 @@ notfication:-
 2 ->> complaint answered || complaint sent
 3 ->> order added
 4 ->> rete your order
+
+//seller
+0->> admin
+1->> Been approved
+2->> Complaints Department

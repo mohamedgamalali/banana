@@ -70,7 +70,14 @@ exports.postSignup = async (req, res, next) => {
             FCMJwt: [{
                 token:FCM,
                 lang:lang
-            }]
+            }],
+            sendNotfication: {
+                all:true,
+                nearOrders:true,
+                issues:true,
+                orderStatus:true,
+                update:true
+            }
         });
 
         const seller = await newSeller.save();

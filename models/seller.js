@@ -89,8 +89,26 @@ const sellerSchema = new schema({
         default:'en'
     },
     sendNotfication: {
-        type: Boolean,
-        default: true
+        all:{
+            type:Boolean,
+            default:true
+        },
+        nearOrders:{
+            type:Boolean,
+            default:true
+        },
+        issues:{
+            type:Boolean,
+            default:true
+        },
+        orderStatus:{
+            type:Boolean,
+            default:true
+        },
+        update:{
+            type:Boolean,
+            default:true
+        },
     },
     rate: {
         type: Number,

@@ -58,7 +58,13 @@ exports.postSignup = async (req, res, next) => {
             FCMJwt: [{
                 token:FCM,
                 lang:lang
-            }]
+            }],
+            sendNotfication: {
+                all:true,
+                newOffer:true,
+                offerStatus:true,
+                update:true,
+            }
         });
 
         const client = await newClient.initFev();

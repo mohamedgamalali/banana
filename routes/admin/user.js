@@ -61,4 +61,32 @@ router.post('/notfications/sendAll',[
 
 ],isAuth,userController.sendNotfication);
 
+router.post('/notfications/send/seller',[
+    body('sellerId')
+    .not().isEmpty(),
+    body('title_ar')
+    .not().isEmpty(),
+    body('title_en')
+    .not().isEmpty(),
+    body('body_ar')
+    .not().isEmpty(),
+    body('body_en')
+    .not().isEmpty()
+
+],isAuth,userController.singleNotficationSeller);
+
+router.post('/notfications/send/client',[
+    body('clientId')
+    .not().isEmpty(),
+    body('title_ar')
+    .not().isEmpty(),
+    body('title_en')
+    .not().isEmpty(),
+    body('body_ar')
+    .not().isEmpty(),
+    body('body_en')
+    .not().isEmpty()
+
+],isAuth,userController.singleNotficationClient);
+
 module.exports = router;

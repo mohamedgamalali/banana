@@ -84,10 +84,25 @@ router.post('/profile/category/delete',[
 
 //notfication
 router.post('/notfication/send',[
-    body('action')
+    body('all')
+    .not().isEmpty()
+    .isBoolean(),
+    body('nearOrders')
+    .not().isEmpty()
+    .isBoolean(),
+    body('issues')
+    .not().isEmpty()
+    .isBoolean(),
+    body('orderStatus')
+    .not().isEmpty()
+    .isBoolean(),
+    body('update')
     .not().isEmpty()
     .isBoolean()
 ],isAuth,userController.postManageSendNotfication);
+
+router.get('/notfication/settings', isAuth, userController.getNotficationSettings);
+
 
 //wallet
 router.get('/wallet',isAuth,userController.getWallet);
