@@ -5,7 +5,7 @@ const bananaDlivry = require("../../models/bananaDelivery");
 
 const { validationResult } = require("express-validator");
 
-
+const pay = require('../../helpers/pay');
 
 exports.getPullRequests = async (req, res, next) => {
     const page = req.query.page || 1;
@@ -191,6 +191,31 @@ exports.postEditBananaDelivery = async (req, res, next) => {
         res.status(200).json({
             state: 1,
             message: 'banana delivery updated'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
+exports.getReport = async (req, res, next) => {
+
+    const payId = req.params.id ;
+
+    try {
+        const {body,stat} = await pay.getPaymentReport(payId);
+
+        res.status(200).json({
+            state:1,
+            data:{
+                body:body,
+                status:stat
+            },
+            message:'payment repory'
         });
 
     } catch (err) {

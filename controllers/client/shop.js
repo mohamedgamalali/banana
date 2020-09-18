@@ -601,7 +601,7 @@ exports.getOffers = async (req, res, next) => {
     let offer;
     let totalOffer;
 
-    try {
+    try { 
         if (filter == 1) {
             offer = await Offer.find({ client: req.userId, status: 'started' })
                 .select('seller banana_delivery price createdAt offerProducts')
@@ -641,10 +641,10 @@ exports.getOffers = async (req, res, next) => {
             offer = await Offer.find({
                 client: req.userId, status: 'started', location: {
                     $near: {
-                        $maxDistance: 1000 * 100,
+                        $maxDistance: 1000 * 5,
                         $geometry: {
                             type: "Point",
-                            coordinates: [1, 1]                                              //should be edited
+                            coordinates: [1, 1]                                         //should be edited
                         }
                     }
                 }

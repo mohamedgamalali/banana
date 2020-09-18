@@ -33,4 +33,7 @@ router.post('/bananaDelivery/update',[
     .not().isEmpty(),
 ], isAuth, monyCountroller.postEditBananaDelivery);
 
+
+router.get('/pay/report/:id', isAuth, monyCountroller.getReport);
+
 module.exports = router;

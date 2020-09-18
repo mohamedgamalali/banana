@@ -49,14 +49,21 @@ exports.getStatus = async (checkoutId) => {
 }
 
 
-// const reg1 = new RegExp("^(000\.000\.|000\.100\.1|000\.[36])", "m");
-// const reg2 = new RegExp("^(000\.400\.0[^3]|000\.400\.100)", 'm');
+exports.getPaymentReport = async (transactionId) => {
+    try {
 
+        const { body, status } = await unirest
+            .get(process.env.HYPERPAY_URL + `/v1/query/${transactionId}?entityId=${process.env.HYPERPAY_ENTITYID}`)
+            .headers({
+                'Authorization': process.env.HYPERPAY_AUTHRIZATION
+            })
+        return { body, status };
 
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        throw err
+    }
+}
 
-// if (!reg1.test(body.result.code.toString()) && !reg2.test(body.result.code.toString())) {
-//     const error = new Error(`payment error`);
-//     error.statusCode = 402;
-//     error.state = 20;
-//     throw error;
-// }

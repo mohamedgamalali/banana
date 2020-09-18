@@ -458,7 +458,7 @@ exports.getNotficationSettings = async (req, res, next) => {
 
         res.status(200).json({
             state:1,
-            datat:seller,
+            data:seller,
             message:'notfications sittings'
         });
 

@@ -62,7 +62,7 @@ exports.getOrders = async (req, res, next) => {
                 status: 'started',
                 location: {
                     $near: {
-                        $maxDistance: 1000 * 100,
+                        $maxDistance: 1000 * 5,
                         $geometry: {
                             type: "Point",
                             coordinates: req.sellerCert.location.coordinates
