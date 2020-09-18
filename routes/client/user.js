@@ -41,6 +41,9 @@ router.post('/notfication/send',[
     .not().isEmpty()
     .isBoolean(),
 ],isAuth,userController.postManageSendNotfication);
+
+router.get('/notfication/settings', isAuth, userController.getNotficationSettings);
+
  
 router.post('/profile/edit/password',[
     body('oldPassword','enter a password with only number and text and at least 5 characters.')

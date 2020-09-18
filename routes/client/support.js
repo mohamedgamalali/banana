@@ -16,6 +16,9 @@ router.post('/support/issue',[
     .not().isEmpty(),
 ],isAuth,supportController.postIssue);
 
+//single issue
+router.get('/issue/single/:id',isAuth,supportController.getSingleIssue);
+
 router.get('/support/issue/reasons',isAuth,supportController.getIssueReasons);
 
 //contact us

@@ -159,6 +159,54 @@ exports.postIssue = async (req, res, next) => {
     }
 }
 
+
+exports.getSingleIssue = async (req, res, next) => {
+    
+    const id = req.params.id ;
+    
+    try {
+        
+        let issue = await Issue.findById(id)
+        .select('order reason demands imageUrl state adminState adminNotes')
+        .populate({
+            path:'reason'
+        })
+        .populate({
+            path:'order',
+            select:'products'
+        });
+
+        if(!issue){
+            const error = new Error(`issue not found`);
+            error.statusCode = 404;
+            error.state = 9;
+            throw error;
+        }
+
+        if(issue.adminState=='ok'){
+            const pay = await Pay.findOne({order:issue.order._id,client:req.userId}).select('refund refund_amount');
+            const tempIssue = issue ;
+            issue = {
+                issue:tempIssue,
+                pay:pay
+            };
+        }
+        
+        res.status(200).json({
+            state:1,
+            data:issue,
+            message:'issue data'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
 exports.postContactUs = async (req, res, next) => {
 
     const name = req.body.name;
@@ -267,3 +315,5 @@ exports.getConditions = async (req, res, next) => {
         next(err);
     }
 };
+
+

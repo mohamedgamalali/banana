@@ -622,6 +622,25 @@ exports.postManageSendNotfication = async (req, res, next) => {
     }
 }
 
+exports.getNotficationSettings = async (req, res, next) => {
+   
+    try {
+
+        const client = await Client.findById(req.userId).select('sendNotfication');
+
+        res.status(200).json({
+            state: 1,
+            data:client,
+            message: `notficatiosn settings`
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
 
 exports.getWallet = async (req, res, next) => {
     const page = req.query.page || 1;
