@@ -596,14 +596,47 @@ exports.getSingleOrder = async (req, res, next) => {
 exports.getOffers = async (req, res, next) => {
 
     const page = req.query.page || 0;
-    const filter = req.query.filter || 0;
+    const filter = req.query.filter || 0;         //0=> default //1=>date //2=>price //3=>seller rating
+    const maxDis = Number(req.query.maxDis) || 5; //default = 5 only used in sort with location
+    const select = req.query.select || 0;         //0=>default //1=> rate > 4 //2=>all amount //3=>in 12 hours //4=>lacation in 5 km
     const offerPerPage = 10;
     let offer;
     let totalOffer;
+    let find = {};
+    try {
+        if (select == 0) {
+            find = { client: req.userId, status: 'started' }
+        }
+        else if (select == 1) {
+            find = { client: req.userId, status: 'started', sellerRate: { $gt: 3.9 } }
+        } else if (select == 2) {
+            find = { client: req.userId, status: 'started', 'offerProducts.equals':  {$ne:false} }
+        } else if (select == 3) {
+            find = { client: req.userId, status: 'started', createdAt: { $gt: Date.now() - 43200000 } }
+        } else if (select == 4) {
+            const location = await Location.findOne({ client: req.userId }).select('Location');
+            if (!location) {
+                const error = new Error(`you should provide location.. not found`);
+                error.statusCode = 404;
+                error.state = 53;
+                throw error;
+            }
+            find = {
+                client: req.userId, status: 'started',
+                location: {
+                    $near: {
+                        $maxDistance: 1000 * maxDis,
+                        $geometry: {
+                            type: "Point",
+                            coordinates: location.Location.coordinates
+                        }
+                    },
 
-    try { 
+                }
+            }
+        }
         if (filter == 1) {
-            offer = await Offer.find({ client: req.userId, status: 'started' })
+            offer = await Offer.find(find)
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
@@ -613,9 +646,13 @@ exports.getOffers = async (req, res, next) => {
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
-            totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
+                if(select==4){
+                    totalOffer = await Offer.find(find).count();
+                }else{
+                    totalOffer = await Offer.find(find).countDocuments();
+                }
         } else if (filter == 2) {
-            offer = await Offer.find({ client: req.userId, status: 'started' })
+            offer = await Offer.find(find)
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
@@ -624,31 +661,14 @@ exports.getOffers = async (req, res, next) => {
                 .sort({ price: 0 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
-
-            totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
-        } else if (filter == 0) {
-            offer = await Offer.find({ client: req.userId, status: 'started' })
-                .select('seller banana_delivery price createdAt offerProducts')
-                .populate({ path: 'seller', select: 'rate certificate.avilable' })
-                .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name',
-                })
-                .skip((page - 1) * offerPerPage)
-                .limit(offerPerPage);
-
-            totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
-        } else if (filter == 4) {
-            offer = await Offer.find({
-                client: req.userId, status: 'started', location: {
-                    $near: {
-                        $maxDistance: 1000 * 5,
-                        $geometry: {
-                            type: "Point",
-                            coordinates: [1, 1]                                         //should be edited
-                        }
-                    }
+                if(select==4){
+                    totalOffer = await Offer.find(find).count();
+                }else{
+                    totalOffer = await Offer.find(find).countDocuments();
                 }
-            })
+
+        } else if (filter == 0) {
+            offer = await Offer.find(find)
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
@@ -657,22 +677,30 @@ exports.getOffers = async (req, res, next) => {
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
-            totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
-        }
-        //filter for rating
+                if(select==4){
+                    totalOffer = await Offer.find(find).count();
+                }else{
+                    totalOffer = await Offer.find(find).countDocuments();
+                }
+        }                                                                                   //sort with rating
         else if (filter == 3) {
-            offer = await Offer.find({ client: req.userId, status: 'started' })
+            offer = await Offer.find(find)
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
                     path: 'offerProducts.product', select: 'name_en name_ar name',
                 })
-                .sort({ sellerRate: -1 })
+                .sort({ sellerRate: 0 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
-            totalOffer = await Offer.find({ client: req.userId, status: 'started' }).countDocuments();
+                if(select==4){
+                    totalOffer = await Offer.find(find).count();
+                }else{
+                    totalOffer = await Offer.find(find).countDocuments();
+                }
         }
+
 
 
         res.status(200).json({
@@ -863,7 +891,7 @@ exports.postCheckPayment = async (req, res, next) => {
         await p.save();
 
 
-        if(offer.seller.sendNotfication.all == true && offer.seller.sendNotfication.orderStatus == true ){
+        if (offer.seller.sendNotfication.all == true && offer.seller.sendNotfication.orderStatus == true) {
             const notification = {
                 title_ar: 'تم الموافقة',
                 body_ar: "وافق العميل على طلبك",
@@ -874,10 +902,10 @@ exports.postCheckPayment = async (req, res, next) => {
                 id: offer._id.toString(),
                 key: '1',
             };
-    
+
             await sendNotfication.send(data, notification, [offer.seller], 'seller');
         }
-        
+
 
         res.status(200).json({
             state: 1,
@@ -969,9 +997,9 @@ exports.cashPayment = async (req, res, next) => {
         await offer.save();
         await p.save();
 
-        
 
-        if(offer.seller.sendNotfication.all == true && offer.seller.sendNotfication.orderStatus == true ){
+
+        if (offer.seller.sendNotfication.all == true && offer.seller.sendNotfication.orderStatus == true) {
             const notification = {
                 title_ar: 'تم الموافقة',
                 body_ar: "وافق العميل على طلبك",
@@ -982,7 +1010,7 @@ exports.cashPayment = async (req, res, next) => {
                 id: offer._id.toString(),
                 key: '1',
             };
-    
+
             await sendNotfication.send(data, notification, [offer.seller], 'seller');
         }
 
@@ -1187,7 +1215,7 @@ exports.walletPayment = async (req, res, next) => {
         await p.save();
         await client.save();
 
-        if(offer.seller.sendNotfication.all == true && offer.seller.sendNotfication.orderStatus == true ){
+        if (offer.seller.sendNotfication.all == true && offer.seller.sendNotfication.orderStatus == true) {
             const notification = {
                 title_ar: 'تم الموافقة',
                 body_ar: "وافق العميل على طلبك",
@@ -1198,7 +1226,7 @@ exports.walletPayment = async (req, res, next) => {
                 id: offer._id.toString(),
                 key: '1',
             };
-    
+
             await sendNotfication.send(data, notification, [offer.seller], 'seller');
         }
 

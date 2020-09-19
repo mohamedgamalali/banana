@@ -68,7 +68,7 @@ const offerSchema = new schema({
         coordinates: [Number]
     },
     sellerRate:{
-        type:String,
+        type:Number,
         default:0
     }
 }, { timestamps: true });

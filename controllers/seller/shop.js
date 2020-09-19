@@ -38,26 +38,32 @@ exports.getHome = async (req, res, next) => {
 exports.getOrders = async (req, res, next) => {
 
     const page = req.query.page || 1;
-    const filter = req.query.filter || 0;    //0=>for date //1=>amount //2=>location
-
+    const filter = req.query.filter || 0;    //0=>default //1=>amount //2=>created at date //3=>arrive Date
+    const select = req.query.select || 0;    //0=>default //1=>near   //2=>newest 12h //3=>arriveAt = 0
+    
 
     const productPerPage = 10;
     let finalOrders = [];
     let orders;
     const cat = [];
     let des = 0;
+    let find = {} ;
 
     try {
 
-
-        if (filter == 2) {
+        if(select == 0 ){
+            find = {
+                category: { $in: req.sellerCat },
+                status: 'started'
+            };
+        }else if(select == 1 ){
             if (req.sellerCert.location.coordinates.length == 0) {
                 const error = new Error(`you should provide certifecate`);
                 error.statusCode = 403;
                 error.state = 27;
                 throw error;
             }
-            orders = await Order.find({
+            find = {
                 category: { $in: req.sellerCat },
                 status: 'started',
                 location: {
@@ -70,27 +76,42 @@ exports.getOrders = async (req, res, next) => {
                     },
 
                 },
-            })
+            };
+        }else if(select == 2 ){
+            find = {
+                category: { $in: req.sellerCat },
+                status: 'started',
+                createdAt: { $gt: Date.now() - 43200000 }
+            };
+        }else if(select == 3 ){
+            find = {
+                category: { $in: req.sellerCat },
+                status: 'started',
+                arriveDate:0
+            };
+        }
+
+        if (filter == 0) {
+            orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
-        } else if (filter == 0) {
-            orders = await Order.find({
-                category: { $in: req.sellerCat },
-                status: 'started'
-            })
+        } else if (filter == 2) {
+            orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ createdAt: -1 });
         } else if (filter == 1) {
-            orders = await Order.find({
-                category: { $in: req.sellerCat },
-                status: 'started'
-            })
+            orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ amount_count: -1 });
+        }else if (filter == 3) {
+            orders = await Order.find(find)
+                .select('location category client products amount_count stringAdress arriveDate')
+                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
+                .sort({ arriveDate: -1 });
         }
-
+        
 
         for (let element of orders) {
             if (element.category.every(v => req.sellerCat.includes(v))) {
