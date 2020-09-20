@@ -4,7 +4,7 @@ exports.getOrders = async (req, res, next) => {
 
     const page   = req.query.page   || 1;
     const filter = req.query.filter || 0;    //0=>for date //1=>amount //2=>location
-    const sellerOffered = true ;
+    const sellerOffered = false ;
 
     const productPerPage = 10;
 
