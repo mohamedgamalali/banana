@@ -4,7 +4,7 @@ exports.getOrders = async (req, res, next) => {
 
     const page   = req.query.page   || 1;
     const filter = req.query.filter || 0;    //0=>for date //1=>amount //2=>location
-
+    const sellerOffered = true ;
 
     const productPerPage = 10;
 
@@ -51,7 +51,8 @@ exports.getOrders = async (req, res, next) => {
                     client: {
                         total_client_orders: total_client_orders,
                         ended_client_orders: ended_client_orders
-                    }
+                    },
+                    sellerOffered:sellerOffered
                 });
         }
 
