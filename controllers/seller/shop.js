@@ -117,6 +117,7 @@ exports.getOrders = async (req, res, next) => {
             if (element.category.every(v => req.sellerCat.includes(v))) {
                 const total_client_orders = await Order.find({ client: element.client._id }).countDocuments();
                 const ended_client_orders = await Order.find({ client: element.client._id, status: 'ended' }).countDocuments();
+                const sellerOffered       = await Offer.findOne({ seller: req.userId, order: element._id });
 
                 if (req.sellerCert.location.coordinates.length > 0) {
                     des = await distance(req.sellerCert.location.coordinates[0],req.sellerCert.location.coordinates[1],element.location.coordinates[0],element.location.coordinates[1])
@@ -130,7 +131,8 @@ exports.getOrders = async (req, res, next) => {
                         total_client_orders: total_client_orders,
                         ended_client_orders: ended_client_orders
                     },
-                    distance:des
+                    distance:des,
+                    sellerOffered:Boolean(sellerOffered)
                 });
             }
         }

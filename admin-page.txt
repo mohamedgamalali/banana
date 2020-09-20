@@ -1,0 +1,14 @@
+-add loading animation
+-remove "delete product feature"
+-all single (client-seller) data from api must be shown
+-add send notfications rout (all/single seller/single client)
+-make (order-client-seller) clickable take the user to single (order-client-seller)
+-seller (from-to) must be shown in date form (not millsec)
+-hide (nav-bar) in login and make every tap active if the user is there
+-issues must be edited
+-orders must be like documentation 'see discription'
+-add mony actions routs
+-add support messages route
+---------------------------------------------------------------------------------------
+
+-in issue approve handle errors with state like in 'admin-errors.txt'
