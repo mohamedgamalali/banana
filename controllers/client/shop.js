@@ -690,7 +690,7 @@ exports.getOffers = async (req, res, next) => {
                 .populate({
                     path: 'offerProducts.product', select: 'name_en name_ar name',
                 })
-                .sort({ sellerRate: 0 })
+                .sort({ sellerRate: -1 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
