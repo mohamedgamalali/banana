@@ -33,10 +33,10 @@ router.post('/product/edit',[
     .not().isEmpty(),
 ],isAuth,shopController.postEditProduct);
 
-router.post('/product/delete',[
-    body('productId')
-    .not().isEmpty(),
-],isAuth,shopController.deleteProduct);
+// router.post('/product/delete',[
+//     body('productId')
+//     .not().isEmpty(),
+// ],isAuth,shopController.deleteProduct);
 
 router.get('/product/single/:id',isAuth,shopController.getSingleProduct);
 

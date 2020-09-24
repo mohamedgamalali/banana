@@ -12,6 +12,10 @@ const clientProductsSchema = new schema({
         type:String,
         required:true,
     },
+    name_en:{
+        type:String,
+        required:true,
+    },
     client:{
         type: schema.Types.ObjectId,
         ref: 'client'

@@ -26,6 +26,8 @@ router.post('/cart/add',[
 router.post('/cart/add/food',[
     body('name')
     .not().isEmpty(),
+    body('name_en')
+    .not().isEmpty(),
     body('unit')
     .not().isEmpty(),
     body('amount')

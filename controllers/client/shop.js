@@ -257,6 +257,7 @@ exports.getCart = async (req, res, next) => {
 
 exports.postAddToCartFood = async (req, res, next) => {
     const name = req.body.name;
+    const name_en = req.body.name_en;
     const unit = req.body.unit;
     const amount = req.body.amount;
     const errors = validationResult(req);
@@ -285,6 +286,7 @@ exports.postAddToCartFood = async (req, res, next) => {
         const newProduct = new ClientProduct({
             category: 'F',
             name: name,
+            name_en:name_en,
             client: client._id
         });
 
