@@ -8,7 +8,7 @@ exports.getHome = async (req, res, next) => {
 
 
     try{
-
+ 
 
     } catch (err) {
         if (!err.statusCode) {
