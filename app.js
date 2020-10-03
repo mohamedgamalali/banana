@@ -84,7 +84,8 @@ const erorrMeddlewere = require('./helpers/errors');
 app.use('/client', router.client.auth, router.client.shop, router.client.user, router.client.support);
 app.use('/client/guest', router.client.guest);
 app.use('/seller', router.seller.auth, router.seller.shop, router.seller.user, router.seller.support, router.seller.guest);
-app.use('/admin', router.admin.auth, router.admin.shop, router.admin.user,router.admin.support, router.admin.mony);
+app.use('/delivery', router.delivery.auth, router.delivery.shop );
+app.use('/admin', router.admin.auth, router.admin.shop, router.admin.user,router.admin.support, router.admin.mony ,router.admin.delivery);
 
 //error handle meddlewere
 app.use(erorrMeddlewere);
@@ -141,9 +142,6 @@ mongoose
                 }
             });
         })
-        return SccadPay.deleteMany({ fireIn: { $lt: new Date().getTime() } })
-    })
-    .then(done => {
         console.log('schedule activated');
     })
     .catch(err => {
