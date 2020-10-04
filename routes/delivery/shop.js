@@ -12,6 +12,10 @@ router.get('/client/info/:offer',isAuth,shopController.getClientInfo) ;
 
 router.get('/seller/info/:offer',isAuth,shopController.getSellerInfo) ;
 
+router.post('/offer/delivered',isAuth,[
+    body('orderId')
+    .not().isEmpty(),
+],shopController.postOrderArrived) ;
 
 
 module.exports = router;
