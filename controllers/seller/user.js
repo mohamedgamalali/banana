@@ -48,7 +48,7 @@ exports.getMyOrders = async (req, res, next) => {
             total = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } }).countDocuments();
 
             offers = await Offer.find({ seller: req.userId, selected: true, order: { $in: orderIdS } })
-                .select('offerProducts order seller banana_delivery price createdAt')
+                .select('offerProducts order seller banana_delivery price createdAt') 
                 .populate({
                     path: 'order', select: 'locationDetails.stringAdress arriveDate'
                 })
@@ -143,7 +143,7 @@ exports.getSingleOrderDetails = async (req, res, next) => {
             throw error;
         }
 
-        const pay = await Pay.findOne({offer:offer._id,seller:req.userId})
+        const pay = await Pay.findOne({offer:offer._id})
         .select('method'); 
 
         res.status(200).json({

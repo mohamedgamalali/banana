@@ -8,4 +8,10 @@ const router  = express.Router();
 
 router.get('/home',isAuth,shopController.getHome) ;
 
+router.get('/client/info/:offer',isAuth,shopController.getClientInfo) ;
+
+router.get('/seller/info/:offer',isAuth,shopController.getSellerInfo) ;
+
+
+
 module.exports = router;
