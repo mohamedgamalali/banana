@@ -155,7 +155,7 @@ exports.getSingleOrderDetails = async (req, res, next) => {
                 location: offer.order.location,
                 date: offer.order.arriveDate,
                 payMathod:pay.method,
-                accountMobile:offer.client.code + offer.client.mobile,
+                accountMobile:offer.client.code,
                 image:offer.client.image
             },
             message: 'client details for delever order'
@@ -508,7 +508,7 @@ exports.postEditMobile = async (req, res, next) => {
 
         res.status(200).json({
             state: 1,
-            data: updatedClient.tempCode + updatedClient.tempMobile,
+            data: updatedClient.tempCode,
             message: 'mobile changed'
         });
 
@@ -532,7 +532,7 @@ exports.postSendSMS = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(seller.tempCode + seller.tempMobile,message);
+        //const {body,status} = await SMS.send(seller.tempCode, message);
 
         await seller.save();
 
@@ -586,7 +586,7 @@ exports.postCheckCode = async (req, res, next) => {
 
         res.status(200).json({
             state: 1,
-            data: updatedClient.code + updatedClient.mobile,
+            data: updatedClient.code,
             messaage: 'mobile changed'
         });
 

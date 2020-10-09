@@ -247,7 +247,7 @@ exports.postForgetPassword = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(seller.code + seller.mobile,message);
+        //const {body,status} = await SMS.send(seller.code, message);
         await seller.save();
 
 
@@ -417,7 +417,7 @@ exports.postSendSms = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(seller.code + seller.mobile, message);
+        //const {body,status} = await SMS.send(seller.code, message);
 
         await seller.save();
 
@@ -495,7 +495,7 @@ exports.postChangeMobile = async (req, res, next) => {
             throw error;
         }
 
-        const seller = await Seller.findById(req.userId).select('mobile');
+        const seller = await Seller.findById(req.userId);
         
         const checkClient = await Seller.findOne({ mobile: mobile });
 

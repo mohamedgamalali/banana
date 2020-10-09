@@ -384,7 +384,7 @@ exports.postSendSMS = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(client.tempCode + client.tempMobile,message);
+        //const {body,status} = await SMS.send(client.tempCode, message);
 
         await client.save();
 
@@ -433,12 +433,12 @@ exports.postCheckCode = async (req, res, next) => {
         }
 
         client.mobile = client.tempMobile;
-        client.code = client.tempCode;
+        client.code   = client.tempCode;
         const updatedClient = await client.save();
 
         res.status(200).json({
             state: 1,
-            data: updatedClient.code + updatedClient.mobile,
+            data: updatedClient.code,
             messaage: 'mobile changed'
         });
 

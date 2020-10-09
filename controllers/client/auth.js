@@ -214,7 +214,7 @@ exports.postSendSms = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(client.code + client.mobile, message);
+        //const {body,status} = await SMS.send(client.code, message);
 
         await client.save();
 
@@ -293,7 +293,7 @@ exports.postChangeMobile = async (req, res, next) => {
         }
 
 
-        const client = await Client.findById(req.userId).select('mobile');
+        const client = await Client.findById(req.userId);
 
         const checkClient = await Client.findOne({ mobile: mobile });
 
@@ -305,7 +305,7 @@ exports.postChangeMobile = async (req, res, next) => {
         }
 
         client.mobile = mobile;
-        client.code = code;
+        client.code   = code;
 
         await client.save();
 
@@ -351,7 +351,7 @@ exports.postForgetPassword = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(client.code + client.mobile,message);
+        //const {body,status} = await SMS.send(client.code ,message);
         await client.save();
 
 

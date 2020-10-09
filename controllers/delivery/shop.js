@@ -125,7 +125,7 @@ exports.getClientInfo = async (req, res, next) => {
                 location: offer.order.location,
                 date: offer.order.arriveDate,
                 payMathod: pay.method,
-                accountMobile: offer.client.code + offer.client.mobile,
+                accountMobile: offer.client.code,
                 image: offer.client.image
             },
             message: 'client details for delever order'
