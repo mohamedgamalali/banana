@@ -48,6 +48,7 @@ exports.getOrders = async (req, res, next) => {
     const cat = [];
     let des = 0;
     let find = {} ;
+    let banana_delivery_price  = 0 ;
 
     try {
 
@@ -137,10 +138,18 @@ exports.getOrders = async (req, res, next) => {
             }
         }
 
+        const bana = await BananaDelevry.findOne({}).select('price');
+
+        if(bana){
+            banana_delivery_price = bana.price ;
+        }
+
+
         res.status(200).json({
             state: 1,
             data: finalOrders.slice((page - 1) * productPerPage, productPerPage + 1),
             total: finalOrders.length,
+            banana_delivery_price:banana_delivery_price,
             message: `orders in ${page} and filter ${filter}`
         });
 
