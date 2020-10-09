@@ -61,6 +61,10 @@ router.post('/support/issues/reasons',[
 
 router.get('/support/issues/reasons' ,isAuth,supportController.getIssueReasons);
 
+//issue search
+
+router.get('/support/issues/search' ,isAuth,supportController.getSearch);
+
 
 
 module.exports = router;

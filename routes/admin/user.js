@@ -89,4 +89,8 @@ router.post('/notfications/send/client',[
 
 ],isAuth,userController.singleNotficationClient);
 
+//search
+router.get('/user/search',isAuth,userController.getSearch);
+
+
 module.exports = router;

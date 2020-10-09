@@ -8,6 +8,59 @@ const Products = require("../../models/products");
 const Offers = require("../../models/offer");
 const Scad = require("../../models/cert-expire");
 const Order = require("../../models/order");
+const Issue = require("../../models/issues");
+const Seller = require("../../models/seller");
+
+
+exports.getHome = async (req, res, next) => {
+   
+    
+    try {
+
+        let totalRevinue  = 0 ;
+
+        const totalProducts = await Products.find({}).countDocuments();
+        const totalIssues = await Issue.find({adminState:'binding'}).countDocuments();
+        const totalOrders_avilable = await Order.find({status:'started'}).countDocuments();
+        const totalOrders = await Order.find({}).countDocuments();
+        const seller_not_avilable = await Seller.find({ 'certificate.review': false }).countDocuments();
+
+        const pay = await Pay.find({refund:false,cancel:false,deliver:true,method:{$ne:'cash'}})
+        .select('offer')
+        .populate({path:'offer',select:'price banana_delivery banana_delivery_price'});
+
+        pay.forEach(i=>{
+            totalRevinue += ( ((i.offer.price * 5 ) /100) );
+        });
+
+        const payRefund = await Pay.find({cancel:true,refund:true,method:{$ne:'cash'}})
+        .select('offer refund_amount')
+        .populate({path:'offer',select:'price banana_delivery banana_delivery_price'});
+
+        payRefund.forEach(i=>{
+            totalRevinue += i.offer.price - i.refund_amount ; 
+        });
+
+        res.status(200).json({
+            state:0,
+            data:{
+                totalProducts:totalProducts,
+                totalIssues:totalIssues,
+                totalOrders_avilable:totalOrders_avilable,
+                totalOrders:totalOrders,
+                seller_not_avilable:seller_not_avilable,
+                totalRevinue:totalRevinue
+            },
+            message:'home data'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
 
 exports.getProducts = async (req, res, next) => {
     const catigory = req.params.catigoryId;

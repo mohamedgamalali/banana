@@ -45,5 +45,10 @@ router.get('/orders',isAuth,shopController.getOrders);
 
 router.get('/order/single/:id',isAuth,shopController.getSingleOrder);
 
+//editing
+router.get('/home',isAuth,shopController.getHome);
+
+
+
 
 module.exports = router;

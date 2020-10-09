@@ -10,6 +10,9 @@ const Client = require('../../models/client');
 const Seller = require('../../models/seller');
 const ClientWalet = require('../../models/clientWallet');
 
+const ObjectId = require('mongoose').Types.ObjectId;
+
+
 const schedule = require('node-schedule');
 const sendNotfication = require('../../helpers/send-notfication');
 
@@ -226,8 +229,8 @@ exports.getIssues = async (req, res, next) => {
 //single issue
 exports.getSingleIssue = async (req, res, next) => {
 
-    const issueId = req.params.id ;
-    
+    const issueId = req.params.id;
+
     try {
 
         const issue = await Issue.findById(issueId)
@@ -257,14 +260,14 @@ exports.getSingleIssue = async (req, res, next) => {
                 select: 'reason_ar reason_en'
             });
 
-        const pay = await Pay.findOne({offer:issue.offer._id,order:issue.order._id,client:issue.client._id})
-        .select('payId arriveIn payId deliver method cancel refund refund_amount');
+        const pay = await Pay.findOne({ offer: issue.offer._id, order: issue.order._id, client: issue.client._id })
+            .select('payId arriveIn payId deliver method cancel refund refund_amount');
 
         res.status(200).json({
             state: 1,
             data: {
-                issue:issue,
-                PaymentTransaction:pay
+                issue: issue,
+                PaymentTransaction: pay
             },
             message: `issue ${issueId}`
         });
@@ -407,7 +410,7 @@ exports.postIssueApprove = async (req, res, next) => {
         await pay.save();
         await ScadPay.deleteOne({ _id: scadPay._id });
 
-        if(pay.client.sendNotfication.all==true){
+        if (pay.client.sendNotfication.all == true) {
             const notification = {
                 title_ar: 'قسم الشكاوي',
                 body_ar: "تم الرد على الشكوي المقدمة",
@@ -419,13 +422,13 @@ exports.postIssueApprove = async (req, res, next) => {
                 key: '2',
             };
 
-            await sendNotfication.send(data,notification,[pay.client],'client');
+            await sendNotfication.send(data, notification, [pay.client], 'client');
         }
 
-        
 
-        if(pay.seller.sendNotfication.all == true && pay.seller.sendNotfication.issues == true ){
-            
+
+        if (pay.seller.sendNotfication.all == true && pay.seller.sendNotfication.issues == true) {
+
             const notification2 = {
                 title_ar: 'قسم الشكاوي',
                 body_ar: "تم الرد على الشكوى",
@@ -436,8 +439,8 @@ exports.postIssueApprove = async (req, res, next) => {
                 id: issues._id.toString(),
                 key: '2',
             };
-    
-            await sendNotfication.send(data2,notification2,[pay.seller],'seller');
+
+            await sendNotfication.send(data2, notification2, [pay.seller], 'seller');
         }
 
         res.status(200).json({
@@ -459,7 +462,7 @@ exports.postIssueDisApprove = async (req, res, next) => {
 
     const errors = validationResult(req);
     const issueId = req.body.issueId;
-    const reason  = req.body.reason;
+    const reason = req.body.reason;
 
     try {
         if (!errors.isEmpty()) {
@@ -484,7 +487,7 @@ exports.postIssueDisApprove = async (req, res, next) => {
         }
 
         issues.adminState = 'cancel';
-        issues.adminNotes = reason  ;
+        issues.adminNotes = reason;
 
         await issues.save();
 
@@ -550,6 +553,91 @@ exports.getIssueReasons = async (req, res, next) => {
             state: 1,
             data: resons,
             message: 'created'
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+//search
+exports.getSearch = async (req, res, next) => {
+    const search = req.query.search;
+    const page = req.query.page || 1;
+    const itemPerPage = 10;
+    let totalItems;
+    let result ;
+
+    try {
+
+        const isId = ObjectId.isValid(search.toString());
+
+
+        if (isId) {
+            result = await Issue.find({
+                order: new ObjectId(search.toString())
+            })
+                .skip((page - 1) * itemPerPage)
+                .limit(itemPerPage)
+                .select('order offer reason state imageUrl demands adminNotes')
+                .populate({
+                    path: 'offer',
+                    select: 'banana_delivery price selected offerProducts'
+                })
+                .populate({
+                    path: 'reason',
+                    select: 'reason_ar reason_en'
+                });
+
+                totalItems = await Issue.find({
+                    order: new ObjectId(search.toString())
+                }).countDocuments() ;
+
+        } else {
+            const client = await Client.findOne({
+                $or: [
+                    { name: new RegExp(search.trim(), 'i') },
+                    { mobile: new RegExp(search.trim(), 'i') },
+                    { email: new RegExp(search.trim(), 'i') },
+                    { code: new RegExp(search.trim(), 'i') },
+                ]
+            });
+            console.log(client);
+
+            if (client) {
+                result = await Issue.find({
+                    client: client._id
+                })
+                    .skip((page - 1) * itemPerPage)
+                    .limit(itemPerPage)
+                    .select('order offer reason state imageUrl demands adminNotes')
+                    .populate({
+                        path: 'offer',
+                        select: 'banana_delivery price selected offerProducts'
+                    })
+                    .populate({
+                        path: 'reason',
+                        select: 'reason_ar reason_en'
+                    });
+                    totalItems = await Issue.find({
+                        client: client._id
+                    }).countDocuments() ;
+
+            } else {
+                result = [] ;
+                totalItems = 0 ;
+            }
+
+        }
+
+
+        res.status(200).json({
+            state: 1,
+            totalItems: totalItems,
+            searchResulr: result,
         });
 
     } catch (err) {

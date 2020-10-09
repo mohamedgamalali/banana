@@ -608,3 +608,118 @@ exports.singleNotficationClient = async (req, res, next) => {
         next(err);
     }
 };
+
+//client and seller search
+
+exports.getSingleClient = async (req, res, next) => {
+
+    const clientId = req.params.id;
+    try {
+
+        const client = await Client.findById(clientId)
+            .select('name mobile email code verfication blocked wallet');
+        if (!client) {
+            const error = new Error('seller not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        const clientWallet = await ClientWallet.find({ client: client._id });
+
+        const commingPay = await Pay.find({ client: client._id, cancel: false, deliver: false }).select('order offer');
+        let ComOrderIdS = [];
+        commingPay.forEach(item => {
+            ComOrderIdS.push(item.order._id);
+        });
+
+        const ComOrders = await Offer.find({ client: client._id, order: { $in: ComOrderIdS }, selected: true })
+            .select('order seller banana_delivery price offerProducts location')
+            .populate({
+                path: 'order',
+                select: 'location stringAdress arriveDate products locationDetails pay',
+                populate: {
+                    path: 'products.product',
+                    select: 'name name_en name_ar imageUrl'
+                }
+            })
+            .populate({
+                path: 'seller',
+                select: 'name'
+            })
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            state: 1,
+            client: client,
+            clientWalletTransActions: clientWallet,
+            CommingOrders: ComOrders,
+            message: 'all client data'
+        });
+
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+
+exports.getSearch = async (req, res, next) => {
+    const search = req.query.search;
+    const type = req.query.type || "client";
+    const page = req.query.page || 1;
+    const itemPerPage = 10;
+    let totalItems;
+    let result;
+    let searchQuiry;
+
+    try {
+
+        searchQuiry = [
+            { name: new RegExp(search.trim(), 'i') },
+            { mobile: new RegExp(search.trim(), 'i') },
+            { email: new RegExp(search.trim(), 'i') },
+            { code: new RegExp(search.trim(), 'i') },
+        ];
+
+        if (type == "client") {
+
+            totalItems = await Client.find({
+                $or: searchQuiry,
+            }).countDocuments();
+            result = await Client.find({
+                $or: searchQuiry,
+            })
+                .select('name mobile email blocked verfication code')
+                .skip((page - 1) * itemPerPage)
+                .limit(itemPerPage);
+
+
+        } else if (type == "seller") {
+
+            totalItems = await Seller.find({
+                $or: searchQuiry,
+            }).countDocuments();
+            result = await Seller.find({
+                $or: searchQuiry,
+            })
+                .select('name mobile email category blocked verfication code')
+                .skip((page - 1) * itemPerPage)
+                .limit(itemPerPage);
+        }
+
+        res.status(200).json({
+            state: 1,
+            totalItems: totalItems,
+            searchResulr: result,
+        });
+
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
