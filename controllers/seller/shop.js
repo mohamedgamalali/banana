@@ -40,57 +40,61 @@ exports.getOrders = async (req, res, next) => {
     const page = req.query.page || 1;
     const filter = req.query.filter || 0;    //0=>default //1=>amount //2=>created at date //3=>arrive Date
     const select = req.query.select || 0;    //0=>default //1=>near   //2=>newest 12h //3=>arriveAt = 0
-    
+
 
     const productPerPage = 10;
     let finalOrders = [];
     let orders;
     const cat = [];
     let des = 0;
-    let find = {} ;
-    let banana_delivery_price  = 0 ;
+    let find = {
+        category: { $in: req.sellerCat },
+        status: 'started'
+    };
+    let banana_delivery_price = 0;
 
     try {
+        select.forEach(i => {
+            if (i == 0) {
+                find = {
+                    category: { $in: req.sellerCat },
+                    status: 'started'
+                };
+            } else if (i == 1) {
+                if (req.sellerCert.location.coordinates.length == 0) {
+                    const error = new Error(`you should provide certifecate`);
+                    error.statusCode = 403;
+                    error.state = 27;
+                    throw error;
+                }
+                find = {
+                    ...find,
+                    location: {
+                        $near: {
+                            $maxDistance: 1000 * 5,
+                            $geometry: {
+                                type: "Point",
+                                coordinates: req.sellerCert.location.coordinates
+                            }
+                        },
 
-        if(select == 0 ){
-            find = {
-                category: { $in: req.sellerCat },
-                status: 'started'
-            };
-        }else if(select == 1 ){
-            if (req.sellerCert.location.coordinates.length == 0) {
-                const error = new Error(`you should provide certifecate`);
-                error.statusCode = 403;
-                error.state = 27;
-                throw error;
-            }
-            find = {
-                category: { $in: req.sellerCat },
-                status: 'started',
-                location: {
-                    $near: {
-                        $maxDistance: 1000 * 5,
-                        $geometry: {
-                            type: "Point",
-                            coordinates: req.sellerCert.location.coordinates
-                        }
                     },
+                };
+            } else if (i == 2) {
+                find = {
+                    ...find,
+                    createdAt: { $gt: Date.now() - 43200000 }
+                };
+            } else if (i == 3) {
+                find = {
+                    ...find,
+                    arriveDate: 0
+                };
+            }
+        });
 
-                },
-            };
-        }else if(select == 2 ){
-            find = {
-                category: { $in: req.sellerCat },
-                status: 'started',
-                createdAt: { $gt: Date.now() - 43200000 }
-            };
-        }else if(select == 3 ){
-            find = {
-                category: { $in: req.sellerCat },
-                status: 'started',
-                arriveDate:0
-            };
-        }
+        console.log(find);
+
 
         if (filter == 0) {
             orders = await Order.find(find)
@@ -106,24 +110,24 @@ exports.getOrders = async (req, res, next) => {
                 .select('location category client products amount_count stringAdress arriveDate')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ amount_count: -1 });
-        }else if (filter == 3) {
+        } else if (filter == 3) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
                 .populate({ path: 'products.product', select: 'category name name_en name_ar' })
                 .sort({ arriveDate: -1 });
         }
-        
+
 
         for (let element of orders) {
             if (element.category.every(v => req.sellerCat.includes(v))) {
                 const total_client_orders = await Order.find({ client: element.client._id }).countDocuments();
                 const ended_client_orders = await Order.find({ client: element.client._id, status: 'ended' }).countDocuments();
-                const sellerOffered       = await Offer.findOne({ seller: req.userId, order: element._id });
+                const sellerOffered = await Offer.findOne({ seller: req.userId, order: element._id });
 
                 if (req.sellerCert.location.coordinates.length > 0) {
-                    des = await distance(req.sellerCert.location.coordinates[0],req.sellerCert.location.coordinates[1],element.location.coordinates[0],element.location.coordinates[1])
+                    des = await distance(req.sellerCert.location.coordinates[0], req.sellerCert.location.coordinates[1], element.location.coordinates[0], element.location.coordinates[1])
                 } else {
-                    des = 0 ;
+                    des = 0;
                 }
 
                 finalOrders.push({
@@ -132,16 +136,16 @@ exports.getOrders = async (req, res, next) => {
                         total_client_orders: total_client_orders,
                         ended_client_orders: ended_client_orders
                     },
-                    distance:des,
-                    sellerOffered:Boolean(sellerOffered)
+                    distance: des,
+                    sellerOffered: Boolean(sellerOffered)
                 });
             }
         }
 
         const bana = await BananaDelevry.findOne({}).select('price');
 
-        if(bana){
-            banana_delivery_price = bana.price ;
+        if (bana) {
+            banana_delivery_price = bana.price;
         }
 
 
@@ -149,7 +153,7 @@ exports.getOrders = async (req, res, next) => {
             state: 1,
             data: finalOrders.slice((page - 1) * productPerPage, productPerPage + 1),
             total: finalOrders.length,
-            banana_delivery_price:banana_delivery_price,
+            banana_delivery_price: banana_delivery_price,
             message: `orders in ${page} and filter ${filter}`
         });
 
@@ -177,7 +181,7 @@ exports.putOffer = async (req, res, next) => {
             throw error;
         }
 
-        const order =  await Order.findById(orderId).populate({path:'client',select:'FCMJwt sendNotfication'});
+        const order = await Order.findById(orderId).populate({ path: 'client', select: 'FCMJwt sendNotfication' });
         if (!order) {
             const error = new Error(`order not found`);
             error.statusCode = 404;
@@ -284,7 +288,7 @@ exports.putOffer = async (req, res, next) => {
 
         const newOffer = await offer.save();
 
-        if(order.client.sendNotfication.all==true && order.client.sendNotfication.newOffer==true ){
+        if (order.client.sendNotfication.all == true && order.client.sendNotfication.newOffer == true) {
             const notification = {
                 title_ar: 'عرض جديد',
                 body_ar: "قم بتفحص العروض الجديدة",
@@ -295,10 +299,10 @@ exports.putOffer = async (req, res, next) => {
                 id: newOffer._id.toString(),
                 key: '1',
             };
-    
-            await sendNotfication.send(data,notification,[order.client],'client');
+
+            await sendNotfication.send(data, notification, [order.client], 'client');
         }
-        
+
 
         res.status(201).json({
             state: 1,
@@ -332,7 +336,7 @@ exports.postOrderArrived = async (req, res, next) => {
         }
 
         const order = await Order.findById(orderId)
-        .populate({path:'client',select:'sendNotfication FCMJwt'});
+            .populate({ path: 'client', select: 'sendNotfication FCMJwt' });
         if (!order) {
             const error = new Error(`order not found`);
             error.statusCode = 404;
@@ -433,7 +437,7 @@ exports.postOrderArrived = async (req, res, next) => {
 
         await pay.save();
 
-        if(order.client.sendNotfication.all == true){
+        if (order.client.sendNotfication.all == true) {
             const notification = {
                 title_ar: 'قم بتقييم الطلب',
                 body_ar: "قم بتقييم طلبك السابق",
@@ -444,8 +448,8 @@ exports.postOrderArrived = async (req, res, next) => {
                 id: order._id.toString(),
                 key: '4',
             };
-    
-            await sendNotfication.send(data,notification,[order.client],'client');
+
+            await sendNotfication.send(data, notification, [order.client], 'client');
         }
 
         res.status(201).json({

@@ -604,39 +604,46 @@ exports.getOffers = async (req, res, next) => {
     const offerPerPage = 10;
     let offer;
     let totalOffer;
-    let find = {};
+    let find = {client: req.userId, status: 'started'};
     try {
-        if (select == 0) {
-            find = { client: req.userId, status: 'started' }
-        }
-        else if (select == 1) {
-            find = { client: req.userId, status: 'started', sellerRate: { $gt: 3.9 } }
-        } else if (select == 2) {
-            find = { client: req.userId, status: 'started', 'offerProducts.equals':  {$ne:false} }
-        } else if (select == 3) {
-            find = { client: req.userId, status: 'started', createdAt: { $gt: Date.now() - 43200000 } }
-        } else if (select == 4) {
-            const location = await Location.findOne({ client: req.userId }).select('Location');
-            if (!location) {
-                const error = new Error(`you should provide location.. not found`);
-                error.statusCode = 404;
-                error.state = 53;
-                throw error;
-            }
-            find = {
-                client: req.userId, status: 'started',
-                location: {
-                    $near: {
-                        $maxDistance: 1000 * maxDis,
-                        $geometry: {
-                            type: "Point",
-                            coordinates: location.Location.coordinates
-                        }
-                    },
 
+        const location = await Location.findOne({ client: req.userId }).select('Location');
+        
+        select.forEach(i=>{
+            if (i == 0) {
+                find = { client: req.userId, status: 'started' }
+            }
+            else if (i == 1) {
+                find = { ...find, sellerRate: { $gt: 3.9 } }
+            } else if (i == 2) {
+                find = { ...find, 'offerProducts.equals':  {$ne:false} }
+            } else if (i == 3) {
+                find = { ...find, createdAt: { $gt: Date.now() - 43200000 } }
+            } else if (i == 4) {
+                
+                if (!location) {
+                    const error = new Error(`you should provide location.. not found`);
+                    error.statusCode = 404;
+                    error.state = 53;
+                    throw error;
+                }
+
+                find = {
+                    ...find,
+                    location: {
+                        $near: {
+                            $maxDistance: 1000 * maxDis,
+                            $geometry: {
+                                type: "Point",
+                                coordinates: location.Location.coordinates
+                            }
+                        },
+    
+                    }
                 }
             }
-        }
+        });
+
         if (filter == 1) {
             offer = await Offer.find(find)
                 .select('seller banana_delivery price createdAt offerProducts')
