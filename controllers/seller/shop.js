@@ -39,7 +39,7 @@ exports.getOrders = async (req, res, next) => {
 
     const page = req.query.page || 1;
     const filter = req.query.filter || 0;    //0=>default //1=>amount //2=>created at date //3=>arrive Date
-    const select = req.query.select || 0;    //0=>default //1=>near   //2=>newest 12h //3=>arriveAt = 0
+    const select = req.query.select || [0];    //0=>default //1=>near   //2=>newest 12h //3=>arriveAt = 0
 
 
     const productPerPage = 10;
