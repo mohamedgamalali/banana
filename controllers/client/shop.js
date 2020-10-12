@@ -600,7 +600,7 @@ exports.getOffers = async (req, res, next) => {
     const page = req.query.page || 0;
     const filter = req.query.filter || 0;         //0=> default //1=>date //2=>price //3=>seller rating
     const maxDis = Number(req.query.maxDis) || 5; //default = 5 only used in sort with location
-    const select = req.query.select || 0;         //0=>default //1=> rate > 4 //2=>all amount //3=>in 12 hours //4=>lacation in 5 km
+    const select = req.query.select || [0];         //0=>default //1=> rate > 4 //2=>all amount //3=>in 12 hours //4=>lacation in 5 km
     const offerPerPage = 10;
     let offer;
     let totalOffer;
