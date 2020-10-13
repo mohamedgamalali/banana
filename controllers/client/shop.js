@@ -657,7 +657,7 @@ exports.getOffers = async (req, res, next) => {
                 .limit(offerPerPage);
 
                 if( select.indexOf('4') != -1 ){
-                    totalOffer = await Offer.find(find).estimatedDocumentCount();
+                    totalOffer = await Offer.find(find).count();
                 }else{
                     totalOffer = await Offer.find(find).countDocuments();
                 }
@@ -672,7 +672,7 @@ exports.getOffers = async (req, res, next) => {
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
                 if( select.indexOf('4') != -1 ){
-                    totalOffer = await Offer.find(find).estimatedDocumentCount();
+                    totalOffer = await Offer.find(find).count();
                 }else{
                     totalOffer = await Offer.find(find).countDocuments();
                 }
@@ -688,7 +688,7 @@ exports.getOffers = async (req, res, next) => {
                 .limit(offerPerPage);
 
                 if( select.indexOf('4') != -1 ){
-                    totalOffer = await Offer.find(find).estimatedDocumentCount();
+                    totalOffer = await Offer.find(find).count();
                 }else{
                     totalOffer = await Offer.find(find).countDocuments();
                 }
@@ -705,7 +705,7 @@ exports.getOffers = async (req, res, next) => {
                 .limit(offerPerPage);
 
                 if( select.indexOf('4') != -1 ){
-                    totalOffer = await Offer.find(find).estimatedDocumentCount();
+                    totalOffer = await Offer.find(find).count();
                 }else{
                     totalOffer = await Offer.find(find).countDocuments();
                 }
