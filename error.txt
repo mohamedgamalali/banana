@@ -89,3 +89,4 @@
 
     //client offers
     53=>you should provide location
+    55=>authraization required for filtering
