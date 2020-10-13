@@ -40,7 +40,7 @@ exports.getOrders = async (req, res, next) => {
         else {
             const error = new Error(`authantication required`);
             error.statusCode = 401;
-            error.state = 52;
+            error.state = 2;
             throw error;
         }
         for (let element of orders) {
