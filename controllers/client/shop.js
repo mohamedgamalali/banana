@@ -644,6 +644,7 @@ exports.getOffers = async (req, res, next) => {
             }
         });
 
+
         if (filter == 1) {
             offer = await Offer.find(find)
                 .select('seller banana_delivery price createdAt offerProducts')
@@ -655,8 +656,8 @@ exports.getOffers = async (req, res, next) => {
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
-                if(select==4){
-                    totalOffer = await Offer.find(find).count();
+                if( select.indexOf('4') != -1 ){
+                    totalOffer = await Offer.find(find).estimatedDocumentCount();
                 }else{
                     totalOffer = await Offer.find(find).countDocuments();
                 }
@@ -670,8 +671,8 @@ exports.getOffers = async (req, res, next) => {
                 .sort({ price: 0 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
-                if(select==4){
-                    totalOffer = await Offer.find(find).count();
+                if( select.indexOf('4') != -1 ){
+                    totalOffer = await Offer.find(find).estimatedDocumentCount();
                 }else{
                     totalOffer = await Offer.find(find).countDocuments();
                 }
@@ -686,8 +687,8 @@ exports.getOffers = async (req, res, next) => {
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
-                if(select==4){
-                    totalOffer = await Offer.find(find).count();
+                if( select.indexOf('4') != -1 ){
+                    totalOffer = await Offer.find(find).estimatedDocumentCount();
                 }else{
                     totalOffer = await Offer.find(find).countDocuments();
                 }
@@ -703,8 +704,8 @@ exports.getOffers = async (req, res, next) => {
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
 
-                if(select==4){
-                    totalOffer = await Offer.find(find).count();
+                if( select.indexOf('4') != -1 ){
+                    totalOffer = await Offer.find(find).estimatedDocumentCount();
                 }else{
                     totalOffer = await Offer.find(find).countDocuments();
                 }
