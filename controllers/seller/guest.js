@@ -2,27 +2,21 @@ const Order = require('../../models/order');
 
 exports.getOrders = async (req, res, next) => {
 
-    const page   = req.query.page   || 1;
+    const page = req.query.page || 1;
     const filter = req.query.filter || 0;    //0=>for date //1=>amount //2=>location
-    const sellerOffered = false ;
+    const sellerOffered = false;
 
     const productPerPage = 10;
 
     let orders;
     let total;
-    let finalOrders = [] ;
+    let finalOrders = [];
+
     try {
 
 
-        if (filter == 2) {
-
-            const error = new Error(`you can't filter with location in guest authantication required`);
-            error.statusCode = 401;
-            error.state = 52;
-            throw error;
-
-        } else if (filter == 0) {
-            total  = await Order.find({ status: 'started' }).countDocuments() ;
+        if (filter == 0) {
+            total = await Order.find({ status: 'started' }).countDocuments();
             orders = await Order.find({
                 status: 'started'
             })
@@ -32,7 +26,7 @@ exports.getOrders = async (req, res, next) => {
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
         } else if (filter == 1) {
-            total  = await Order.find({ status: 'started' }).countDocuments() ;
+            total = await Order.find({ status: 'started' }).countDocuments();
 
             orders = await Order.find({
                 status: 'started'
@@ -43,17 +37,23 @@ exports.getOrders = async (req, res, next) => {
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
         }
+        else {
+            const error = new Error(`authantication required`);
+            error.statusCode = 401;
+            error.state = 52;
+            throw error;
+        }
         for (let element of orders) {
-                const total_client_orders = await Order.find({ client: element.client._id }).countDocuments();
-                const ended_client_orders = await Order.find({ client: element.client._id, status: 'ended' }).countDocuments();
-                finalOrders.push({
-                    order: element,
-                    client: {
-                        total_client_orders: total_client_orders,
-                        ended_client_orders: ended_client_orders
-                    },
-                    sellerOffered:sellerOffered
-                });
+            const total_client_orders = await Order.find({ client: element.client._id }).countDocuments();
+            const ended_client_orders = await Order.find({ client: element.client._id, status: 'ended' }).countDocuments();
+            finalOrders.push({
+                order: element,
+                client: {
+                    total_client_orders: total_client_orders,
+                    ended_client_orders: ended_client_orders
+                },
+                sellerOffered: sellerOffered
+            });
         }
 
         res.status(200).json({
