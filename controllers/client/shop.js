@@ -641,10 +641,11 @@ exports.getOffers = async (req, res, next) => {
     
                     }
                 }
+        console.log("find before the quiry = " + find.location);
+
             }
         });
 
-        console.log("find before the quiry = " + find);
 
 
         if (filter == 1) {
