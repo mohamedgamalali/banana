@@ -644,6 +644,8 @@ exports.getOffers = async (req, res, next) => {
             }
         });
 
+        console.log("find before the quiry = " + find);
+
 
         if (filter == 1) {
             offer = await Offer.find(find)
