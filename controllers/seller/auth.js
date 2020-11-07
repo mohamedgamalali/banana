@@ -34,7 +34,7 @@ exports.postSignup = async (req, res, next) => {
             }
         });
 
-        if(lang!='ar'&&lang!='en'){
+        if(lang!='ar'&&lang!='en'  && lang!='urdu'){
             const error = new Error(`validation faild for lang.. must be 'ar' or 'en`);
             error.statusCode = 422;
             error.state = 5;
@@ -128,7 +128,7 @@ exports.postLogin = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        if(lang!='ar'&&lang!='en'){
+        if(lang!='ar'&&lang!='en'  && lang!='urdu'){
             const error = new Error(`validation faild for lang.. must be 'ar' or 'en`);
             error.statusCode = 422;
             error.state = 5;
