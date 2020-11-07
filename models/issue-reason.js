@@ -11,6 +11,10 @@ const reasonSchema = new schema({
         type:String,
         required:true,
     },
+    reason_urdu:{
+        type:String,
+        required:true,
+    },
 
 },{ timestamps: true });
 

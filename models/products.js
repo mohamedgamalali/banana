@@ -16,6 +16,10 @@ const productSchema = new schema({
         type:String,
         required:true,
     },
+    name_urdu:{
+        type:String,
+        required:true,
+    },
     productType:{
         type:String,
         required:true,

@@ -43,6 +43,7 @@ exports.postAddPolicy = async (req, res, next) => {
     const errors = validationResult(req);
     const EN = req.body.EN;
     const AR = req.body.AR;
+    const urdu = req.body.urdu;
 
     try {
         if (!errors.isEmpty()) {
@@ -56,12 +57,14 @@ exports.postAddPolicy = async (req, res, next) => {
         if (!policy) {
             const newPolicy = new Policy({
                 EN: EN,
-                AR: AR
+                AR: AR,
+                urdu:urdu
             });
             await newPolicy.save()
         } else {
             policy.EN = EN;
             policy.AR = AR;
+            policy.urdu = urdu;
             await policy.save()
         }
 
@@ -103,6 +106,7 @@ exports.postConditions = async (req, res, next) => {
     const errors = validationResult(req);
     const EN = req.body.EN;
     const AR = req.body.AR;
+    const urdu = req.body.urdu;
 
     try {
         if (!errors.isEmpty()) {
@@ -116,12 +120,14 @@ exports.postConditions = async (req, res, next) => {
         if (!conditions) {
             const newConditions = new Conditions({
                 EN: EN,
-                AR: AR
+                AR: AR,
+                urdu: urdu,
             });
             await newConditions.save()
         } else {
             conditions.EN = EN;
             conditions.AR = AR;
+            conditions.urdu = urdu;
             await conditions.save();
         }
 
@@ -510,6 +516,7 @@ exports.postIssueReasons = async (req, res, next) => {
     const errors = validationResult(req);
     const EN = req.body.EN;
     const AR = req.body.AR;
+    const urdu = req.body.ardu;
 
     try {
         if (!errors.isEmpty()) {
@@ -522,6 +529,7 @@ exports.postIssueReasons = async (req, res, next) => {
         const reason = new IssueRwasons({
             reason_ar: AR,
             reason_en: EN,
+            reason_urdu:urdu
         });
 
         const newIssueReason = await reason.save();

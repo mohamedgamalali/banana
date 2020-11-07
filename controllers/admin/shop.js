@@ -126,6 +126,7 @@ exports.putProduct = async (req, res, next) => {
     const imageUrl = req.files;
     const name_en = req.body.nameEn;
     const name_ar = req.body.nameAr;
+    const name_urdu = req.body.name_urdu;
     const productType = req.body.productType;
     const category = req.body.category;
     const errors = validationResult(req);
@@ -150,6 +151,7 @@ exports.putProduct = async (req, res, next) => {
             category: category,
             name_en: name_en,
             name_ar: name_ar,
+            name_urdu:name_urdu,
             productType: productType,
             imageUrl: imageUrl[0].path
         });

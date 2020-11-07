@@ -33,7 +33,7 @@ exports.getMyOrders = async (req, res, next) => {
                     path: 'order', select: 'locationDetails.stringAdress arriveDate'
                 })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name'
+                    path: 'offerProducts.product', select: 'name_en name_ar name name_urdu'
                 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
@@ -53,7 +53,7 @@ exports.getMyOrders = async (req, res, next) => {
                     path: 'order', select: 'locationDetails.stringAdress arriveDate'
                 })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name'
+                    path: 'offerProducts.product', select: 'name_en name_ar name name_urdu'
                 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
@@ -73,7 +73,7 @@ exports.getMyOrders = async (req, res, next) => {
                     path: 'order', select: 'locationDetails.stringAdress arriveDate'
                 })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name'
+                    path: 'offerProducts.product', select: 'name_en name_ar name name_urdu'
                 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
@@ -93,7 +93,7 @@ exports.getMyOrders = async (req, res, next) => {
                     path: 'order', select: 'locationDetails.stringAdress arriveDate'
                 })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name'
+                    path: 'offerProducts.product', select: 'name_en name_ar name name_urdu'
                 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
@@ -730,7 +730,7 @@ exports.postEditLang = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        if(lang!='ar'&&lang!='en'){
+        if(lang!='ar'&&lang!='en' && lang!='urdu'){
             const error = new Error(`validation faild for lang.. must be 'ar' or 'en`);
             error.statusCode = 422;
             error.state = 5;

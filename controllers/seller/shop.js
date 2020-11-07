@@ -99,21 +99,21 @@ exports.getOrders = async (req, res, next) => {
         if (filter == 0) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
-                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar name_urdu' })
         } else if (filter == 2) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
-                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar name_urdu' })
                 .sort({ createdAt: -1 });
         } else if (filter == 1) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
-                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar name_urdu' })
                 .sort({ amount_count: -1 });
         } else if (filter == 3) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
-                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar name_urdu' })
                 .sort({ arriveDate: -1 });
         }
 
@@ -476,7 +476,7 @@ exports.getSingleOrder = async (req, res, next) => {
 
         const order = await Order.findById(orderId)
             .select('products location locationDetails')
-            .populate({ path: 'products.product', select: 'category name name_en name_ar' });
+            .populate({ path: 'products.product', select: 'category name name_en name_ar name_urdu' });
 
         res.status(200).json({
             state: 1,
