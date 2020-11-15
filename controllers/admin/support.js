@@ -516,7 +516,7 @@ exports.postIssueReasons = async (req, res, next) => {
     const errors = validationResult(req);
     const EN = req.body.EN;
     const AR = req.body.AR;
-    const urdu = req.body.ardu;
+    const urdu = req.body.urdu;
 
     try {
         if (!errors.isEmpty()) {
