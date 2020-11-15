@@ -198,7 +198,7 @@ exports.deleteCart = async (req, res, next) => {
         const client = await Client.findById(req.userId).select('cart')
             .populate({
                 path: 'cart.product',
-                select: 'category name_en name_ar imageUrl name'
+                select: 'category name_en name_ar name_urdu imageUrl name'
             });
         if (!client) {
             const error = new Error(`client not found`);
@@ -230,7 +230,7 @@ exports.getCart = async (req, res, next) => {
             .select('cart')
             .populate({
                 path: 'cart.product',
-                select: 'category name_en name_ar imageUrl name'
+                select: 'category name_en name_ar name_urdu imageUrl name'
             });
         if (!cart) {
             const error = new Error(`client not found`);
@@ -417,7 +417,7 @@ exports.deleteFev = async (req, res, next) => {
         });
 
         const products = await Products.find({ _id: { $in: ListProducts[0].list.product } })
-            .select('category name_en name_ar productType imageUrl');
+            .select('category name_en name_ar name_urdu productType imageUrl');
 
         res.status(200).json({
             state: 1,
@@ -573,7 +573,7 @@ exports.getSingleOrder = async (req, res, next) => {
     try {
         const order = await Order.findById(orderId)
             .select('location locationDetails products arriveDate client')
-            .populate({ path: 'products.product', select: 'name_en name_ar imageUrl' });
+            .populate({ path: 'products.product', select: 'name_en name_ar imageUrl name_urdu' });
 
         if (order.client.toString() !== req.userId) {
             const error = new Error(`not the order owner`);
@@ -655,7 +655,7 @@ exports.getOffers = async (req, res, next) => {
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                    path: 'offerProducts.product', select: 'name_en name_ar name_urdu name',
                 })
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * offerPerPage)
@@ -671,7 +671,7 @@ exports.getOffers = async (req, res, next) => {
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                    path: 'offerProducts.product', select: 'name_en name_ar name_urdu name',
                 })
                 .sort({ price: 0 })
                 .skip((page - 1) * offerPerPage)
@@ -687,7 +687,7 @@ exports.getOffers = async (req, res, next) => {
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                    path: 'offerProducts.product', select: 'name_en name_ar name_urdu name',
                 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
@@ -703,7 +703,7 @@ exports.getOffers = async (req, res, next) => {
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                    path: 'offerProducts.product', select: 'name_en name_ar name_urdu name',
                 })
                 .sort({ sellerRate: -1 })
                 .skip((page - 1) * offerPerPage)
