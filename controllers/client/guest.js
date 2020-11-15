@@ -90,7 +90,7 @@ exports.getSearch = async (req, res, next) => {
                 { name_ar: new RegExp(searchQ.trim(), 'i') },
             ],
         })
-            .select('category name_en name_ar productType imageUrl')
+            .select('category name_en name_ar name_urdu productType imageUrl')
             .skip((page - 1) * productPerPage)
             .limit(productPerPage);
 
