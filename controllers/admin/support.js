@@ -421,7 +421,9 @@ exports.postIssueApprove = async (req, res, next) => {
                 title_ar: 'قسم الشكاوي',
                 body_ar: "تم الرد على الشكوي المقدمة",
                 title_en: 'Complaints Department',
-                body_en: 'The submitted complaint has been answered'
+                body_en: 'The submitted complaint has been answered',
+                title_urdu: 'شکایات کا محکمہ',
+                body_urdu: 'پیش کی گئی شکایت کا جواب دیا گیا ہے'
             };
             const data = {
                 id: issues._id.toString(),
@@ -439,7 +441,9 @@ exports.postIssueApprove = async (req, res, next) => {
                 title_ar: 'قسم الشكاوي',
                 body_ar: "تم الرد على الشكوى",
                 title_en: 'Complaints Department',
-                body_en: 'The complaint has been answered'
+                body_en: 'The complaint has been answered',
+                title_urdu: 'شکایات کا محکمہ',
+                body_urdu: 'ایک نئی شکایت ہے'
             };
             const data2 = {
                 id: issues._id.toString(),

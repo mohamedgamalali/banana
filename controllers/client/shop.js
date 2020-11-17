@@ -542,7 +542,9 @@ exports.postAddOrder = async (req, res, next) => {
                 title_ar: 'تم أضافة طلبك',
                 body_ar: "سوف تصلك العروض على طلبك في اسرع وقت ممكن",
                 title_en: 'Your order has been added',
-                body_en: 'You will receive offers on your order as soon as possible'
+                body_en: 'You will receive offers on your order as soon as possible',
+                title_urdu: 'آپ کا آرڈر شامل کردیا گیا ہے',
+                body_urdu: 'آپ کو جلد سے جلد اپنے آرڈر پر آفرز ملیں گے'
             };
             const data = {
                 id: ord._id.toString(),
@@ -911,7 +913,10 @@ exports.postCheckPayment = async (req, res, next) => {
                 title_ar: 'تم الموافقة',
                 body_ar: "وافق العميل على طلبك",
                 title_en: 'Been approved',
-                body_en: 'The customer accepted your offer'
+                body_en: 'The customer accepted your offer',
+                title_urdu: 'منظور کر لیا گیا',
+                body_urdu: 'گاہک نے آپ کی پیش کش قبول کرلی'
+
             };
             const data = {
                 id: offer._id.toString(),
@@ -1019,7 +1024,9 @@ exports.cashPayment = async (req, res, next) => {
                 title_ar: 'تم الموافقة',
                 body_ar: "وافق العميل على طلبك",
                 title_en: 'Been approved',
-                body_en: 'The customer accepted your offer'
+                body_en: 'The customer accepted your offer',
+                title_urdu: 'منظور کر لیا گیا',
+                body_urdu: 'گاہک نے آپ کی پیش کش قبول کرلی'
             };
             const data = {
                 id: offer._id.toString(),
@@ -1235,7 +1242,9 @@ exports.walletPayment = async (req, res, next) => {
                 title_ar: 'تم الموافقة',
                 body_ar: "وافق العميل على طلبك",
                 title_en: 'Been approved',
-                body_en: 'The customer accepted your offer'
+                body_en: 'The customer accepted your offer',
+                title_urdu: 'منظور کر لیا گیا',
+                body_urdu: 'گاہک نے آپ کی پیش کش قبول کرلی'
             };
             const data = {
                 id: offer._id.toString(),

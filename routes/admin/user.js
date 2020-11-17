@@ -57,6 +57,10 @@ router.post('/notfications/sendAll',[
     body('body_ar')
     .not().isEmpty(),
     body('body_en')
+    .not().isEmpty(),
+    body('body_urdu')
+    .not().isEmpty(),
+    body('title_urdu')
     .not().isEmpty()
 
 ],isAuth,userController.sendNotfication);
@@ -71,6 +75,10 @@ router.post('/notfications/send/seller',[
     body('body_ar')
     .not().isEmpty(),
     body('body_en')
+    .not().isEmpty(),
+    body('body_urdu')
+    .not().isEmpty(),
+    body('title_urdu')
     .not().isEmpty()
 
 ],isAuth,userController.singleNotficationSeller);
@@ -85,6 +93,10 @@ router.post('/notfications/send/client',[
     body('body_ar')
     .not().isEmpty(),
     body('body_en')
+    .not().isEmpty(),
+    body('body_urdu')
+    .not().isEmpty(),
+    body('title_urdu')
     .not().isEmpty()
 
 ],isAuth,userController.singleNotficationClient);

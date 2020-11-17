@@ -20,7 +20,9 @@ const notficationSchema = new schema({
         title_ar: String,
         body_ar: String,
         title_en: String,
-        body_en: String
+        body_en: String,
+        body_urdu: String,
+        title_urdu: String,
     },
     date: {
         type: String,

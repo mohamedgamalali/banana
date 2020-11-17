@@ -293,7 +293,9 @@ exports.putOffer = async (req, res, next) => {
                 title_ar: 'عرض جديد',
                 body_ar: "قم بتفحص العروض الجديدة",
                 title_en: 'new offer',
-                body_en: 'Check out new offers'
+                body_en: 'Check out new offers',
+                title_urdu:'نئی پیش کش',
+                body_urdu:'نئی پیش کش چیک کریں',
             };
             const data = {
                 id: newOffer._id.toString(),
@@ -442,7 +444,9 @@ exports.postOrderArrived = async (req, res, next) => {
                 title_ar: 'قم بتقييم الطلب',
                 body_ar: "قم بتقييم طلبك السابق",
                 title_en: 'Rate your order',
-                body_en: 'Rate your previous order'
+                body_en: 'Rate your previous order',
+                title_urdu:'اپنے آرڈر کی درجہ بندی کریں',
+                body_urdu:'اپنے پچھلے آرڈر کی درجہ بندی کریں',
             };
             const data = {
                 id: order._id.toString(),

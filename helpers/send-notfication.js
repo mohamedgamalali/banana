@@ -14,6 +14,7 @@ const send = async (data, notfi, user, path) => {
 
     let token_en = [];
     let token_ar = [];
+    let token_urdu = [];
 
     let index = -1;
     admin.apps.forEach((app, ind) => {
@@ -22,7 +23,7 @@ const send = async (data, notfi, user, path) => {
       }
     });
 
-    for(i of user){
+    for (i of user) {
       const notfication = new Notfication({
         path: path,
         user: i._id,
@@ -47,6 +48,8 @@ const send = async (data, notfi, user, path) => {
           token_ar.push(tok.token);
         } else if (tok.lang == 'en') {
           token_en.push(tok.token);
+        } else if (tok.lang == 'urdu') {
+          token_urdu.push(tok.token);
         }
       });
 
@@ -94,13 +97,38 @@ const send = async (data, notfi, user, path) => {
       topic: "X",
       tokens: token_en,
     };
+    const message_urdu = {
+      notification: {
+        title: notfi.title_urdu,
+        body: notfi.body_urdu,
+      },
+      data: data,
+      android: {
+        notification: {
+          sound: "default",
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: "default",
+          },
+        },
+      },
+      topic: "X",
+      tokens: token_en,
+    };
 
     if (message_en.tokens.length > 0) {
       const messageRes = await admin.apps[index].messaging().sendMulticast(message_en);
-      console.log( messageRes);
+      console.log(messageRes);
     }
     if (message_ar.tokens.length > 0) {
       const messageRes = await admin.apps[index].messaging().sendMulticast(message_ar);
+      console.log(messageRes);
+    }
+    if (message_urdu.tokens.length > 0) {
+      const messageRes = await admin.apps[index].messaging().sendMulticast(message_urdu);
       console.log(messageRes);
     }
 
@@ -116,14 +144,14 @@ const sendAll = async (data, notfi, path) => {
   try {
     const userPerOperation = 100;
     let users;
-  
+
     if (path == 'client') {
       const total = await Client.find({}).countDocuments();
       for (let i = 1; i <= Math.ceil(total / 100); i++) {
         users = await Client.find({}).select('FCMJwt')
           .skip((i - 1) * userPerOperation)
           .limit(userPerOperation);
-          await send(data, notfi, users, path);
+        await send(data, notfi, users, path);
 
       }
 
@@ -133,7 +161,7 @@ const sendAll = async (data, notfi, path) => {
         users = await Seller.find({}).select('FCMJwt')
           .skip((i - 1) * userPerOperation)
           .limit(userPerOperation);
-          await send(data, notfi, users, path);
+        await send(data, notfi, users, path);
 
       }
     }
