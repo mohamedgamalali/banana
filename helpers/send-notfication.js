@@ -116,7 +116,7 @@ const send = async (data, notfi, user, path) => {
         },
       },
       topic: "X",
-      tokens: token_en,
+      tokens: token_urdu,
     };
 
     if (message_en.tokens.length > 0) {
