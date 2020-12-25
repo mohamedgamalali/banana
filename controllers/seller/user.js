@@ -11,6 +11,8 @@ const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const  Mongoose  = require('mongoose');
 const seller = require('../../models/seller');
+const SMS = require('../../helpers/sms');
+
 
 
 exports.getMyOrders = async (req, res, next) => {
@@ -532,14 +534,14 @@ exports.postSendSMS = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(seller.tempCode, message);
+        const {body,status} = await SMS.send(seller.tempCode, message);
 
         await seller.save();
 
         res.status(200).json({
             state: 1,
-            //data:body,
-            code: buf,
+            data:body,
+            //code: buf,
             message: 'code sent'
         });
 
@@ -565,7 +567,7 @@ exports.postCheckCode = async (req, res, next) => {
         }
         const seller = await Seller.findById(req.userId).select('verficationCode codeExpireDate tempMobile mobile tempCode code');
 
-        const isEqual = bycript.compare(code, seller.verficationCode);
+        const isEqual = await bycript.compare(code, seller.verficationCode);
 
         if (!isEqual) {
             const error = new Error('wrong code!!');
