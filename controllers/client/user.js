@@ -417,7 +417,7 @@ exports.postCheckCode = async (req, res, next) => {
         }
         const client = await Client.findById(req.userId).select('verficationCode codeExpireDate tempMobile mobile tempCode code');
 
-        const isEqual = bycript.compare(code, client.verficationCode);
+        const isEqual = await bycript.compare(code, client.verficationCode);
 
         if (!isEqual) {
             const error = new Error('wrong code!!');
