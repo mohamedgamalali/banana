@@ -384,14 +384,14 @@ exports.postSendSMS = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(client.tempCode, message);
+        const {body,status} = await SMS.send(client.tempCode, message);
 
         await client.save();
 
         res.status(200).json({
             state: 1,
-            //data:body,
-            code: buf,
+            data:body,
+            //code: buf,
             message: 'code sent'
         });
 

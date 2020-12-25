@@ -247,13 +247,14 @@ exports.postForgetPassword = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(seller.code, message);
+        const {body,status} = await SMS.send(seller.code, message);
         await seller.save();
 
 
         res.status(200).json({
             state: 1,
-            code: buf,
+            data:body,
+            //code: buf,
             message: 'code sent'
         });
 
@@ -417,14 +418,14 @@ exports.postSendSms = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(seller.code, message);
+        const {body,status} = await SMS.send(seller.code, message);
 
         await seller.save();
 
         res.status(200).json({
             state: 1,
-            //data:body,
-            code: buf,
+            data:body,
+            //code: buf,
             message: 'code sent'
         });
 

@@ -214,14 +214,14 @@ exports.postSendSms = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(client.code, message);
+        const {body,status} = await SMS.send(client.code, message);
 
         await client.save();
 
         res.status(200).json({
             state: 1,
-            //data:body,
-            code: buf,
+            data:body,
+            //code: buf,
             message: 'code sent'
         });
 
@@ -351,13 +351,14 @@ exports.postForgetPassword = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(client.code ,message);
+        const {body,status} = await SMS.send(client.code ,message);
         await client.save();
 
 
         res.status(200).json({
             state: 1,
-            code: buf,
+            data:body,
+            //code: buf,
             message: 'code sent'
         });
 
@@ -536,3 +537,7 @@ exports.postLogout = async (req, res, next) => {
         next(err);
     }
 }
+
+
+
+

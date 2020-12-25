@@ -98,7 +98,6 @@ router.post('/notfications/send/client',[
     .not().isEmpty(),
     body('title_urdu')
     .not().isEmpty()
-
 ],isAuth,userController.singleNotficationClient);
 
 //search
