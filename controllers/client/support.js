@@ -136,7 +136,9 @@ exports.postIssue = async (req, res, next) => {
                 title_ar: 'قسم الشكاوي',
                 body_ar: "تم ارسال الشكوى بنجاح",
                 title_en: 'Complaints Department',
-                body_en: 'The complaint has been sent successfully'
+                body_en: 'The complaint has been sent successfully',
+                body_urdu:'شکایت کامیابی کے ساتھ بھیجی گئی ہے',
+                title_urdu:'شکایات کا محکمہ'
             };
             const data = {
                 id: iii._id.toString(),
@@ -151,7 +153,9 @@ exports.postIssue = async (req, res, next) => {
                 title_ar: 'قسم الشكاوي',
                 body_ar: "هنالك شكوى جديدة",
                 title_en: 'Complaints Department',
-                body_en: 'There is a new complaint'
+                body_en: 'There is a new complaint',
+                title_urdu:'شکایات کا محکمہ',
+                body_urdu:'ایک نئی شکایت ہے',
             };
             const data2 = {
                 id: iii._id.toString(),

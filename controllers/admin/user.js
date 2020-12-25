@@ -25,35 +25,35 @@ exports.getSellers = async (req, res, next) => {
             seller = await Seller.find({})
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('name mobile email category blocked verfication code');
+                .select('name mobile email category blocked verfication code certificate');
 
             total = await Seller.find({}).countDocuments();
         } else if (filter == 1) {
             seller = await Seller.find({ blocked: true })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('name mobile email category blocked verfication code');
+                .select('name mobile email category blocked verfication code certificate');
 
             total = await Seller.find({ blocked: true }).countDocuments();
         } else if (filter == 2) {
             seller = await Seller.find({ blocked: false })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('name mobile email category blocked verfication code');
+                .select('name mobile email category blocked verfication code certificate');
 
             total = await Seller.find({ blocked: false }).countDocuments();
         } else if (filter == 3) {
             seller = await Seller.find({ verfication: true })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('name mobile email category blocked verfication code');
+                .select('name mobile email category blocked verfication code certificate');
 
             total = await Seller.find({ verfication: true }).countDocuments();
         } else if (filter == 4) {
             seller = await Seller.find({ verfication: false })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('name mobile email category blocked verfication code');
+                .select('name mobile email category blocked verfication code certificate');
 
             total = await Seller.find({ verfication: false }).countDocuments();
         }
@@ -460,8 +460,10 @@ exports.sendNotfication = async (req, res, next) => {
     const path = req.body.path;
     const title_ar = req.body.title_ar;
     const title_en = req.body.title_en;
+    const title_urdu = req.body.title_urdu;
     const body_ar = req.body.body_ar;
     const body_en = req.body.body_en;
+    const body_urdu = req.body.body_urdu;
 
     const errors = validationResult(req);
     try {
@@ -479,7 +481,9 @@ exports.sendNotfication = async (req, res, next) => {
             title_ar: title_ar,
             body_ar: body_ar,
             title_en: title_en,
-            body_en: body_en
+            body_en: body_en,
+            body_urdu:body_urdu,
+            title_urdu:title_urdu
         };
         const data = {
             id: 'none',
@@ -510,6 +514,11 @@ exports.singleNotficationSeller = async (req, res, next) => {
     const body_ar = req.body.body_ar;
     const body_en = req.body.body_en;
 
+    //urdu
+    const body_urdu  = req.body.body_urdu;
+    const title_urdu = req.body.title_urdu;
+
+
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
@@ -529,7 +538,9 @@ exports.singleNotficationSeller = async (req, res, next) => {
                 title_ar: title_ar,
                 body_ar: body_ar,
                 title_en: title_en,
-                body_en: body_en
+                body_en: body_en,
+                body_urdu:body_urdu,
+                title_urdu:title_urdu
             };
             const data = {
                 id: 'none',
@@ -562,6 +573,10 @@ exports.singleNotficationClient = async (req, res, next) => {
     const body_ar = req.body.body_ar;
     const body_en = req.body.body_en;
 
+    //urdu
+    const body_urdu  = req.body.body_urdu;
+    const title_urdu = req.body.title_urdu;
+
     const errors = validationResult(req);
     try {
         if (!errors.isEmpty()) {
@@ -584,7 +599,9 @@ exports.singleNotficationClient = async (req, res, next) => {
                 title_ar: title_ar,
                 body_ar: body_ar,
                 title_en: title_en,
-                body_en: body_en
+                body_en: body_en,
+                body_urdu:body_urdu,
+                title_urdu:title_urdu
             };
             const data = {
                 id: 'none',

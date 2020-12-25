@@ -10,6 +10,10 @@ const conditionsSchema = new schema({
     AR:{
         type:String,
         required:true
+    },
+    urdu:{
+        type:String,
+        required:true
     }
 },{timestamps:true});
 

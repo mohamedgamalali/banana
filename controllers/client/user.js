@@ -53,7 +53,7 @@ exports.getOrders = async (req, res, next) => {
             total = await Order.find({ client: req.userId, status: filter }).countDocuments();
             orders = await Order.find({ client: req.userId, status: filter })
                 .select('location stringAdress arriveDate products locationDetails pay reted')
-                .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
+                .populate({ path: 'products.product', select: 'name name_en name_ar name_urdu imageUrl' })
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
@@ -66,7 +66,7 @@ exports.getOrders = async (req, res, next) => {
             total = await Order.find({ client: req.userId, _id: { $in: orderIdS } }).countDocuments();
             orders = await Order.find({ client: req.userId, _id: { $in: orderIdS } })
                 .select('location stringAdress arriveDate products locationDetails pay reted')
-                .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
+                .populate({ path: 'products.product', select: 'name name_en name_ar name_urdu imageUrl' })
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
@@ -80,7 +80,7 @@ exports.getOrders = async (req, res, next) => {
             total = await Order.find({ client: req.userId, _id: { $in: orderIdS } }).countDocuments();
             orders = await Order.find({ client: req.userId, _id: { $in: orderIdS } })
                 .select('location stringAdress arriveDate products locationDetails pay reted')
-                .populate({ path: 'products.product', select: 'name name_en name_ar imageUrl' })
+                .populate({ path: 'products.product', select: 'name name_en name_ar name_urdu imageUrl' })
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
@@ -191,7 +191,7 @@ exports.getMyfevProducts = async (req, res, next) => {
             throw error;
         }
         const products = await Products.find({ _id: { $in: ListProducts[0].list.product } })
-            .select('category name_en name_ar productType imageUrl');
+            .select('category name_en name_ar name_urdu productType imageUrl');
         res.status(200).json({
             state: 1,
             data: products,
@@ -384,14 +384,14 @@ exports.postSendSMS = async (req, res, next) => {
 
         const message = `your verification code is ${buf}`;
 
-        //const {body,status} = await SMS.send(client.tempCode, message);
+        const {body,status} = await SMS.send(client.tempCode, message);
 
         await client.save();
 
         res.status(200).json({
             state: 1,
-            //data:body,
-            code: buf,
+            data:body,
+            //code: buf,
             message: 'code sent'
         });
 
@@ -712,7 +712,7 @@ exports.postEditLang = async (req, res, next) => {
             error.state = 5;
             throw error;
         }
-        if(lang!='ar'&&lang!='en'){
+        if(lang!='ar'&&lang!='en'&&lang!='urdu'){
             const error = new Error(`validation faild for lang.. must be 'ar' or 'en`);
             error.statusCode = 422;
             error.state = 5;

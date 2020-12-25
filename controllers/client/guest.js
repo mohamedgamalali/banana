@@ -24,27 +24,30 @@ exports.getProducts = async (req, res, next) => {
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('category name_en name_ar productType imageUrl');
+                .select('category name_en name_ar name_urdu productType imageUrl');
         } else if (date == '1' && sold == '1') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
                 .sort({ orders: -1, createdAt: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('category name_en name_ar productType imageUrl');
+                .select('category name_en name_ar name_urdu productType imageUrl');
+
         } else if (date == '0' && sold == '1') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
                 .sort({ orders: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('category name_en name_ar productType imageUrl');
+                .select('category name_en name_ar name_urdu productType imageUrl');
+
         } else if (date == '0' && sold == '0') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('category name_en name_ar productType imageUrl');
+                .select('category name_en name_ar name_urdu productType imageUrl');
+
         }
 
 
@@ -87,7 +90,7 @@ exports.getSearch = async (req, res, next) => {
                 { name_ar: new RegExp(searchQ.trim(), 'i') },
             ],
         })
-            .select('category name_en name_ar productType imageUrl')
+            .select('category name_en name_ar name_urdu productType imageUrl')
             .skip((page - 1) * productPerPage)
             .limit(productPerPage);
 

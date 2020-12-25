@@ -39,27 +39,27 @@ exports.getProducts = async (req, res, next) => {
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('category name_en name_ar productType imageUrl');
+                .select('category name_en name_ar name_urdu productType imageUrl');
         } else if (date == '1' && sold == '1') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
                 .sort({ orders: -1, createdAt: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('category name_en name_ar productType imageUrl');
+                .select('category name_en name_ar name_urdu productType imageUrl');
         } else if (date == '0' && sold == '1') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
                 .sort({ orders: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('category name_en name_ar productType imageUrl');
+                .select('category name_en name_ar name_urdu productType imageUrl');
         } else if (date == '0' && sold == '0') {
             totalProducts = await Products.find(find).countDocuments();
             products = await Products.find(find)
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage)
-                .select('category name_en name_ar productType imageUrl');
+                .select('category name_en name_ar name_urdu productType imageUrl');
         }
 
         const client = await Client.findById(req.userId).select('cart');
@@ -96,6 +96,7 @@ exports.getSearch = async (req, res, next) => {
             $or: [
                 { name_en: new RegExp(searchQ.trim(), 'i') },
                 { name_ar: new RegExp(searchQ.trim(), 'i') },
+                { name_urdu: new RegExp(searchQ.trim(), 'i') },
             ],
         }).countDocuments();
         const products = await Products.find({
@@ -103,9 +104,10 @@ exports.getSearch = async (req, res, next) => {
             $or: [
                 { name_en: new RegExp(searchQ.trim(), 'i') },
                 { name_ar: new RegExp(searchQ.trim(), 'i') },
+                { name_urdu: new RegExp(searchQ.trim(), 'i') },
             ],
         })
-            .select('category name_en name_ar productType imageUrl')
+            .select('category name_en name_ar name_urdu productType imageUrl')
             .skip((page - 1) * productPerPage)
             .limit(productPerPage);
 
@@ -196,7 +198,7 @@ exports.deleteCart = async (req, res, next) => {
         const client = await Client.findById(req.userId).select('cart')
             .populate({
                 path: 'cart.product',
-                select: 'category name_en name_ar imageUrl name'
+                select: 'category name_en name_ar name_urdu imageUrl name'
             });
         if (!client) {
             const error = new Error(`client not found`);
@@ -228,7 +230,7 @@ exports.getCart = async (req, res, next) => {
             .select('cart')
             .populate({
                 path: 'cart.product',
-                select: 'category name_en name_ar imageUrl name'
+                select: 'category name_en name_ar name_urdu imageUrl name'
             });
         if (!cart) {
             const error = new Error(`client not found`);
@@ -415,7 +417,7 @@ exports.deleteFev = async (req, res, next) => {
         });
 
         const products = await Products.find({ _id: { $in: ListProducts[0].list.product } })
-            .select('category name_en name_ar productType imageUrl');
+            .select('category name_en name_ar name_urdu productType imageUrl');
 
         res.status(200).json({
             state: 1,
@@ -540,7 +542,9 @@ exports.postAddOrder = async (req, res, next) => {
                 title_ar: 'تم أضافة طلبك',
                 body_ar: "سوف تصلك العروض على طلبك في اسرع وقت ممكن",
                 title_en: 'Your order has been added',
-                body_en: 'You will receive offers on your order as soon as possible'
+                body_en: 'You will receive offers on your order as soon as possible',
+                title_urdu: 'آپ کا آرڈر شامل کردیا گیا ہے',
+                body_urdu: 'آپ کو جلد سے جلد اپنے آرڈر پر آفرز ملیں گے'
             };
             const data = {
                 id: ord._id.toString(),
@@ -571,7 +575,7 @@ exports.getSingleOrder = async (req, res, next) => {
     try {
         const order = await Order.findById(orderId)
             .select('location locationDetails products arriveDate client')
-            .populate({ path: 'products.product', select: 'name_en name_ar imageUrl' });
+            .populate({ path: 'products.product', select: 'name_en name_ar imageUrl name_urdu' });
 
         if (order.client.toString() !== req.userId) {
             const error = new Error(`not the order owner`);
@@ -653,7 +657,7 @@ exports.getOffers = async (req, res, next) => {
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                    path: 'offerProducts.product', select: 'name_en name_ar name_urdu name',
                 })
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * offerPerPage)
@@ -669,7 +673,7 @@ exports.getOffers = async (req, res, next) => {
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                    path: 'offerProducts.product', select: 'name_en name_ar name_urdu name',
                 })
                 .sort({ price: 0 })
                 .skip((page - 1) * offerPerPage)
@@ -685,7 +689,7 @@ exports.getOffers = async (req, res, next) => {
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                    path: 'offerProducts.product', select: 'name_en name_ar name_urdu name',
                 })
                 .skip((page - 1) * offerPerPage)
                 .limit(offerPerPage);
@@ -701,7 +705,7 @@ exports.getOffers = async (req, res, next) => {
                 .select('seller banana_delivery price createdAt offerProducts')
                 .populate({ path: 'seller', select: 'rate certificate.avilable' })
                 .populate({
-                    path: 'offerProducts.product', select: 'name_en name_ar name',
+                    path: 'offerProducts.product', select: 'name_en name_ar name_urdu name',
                 })
                 .sort({ sellerRate: -1 })
                 .skip((page - 1) * offerPerPage)
@@ -909,7 +913,10 @@ exports.postCheckPayment = async (req, res, next) => {
                 title_ar: 'تم الموافقة',
                 body_ar: "وافق العميل على طلبك",
                 title_en: 'Been approved',
-                body_en: 'The customer accepted your offer'
+                body_en: 'The customer accepted your offer',
+                title_urdu: 'منظور کر لیا گیا',
+                body_urdu: 'گاہک نے آپ کی پیش کش قبول کرلی'
+
             };
             const data = {
                 id: offer._id.toString(),
@@ -1017,7 +1024,9 @@ exports.cashPayment = async (req, res, next) => {
                 title_ar: 'تم الموافقة',
                 body_ar: "وافق العميل على طلبك",
                 title_en: 'Been approved',
-                body_en: 'The customer accepted your offer'
+                body_en: 'The customer accepted your offer',
+                title_urdu: 'منظور کر لیا گیا',
+                body_urdu: 'گاہک نے آپ کی پیش کش قبول کرلی'
             };
             const data = {
                 id: offer._id.toString(),
@@ -1233,7 +1242,9 @@ exports.walletPayment = async (req, res, next) => {
                 title_ar: 'تم الموافقة',
                 body_ar: "وافق العميل على طلبك",
                 title_en: 'Been approved',
-                body_en: 'The customer accepted your offer'
+                body_en: 'The customer accepted your offer',
+                title_urdu: 'منظور کر لیا گیا',
+                body_urdu: 'گاہک نے آپ کی پیش کش قبول کرلی'
             };
             const data = {
                 id: offer._id.toString(),

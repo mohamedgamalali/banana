@@ -2,7 +2,7 @@ const unirest = require('unirest');
 
 exports.send = async (mobile,message) => {
     try {
-        const { body, status } = await unirest
+        const { body, status } = await unirest 
             .get(`https://globalsms.wisoftsolutions.com:1111/API/SendSMS?username=${process.env.SMS_NAME}&apiId=${process.env.SMS_API_ID}&json=True&destination=${mobile}&source=${process.env.SMS_SOURCE}&text=${message}`);
         
 

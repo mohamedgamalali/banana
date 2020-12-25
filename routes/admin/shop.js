@@ -14,6 +14,8 @@ router.post('/product',[
     .not().isEmpty(),
     body('nameAr')
     .not().isEmpty(),
+    body('name_urdu')
+    .not().isEmpty(),
     body('productType')
     .not().isEmpty(),
     body('category')

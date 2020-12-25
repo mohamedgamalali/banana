@@ -21,7 +21,7 @@ exports.getOrders = async (req, res, next) => {
                 status: 'started'
             })
                 .select('location category client products amount_count stringAdress arriveDate')
-                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category name_urdu name name_en name_ar' })
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);
@@ -32,7 +32,7 @@ exports.getOrders = async (req, res, next) => {
                 status: 'started'
             })
                 .select('location category client products amount_count stringAdress arriveDate')
-                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category  name_urdu name name_en name_ar' })
                 .sort({ amount_count: -1 })
                 .skip((page - 1) * productPerPage)
                 .limit(productPerPage);

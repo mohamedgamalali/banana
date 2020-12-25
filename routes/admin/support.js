@@ -14,6 +14,8 @@ router.post('/support/policy',[
     body('EN')
     .not().isEmpty(),
     body('AR')
+    .not().isEmpty(),
+    body('urdu')
     .not().isEmpty()
 ], isAuth,supportController.postAddPolicy);
 
@@ -24,6 +26,8 @@ router.post('/support/conditions',[
     body('EN')
     .not().isEmpty(),
     body('AR')
+    .not().isEmpty(),
+    body('urdu')
     .not().isEmpty()
 ], isAuth,supportController.postConditions);
 
@@ -56,6 +60,8 @@ router.post('/support/issues/reasons',[
     body('EN')
     .not().isEmpty(),
     body('AR')
+    .not().isEmpty(),
+    body('urdu')
     .not().isEmpty()
 ] ,isAuth,supportController.postIssueReasons);
 

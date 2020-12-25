@@ -99,21 +99,21 @@ exports.getOrders = async (req, res, next) => {
         if (filter == 0) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
-                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar name_urdu' })
         } else if (filter == 2) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
-                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar name_urdu' })
                 .sort({ createdAt: -1 });
         } else if (filter == 1) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
-                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar name_urdu' })
                 .sort({ amount_count: -1 });
         } else if (filter == 3) {
             orders = await Order.find(find)
                 .select('location category client products amount_count stringAdress arriveDate')
-                .populate({ path: 'products.product', select: 'category name name_en name_ar' })
+                .populate({ path: 'products.product', select: 'category name name_en name_ar name_urdu' })
                 .sort({ arriveDate: -1 });
         }
 
@@ -293,7 +293,9 @@ exports.putOffer = async (req, res, next) => {
                 title_ar: 'عرض جديد',
                 body_ar: "قم بتفحص العروض الجديدة",
                 title_en: 'new offer',
-                body_en: 'Check out new offers'
+                body_en: 'Check out new offers',
+                title_urdu:'نئی پیش کش',
+                body_urdu:'نئی پیش کش چیک کریں',
             };
             const data = {
                 id: newOffer._id.toString(),
@@ -442,7 +444,9 @@ exports.postOrderArrived = async (req, res, next) => {
                 title_ar: 'قم بتقييم الطلب',
                 body_ar: "قم بتقييم طلبك السابق",
                 title_en: 'Rate your order',
-                body_en: 'Rate your previous order'
+                body_en: 'Rate your previous order',
+                title_urdu:'اپنے آرڈر کی درجہ بندی کریں',
+                body_urdu:'اپنے پچھلے آرڈر کی درجہ بندی کریں',
             };
             const data = {
                 id: order._id.toString(),
@@ -476,7 +480,7 @@ exports.getSingleOrder = async (req, res, next) => {
 
         const order = await Order.findById(orderId)
             .select('products location locationDetails')
-            .populate({ path: 'products.product', select: 'category name name_en name_ar' });
+            .populate({ path: 'products.product', select: 'category name name_en name_ar name_urdu' });
 
         res.status(200).json({
             state: 1,
